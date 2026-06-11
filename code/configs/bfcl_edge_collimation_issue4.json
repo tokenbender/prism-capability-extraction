@@ -1,0 +1,149 @@
+{
+  "experiment_id": "bfcl_iterative_edge_collimation_v1",
+  "github_issue": "https://github.com/tokenbender/prism-capability-extraction/issues/4",
+  "run_grade": "two_stage",
+  "compute_plan": {
+    "dry_run": {
+      "gpu": "RTX6000",
+      "minimum_gpu_memory_gb": 45,
+      "purpose": "end-to-end pipeline validation with small row limits before H200 spend",
+      "ttl": "6h"
+    },
+    "full_run": {
+      "gpu": "H200",
+      "minimum_gpu_memory_gb": 140,
+      "purpose": "full edge-curriculum collimation, attribution, and k-ladder evaluation",
+      "ttl": "24h"
+    }
+  },
+  "tracking": {
+    "github_issue_group": "issue-4",
+    "heartbeat": "issue-4-bfcl-edge-heartbeat",
+    "wandb": {
+      "mode": "online",
+      "project": "prism-bfcl",
+      "group": "issue-4",
+      "job_types": [
+        "curriculum",
+        "leak_audit",
+        "dry_run",
+        "train",
+        "attribution",
+        "eval"
+      ],
+      "tags": [
+        "bfcl",
+        "edge-curriculum",
+        "pre-attribution",
+        "collimation",
+        "qwen3-8b",
+        "issue-4"
+      ]
+    }
+  },
+  "model": {
+    "starting_checkpoint": "Qwen/Qwen3-8B",
+    "dtype": "bfloat16",
+    "thinking": "disabled",
+    "teacher_policy": "The full model may propose, rank, or provide soft-policy pressure, but hard labels must be synthetic-by-construction or verifier accepted."
+  },
+  "data": {
+    "eval_pairs": "data/bfcl_single_call/pairs.jsonl",
+    "eval_rows": 1007,
+    "strict_train_jsonl": "data/bfcl_strict_10k_mix_len1024/train.jsonl",
+    "edge_builder": "code/scripts/build_bfcl_edge_curriculum.py",
+    "edge_train_jsonl": "data/bfcl_issue4_edge_curriculum_v1/edge.jsonl",
+    "mixed_train_jsonl": "data/bfcl_issue4_edge_curriculum_v1/train_mixed.jsonl",
+    "edge_count_full": 3000,
+    "strict_count_full": 9000,
+    "initial_ratio": "75% strict, 25% synthetic edge",
+    "dry_run_edge_count": 64,
+    "dry_run_strict_count": 192
+  },
+  "edge_buckets": [
+    "function_name_disambiguation",
+    "schema_completion",
+    "enum_disambiguation",
+    "json_wrapper_stability",
+    "type_coercion",
+    "optional_default_arguments",
+    "sql_schema_discipline",
+    "formula_normalization"
+  ],
+  "leak_rules": [
+    "No BFCL eval prompt or target row may appear in edge training data.",
+    "No BFCL eval function names may appear in edge tool names.",
+    "No BFCL eval schema argument names may appear in edge schema argument names.",
+    "No BFCL eval target literals may appear in edge target literals.",
+    "The mixed strict+edge train set must pass the existing exact and near-overlap train/eval audit before training."
+  ],
+  "dry_run_limits": {
+    "train_max_rows": 256,
+    "train_max_steps": 2,
+    "max_seq_length": 768,
+    "save_merged": true,
+    "attribution_limit": 8,
+    "eval_limit": 16,
+    "mask_topk": [
+      80000
+    ]
+  },
+  "full_run": {
+    "train_max_rows": null,
+    "epochs": 1.0,
+    "max_seq_length": 1024,
+    "batch_size": 1,
+    "grad_accum": 8,
+    "lr": 0.0002,
+    "lora_r": 64,
+    "lora_alpha": 128,
+    "lora_dropout": 0.0,
+    "use_rslora": true,
+    "policy_kl_beta": 1.0,
+    "ce_beta": 0.2,
+    "merge_scale": 1.0,
+    "mask_topk": [
+      80000,
+      120000,
+      160000,
+      200000,
+      240000
+    ]
+  },
+  "baselines": {
+    "full_unmasked_qwen3_8b_normalized": "664/1007",
+    "issue2_k160": "488/1007",
+    "issue2_k200": "579/1007",
+    "issue2_k240": "604/1007",
+    "previous_conditioned_k160": "553/1007",
+    "previous_conditioned_k240": "568/1007"
+  },
+  "success_targets": {
+    "primary": "Beat issue #2 at k200 or k240 while passing all leak gates.",
+    "strong": "Beat the previous conditioned k160 anchor of 553/1007 at k160.",
+    "aggressive": "Move k120 materially toward 500/1007 or bring k240 close to the 664/1007 full-model anchor."
+  },
+  "artifact_policy": {
+    "huggingface_dataset_repo": "TokenBender/circuit-discovery",
+    "repo_path_prefix": "bfcl/issue4_edge_collimation_v1",
+    "upload": [
+      "configs",
+      "curriculum manifest",
+      "edge leak report",
+      "mixed train/eval overlap audit",
+      "train summary",
+      "adapter",
+      "attribution arrays",
+      "eval summaries",
+      "failure buckets",
+      "final summary table"
+    ],
+    "exclude": [
+      "secrets",
+      "raw credentials",
+      "model caches",
+      "merged/full base weights",
+      "intermediate merged checkpoints"
+    ]
+  }
+}
