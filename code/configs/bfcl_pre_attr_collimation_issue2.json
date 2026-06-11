@@ -1,0 +1,164 @@
+{
+  "experiment_id": "bfcl_pre_attr_collimation_v0",
+  "github_issue": "https://github.com/tokenbender/prism-capability-extraction/issues/2",
+  "run_grade": "publishable",
+  "compute": {
+    "class": "H100",
+    "minimum_gpu_memory_gb": 80,
+    "notes": "Use an H100-class node. Preserve artifacts before terminating compute."
+  },
+  "tracking": {
+    "github_issue_group": "issue-2",
+    "wandb": {
+      "mode": "online",
+      "project": "prism-bfcl",
+      "group": "issue-2",
+      "job_types": [
+        "leak_audit",
+        "train",
+        "attribution",
+        "eval"
+      ],
+      "tags": [
+        "bfcl",
+        "pre-attribution",
+        "collimation",
+        "qwen3-8b",
+        "publishable"
+      ]
+    }
+  },
+  "artifact_destinations": {
+    "huggingface_dataset_repo": "TokenBender/circuit-discovery",
+    "huggingface_model_repo": "TokenBender/circuit-discovery",
+    "repo_path_prefix": "bfcl/issue2_pre_attr_collimation_v0",
+    "upload_policy": [
+      "Upload configs, manifests, leak-audit summaries, attribution scores, selected masks, eval summaries, failure buckets, and LoRA adapter weights.",
+      "Do not upload secrets, local caches, third-party base-model cache directories, or merged/full Qwen base weights.",
+      "If a dedicated BFCL repo is later preferred, mirror the same path prefix and record the new immutable revision in the closeout."
+    ]
+  },
+  "model": {
+    "starting_checkpoint": "Qwen/Qwen3-8B",
+    "true_base_control_checkpoint": "Qwen/Qwen3-8B-Base",
+    "true_base_control_status": "optional_separate_control",
+    "dtype": "bfloat16",
+    "thinking": "disabled"
+  },
+  "data": {
+    "eval_pairs": "data/bfcl_single_call/pairs.jsonl",
+    "eval_manifest": "data/bfcl_single_call/manifest.json",
+    "eval_rows": 1007,
+    "eval_categories": [
+      "simple",
+      "live_simple",
+      "exec_simple",
+      "java",
+      "javascript",
+      "sql"
+    ],
+    "train_jsonl": "data/bfcl_strict_10k_mix_len1024/train.jsonl",
+    "train_sources": [
+      "ToolMind strict BFCL-compatible rows",
+      "Argilla/APIGen strict BFCL-compatible rows"
+    ],
+    "data_rule": "BFCL eval rows are held out from collimation/training. Run exact and near-duplicate overlap checks before expensive training."
+  },
+  "prompt_and_target": {
+    "prompt_format": "Qwen chat template with normalized tool schema and thinking disabled",
+    "generation_guardrail": "bfcl_canonicalization_prompt=true for evaluation",
+    "target_format": "full <tool_call>{\"name\": ..., \"arguments\": ...}</tool_call> continuation",
+    "attribution_objective": "teacher-forced full gold tool-call continuation logprob"
+  },
+  "stages": [
+    {
+      "name": "auth_and_environment_check",
+      "required": true,
+      "checks": [
+        "HF token available from environment or Hugging Face cache",
+        "W&B login available through netrc or environment",
+        "CUDA visible on H100-class GPU",
+        "git sha recorded"
+      ]
+    },
+    {
+      "name": "data_build_or_restore",
+      "required": true,
+      "commands": [
+        "cd code && python3 scripts/bfcl_direct_qwen3.py download-bfcl-single-call --output-dir data/bfcl_single_call --output data/bfcl_single_call/pairs.jsonl --manifest data/bfcl_single_call/manifest.json",
+        "cd code && python3 scripts/build_bfcl_strict_10k_mix.py --output data/bfcl_strict_10k_mix/train.jsonl --manifest data/bfcl_strict_10k_mix/manifest.json",
+        "cd code && python3 scripts/filter_bfcl_dataset_by_encoded_length.py --input data/bfcl_strict_10k_mix/train.jsonl --output data/bfcl_strict_10k_mix_len1024/train.jsonl --model Qwen/Qwen3-8B --max-length 1024"
+      ]
+    },
+    {
+      "name": "leak_audit",
+      "required": true,
+      "command": "cd code && python3 scripts/audit_bfcl_train_eval_overlap.py --train-jsonl data/bfcl_strict_10k_mix_len1024/train.jsonl --eval-jsonl data/bfcl_single_call/pairs.jsonl --output runs/issue2_bfcl_pre_attr_collimation/leak_audit.json --near-threshold 0.85 --fail-on-overlap",
+      "outputs": [
+        "runs/issue2_bfcl_pre_attr_collimation/leak_audit.json"
+      ],
+      "rules": [
+        "No exact duplicate prompt/tool/target rows between train_jsonl and eval_pairs.",
+        "No near-duplicate rows above the configured similarity threshold without manual review.",
+        "Run must stop before collimation if overlap is found."
+      ]
+    },
+    {
+      "name": "pre_attribution_collimation",
+      "required": true,
+      "script": "code/scripts/train_bfcl_unmasked_lora.py",
+      "command": "cd code && python3 scripts/train_bfcl_unmasked_lora.py --model Qwen/Qwen3-8B --train-jsonl data/bfcl_strict_10k_mix_len1024/train.jsonl --out-dir runs/issue2_bfcl_pre_attr_collimation/unmasked_r32 --experiment-id bfcl_pre_attr_collimation_v0 --github-issue 2 --dtype bfloat16 --device-map auto --max-seq-length 1024 --epochs 1.0 --batch-size 1 --grad-accum 8 --lr 2e-4 --lora-r 32 --lora-alpha 64 --lora-dropout 0.0 --use-rslora --policy-kl-beta 1.0 --ce-beta 0.2 --eval-every 25 --save-every 100 --save-merged --wandb-mode online --wandb-project prism-bfcl --wandb-group issue-2 --wandb-job-type train --wandb-tags bfcl,pre-attribution,collimation,qwen3-8b,publishable",
+      "outputs": [
+        "runs/issue2_bfcl_pre_attr_collimation/unmasked_r32/run_config.json",
+        "runs/issue2_bfcl_pre_attr_collimation/unmasked_r32/train_summary.json",
+        "runs/issue2_bfcl_pre_attr_collimation/unmasked_r32/adapter",
+        "runs/issue2_bfcl_pre_attr_collimation/unmasked_r32/merged"
+      ],
+      "public_upload_note": "Upload adapter and receipts. Do not upload merged full-model weights."
+    },
+    {
+      "name": "post_collimation_attribution",
+      "required": true,
+      "command": "cd code && python3 scripts/bfcl_direct_qwen3.py relp-attribute --pairs data/bfcl_single_call/pairs.jsonl --output runs/issue2_bfcl_pre_attr_collimation/relp_full_collimated.npz --model runs/issue2_bfcl_pre_attr_collimation/unmasked_r32/merged --dtype bfloat16 --device-map auto --log-every 10 --report-topk 50",
+      "outputs": [
+        "runs/issue2_bfcl_pre_attr_collimation/relp_full_collimated.npz",
+        "runs/issue2_bfcl_pre_attr_collimation/relp_full_collimated.summary.json"
+      ]
+    },
+    {
+      "name": "mask_evaluation",
+      "required": true,
+      "mask_budgets": [
+        80000,
+        120000,
+        160000,
+        200000,
+        240000
+      ],
+      "command_template": "cd code && python3 scripts/bfcl_direct_qwen3.py eval-mask --pairs data/bfcl_single_call/pairs.jsonl --output runs/issue2_bfcl_pre_attr_collimation/eval_k{topk}_masked.jsonl --attribution runs/issue2_bfcl_pre_attr_collimation/relp_full_collimated.npz --topk {topk} --model Qwen/Qwen3-8B --dtype bfloat16 --device-map auto --batch-size 8 --bfcl-canonicalization-prompt --normalized",
+      "failure_bucket_command_template": "cd code && python3 scripts/build_bfcl_failure_buckets.py --eval-jsonl runs/issue2_bfcl_pre_attr_collimation/eval_k{topk}_masked.jsonl --pairs-jsonl data/bfcl_single_call/pairs.jsonl --out-dir runs/issue2_bfcl_pre_attr_collimation/failure_buckets_k{topk} --run-name pre_attr_k{topk}",
+      "outputs": [
+        "runs/issue2_bfcl_pre_attr_collimation/eval_k*_masked.jsonl",
+        "runs/issue2_bfcl_pre_attr_collimation/eval_k*_masked.summary.json",
+        "runs/issue2_bfcl_pre_attr_collimation/failure_buckets_k*.json"
+      ]
+    }
+  ],
+  "baselines": {
+    "raw_relp_k160": "123/1007",
+    "raw_relp_k240": "396/1007",
+    "unmasked_qwen3_8b_canonical_normalized": "664/1007",
+    "post_attribution_conditioned_k160": "553/1007",
+    "post_attribution_conditioned_k240": "568/1007"
+  },
+  "success_criteria": {
+    "primary": "Pre-attribution collimated masks beat raw ReLP masks at the same k on normalized exact BFCL 1007.",
+    "strong": "A smaller pre-attribution mask approaches the post-attribution conditioned k160/k240 scores without BFCL eval-row training leakage."
+  },
+  "stop_conditions": [
+    "Train/eval overlap is found.",
+    "Prompt/target formatting differs from the BFCL eval harness.",
+    "Collimated unmasked model regresses so badly that attribution would no longer test the intended capability.",
+    "W&B online logging or artifact preservation cannot be made durable on the publishable run."
+  ]
+}

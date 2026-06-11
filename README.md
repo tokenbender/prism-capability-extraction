@@ -64,7 +64,7 @@ The paper PDF and figure assets are in `paper/`. The claim-to-artifact index is
 | `code/scripts/` | BFCL filtering, scoring, conditioning, and evaluation scripts |
 | `code/configs/` | sanitized configs for released runs |
 | `results/` | small result receipts included in git |
-| `docs/` | release boundary, data-source notes, and artifact manifest |
+| `docs/` | release boundary, data-source notes, artifact manifest, and experiment issue guide |
 | `paper/` | paper PDF and figure/image assets |
 
 Large model checkpoints, generated datasets, raw attribution arrays, adapters,
