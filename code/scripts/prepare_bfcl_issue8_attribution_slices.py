@@ -135,6 +135,10 @@ def main() -> None:
 
     pairs_dir = args.out_dir / "pairs"
     write_jsonl(
+        pairs_dir / "all_catalog.jsonl",
+        sorted_pairs_for_ids(catalog, set(catalog)),
+    )
+    write_jsonl(
         pairs_dir / "decision_eligible_all.jsonl",
         sorted_pairs_for_ids(catalog, decision_ids),
     )
