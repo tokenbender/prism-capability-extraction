@@ -16,6 +16,8 @@ MAX_BRANCH_ROUNDS="${MAX_BRANCH_ROUNDS:-20}"
 PARALLEL_BRANCHES="${PARALLEL_BRANCHES:-8}"
 BEAM_WIDTH="${BEAM_WIDTH:-3}"
 TOPKS="${TOPKS:-40000 60000 80000 100000 120000 140000 160000 180000 200000 220000 240000}"
+TORCH_INDEX_URL="${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu132}"
+TORCH_PACKAGE="${TORCH_PACKAGE:-torch}"
 
 need() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -129,6 +131,8 @@ MAX_BRANCH_ROUNDS="${MAX_BRANCH_ROUNDS:-20}"
 PARALLEL_BRANCHES="${PARALLEL_BRANCHES:-8}"
 BEAM_WIDTH="${BEAM_WIDTH:-3}"
 TOPKS="${TOPKS:-40000 60000 80000 100000 120000 140000 160000 180000 200000 220000 240000}"
+TORCH_INDEX_URL="${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu132}"
+TORCH_PACKAGE="${TORCH_PACKAGE:-torch}"
 RUN_DIR="${REMOTE_REPO}/runs/issue6_bfcl_tree_search"
 DATA_DIR="${REMOTE_REPO}/data/bfcl_issue6_tree_search"
 LOG_DIR="${REMOTE_RUNS}/issue6_logs"
@@ -193,6 +197,7 @@ setup_env() {
     "peft>=0.19.1" \
     "safetensors" \
     "numpy"
+  .venv/bin/python -m pip install -U --force-reinstall "$TORCH_PACKAGE" --index-url "$TORCH_INDEX_URL"
   .venv/bin/python -m pip install --no-deps -e code
 }
 
@@ -210,7 +215,11 @@ for name in mods:
 print("cuda_available", torch.cuda.is_available())
 print("cuda_device_count", torch.cuda.device_count())
 for idx in range(torch.cuda.device_count()):
-    print("gpu", idx, torch.cuda.get_device_name(idx))
+    print("gpu", idx, torch.cuda.get_device_name(idx), torch.cuda.get_device_capability(idx))
+if torch.cuda.is_available():
+    x = torch.ones(1, device="cuda")
+    torch.cuda.synchronize()
+    print("cuda_tensor_smoke", float(x.item()))
 hf = HfApi().whoami()
 print("hf_user", hf.get("name") or "ok")
 print("wandb_mode", os.environ.get("WANDB_MODE"))
@@ -937,10 +946,10 @@ lium scp "$TARGET" "$tmpdir/issue6_heartbeat.sh" "$REMOTE_HEARTBEAT"
 lium exec "$TARGET" "chmod 600 /root/issue6_env && chmod +x '$REMOTE_LAUNCH' '$REMOTE_HEARTBEAT'"
 
 echo "== Verifying pod environment =="
-lium exec "$TARGET" "REMOTE_REPO='$REMOTE_REPO' REMOTE_RUNS='$REMOTE_RUNS' MAX_BRANCH_ROUNDS='$MAX_BRANCH_ROUNDS' PARALLEL_BRANCHES='$PARALLEL_BRANCHES' BEAM_WIDTH='$BEAM_WIDTH' TOPKS='$TOPKS' bash '$REMOTE_LAUNCH' check"
+lium exec "$TARGET" "REMOTE_REPO='$REMOTE_REPO' REMOTE_RUNS='$REMOTE_RUNS' MAX_BRANCH_ROUNDS='$MAX_BRANCH_ROUNDS' PARALLEL_BRANCHES='$PARALLEL_BRANCHES' BEAM_WIDTH='$BEAM_WIDTH' TOPKS='$TOPKS' TORCH_INDEX_URL='$TORCH_INDEX_URL' TORCH_PACKAGE='$TORCH_PACKAGE' bash '$REMOTE_LAUNCH' check"
 
 echo "== Launching remote tmux session: $SESSION =="
-lium exec "$TARGET" "bash -lc 'tmux has-session -t \"$SESSION\" 2>/dev/null && { echo \"tmux session already exists: $SESSION\"; tmux ls; exit 0; }; tmux new-session -d -s \"$SESSION\" \"REMOTE_REPO=$REMOTE_REPO REMOTE_RUNS=$REMOTE_RUNS MAX_BRANCH_ROUNDS=$MAX_BRANCH_ROUNDS PARALLEL_BRANCHES=$PARALLEL_BRANCHES BEAM_WIDTH=$BEAM_WIDTH TOPKS=\\\"$TOPKS\\\" bash $REMOTE_LAUNCH run\"; tmux ls'"
+lium exec "$TARGET" "bash -lc 'tmux has-session -t \"$SESSION\" 2>/dev/null && { echo \"tmux session already exists: $SESSION\"; tmux ls; exit 0; }; tmux new-session -d -s \"$SESSION\" \"REMOTE_REPO=$REMOTE_REPO REMOTE_RUNS=$REMOTE_RUNS MAX_BRANCH_ROUNDS=$MAX_BRANCH_ROUNDS PARALLEL_BRANCHES=$PARALLEL_BRANCHES BEAM_WIDTH=$BEAM_WIDTH TOPKS=\\\"$TOPKS\\\" TORCH_INDEX_URL=$TORCH_INDEX_URL TORCH_PACKAGE=$TORCH_PACKAGE bash $REMOTE_LAUNCH run\"; tmux ls'"
 
 echo "== Launching heartbeat session: $HEARTBEAT_SESSION =="
 lium exec "$TARGET" "bash -lc 'tmux has-session -t \"$HEARTBEAT_SESSION\" 2>/dev/null && { echo \"heartbeat tmux session already exists: $HEARTBEAT_SESSION\"; tmux ls; exit 0; }; tmux new-session -d -s \"$HEARTBEAT_SESSION\" \"REMOTE_REPO=$REMOTE_REPO REMOTE_RUNS=$REMOTE_RUNS bash $REMOTE_HEARTBEAT\"; tmux ls'"
