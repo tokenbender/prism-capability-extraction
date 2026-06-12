@@ -33,7 +33,7 @@ lium ps
 echo
 
 pod_present() {
-  lium ps | grep -F "$TARGET" >/dev/null 2>&1
+  lium exec "$TARGET" "true" 2>&1 | grep -q "Executing on"
 }
 
 if ! pod_present; then
