@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .DS_Store
 runs/
+results/bfcl/issue8_failure_conditioned_decomposition/
 *.log
 *.aux
 *.fdb_latexmk
