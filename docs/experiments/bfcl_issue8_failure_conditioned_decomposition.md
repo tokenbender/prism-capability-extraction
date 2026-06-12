@@ -147,6 +147,74 @@ The script writes:
 Heldout eval IDs are excluded from every attribution-selection file. They are
 written only to `heldout_audit_only.jsonl` for final auditing.
 
+## Attribution And Substrate Results
+
+Compute used for the completed attribution/evaluation phase:
+
+- pod: `zesty-shark-55`
+- config: `8xB200`
+- runtime fix: isolated CUDA 13 venv with `torch 2.12.0+cu130`
+- code commits:
+  - `d38b3ec` - attribution slice preparation
+  - `9579eb0` - candidate mask construction
+
+The current full-model anchor under this exact harness is `661/1007`
+normalized exact. This is close to, but not identical with, the earlier
+`664/1007` anchor.
+
+All scores below are normalized exact on the 1007-row BFCL catalog. Behavior
+recovery uses the current `661/1007` full-model anchor.
+
+| Strategy | k80 | k120 | k160 | k200 | k240 |
+|---|---:|---:|---:|---:|---:|
+| global attribution | 0 | 9 | 91 | 237 | 378 |
+| value bucket | 0 | 9 | 87 | 236 | 378 |
+| failure-max bucket blend | 0 | 8 | 119 | 266 | 409 |
+| even bucket union | 1 | 16 | 99 | 247 | 377 |
+| weighted bucket union | 0 | 18 | 94 | 244 | 367 |
+| category weighted control | 0 | 2 | 85 | 219 | 337 |
+
+Best #8 candidate by budget:
+
+| Budget | Selected MLP channels | MLP % | Best #8 strategy | Score | Recovery vs 661 |
+|---:|---:|---:|---|---:|---:|
+| k80 | 80,000 | 18.08% | even bucket union | 1/1007 | 0.15% |
+| k120 | 120,000 | 27.13% | weighted bucket union | 18/1007 | 2.72% |
+| k160 | 160,000 | 36.17% | failure-max bucket blend | 119/1007 | 18.00% |
+| k200 | 200,000 | 45.21% | failure-max bucket blend | 266/1007 | 40.24% |
+| k240 | 240,000 | 54.25% | failure-max bucket blend | 409/1007 | 61.88% |
+
+Heldout-only k240 audit:
+
+| Strategy | Heldout score | Heldout recovery vs full heldout 59/100 |
+|---|---:|---:|
+| full unmasked Qwen3-8B | 59/100 | 100.00% |
+| failure-max bucket blend | 39/100 | 66.10% |
+| global attribution | 37/100 | 62.71% |
+| value bucket | 37/100 | 62.71% |
+| even bucket union | 37/100 | 62.71% |
+| weighted bucket union | 36/100 | 61.02% |
+| category weighted control | 34/100 | 57.63% |
+
+Interpretation:
+
+- Failure-conditioned attribution produced a real but modest signal: the
+  failure-max blend beats global attribution by `+28` at k160, `+29` at k200,
+  and `+31` at k240 on the full 1007-row catalog.
+- The same ordering mostly survives the 100-row heldout audit, but the heldout
+  gain over global is only `+2` at k240.
+- The absolute scores remain far below the trained BFCL frontiers from prior
+  issues, especially the #5/#6 k160/k200/k240 region.
+- Teacher-guided repair training was therefore not launched inside #8. The
+  attribution signal is useful as a decomposition diagnostic, but not strong
+  enough to justify an expensive #8 training phase without a redesigned
+  training objective or a follow-up issue.
+
+Conclusion: #8 is a clean negative/diagnostic result. Failure-conditioned
+decomposition does improve sparse attribution over global attribution at matched
+larger budgets, but it does not recover enough behavior to compete with the
+existing trained sparse-substrate frontier.
+
 ## Reproduction
 
 Build from source artifacts:
