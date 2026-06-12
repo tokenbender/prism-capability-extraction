@@ -124,6 +124,29 @@ The comparison should be global top-k versus bucket top-k, bucket-union,
 weighted bucket-union, category-conditioned controls, and any routed variant
 only if its routing signal is available before final tool-call emission.
 
+## Attribution Slice Preparation
+
+Prepare runnable pair files from the published catalog and failure matrix:
+
+```bash
+python3 code/scripts/prepare_bfcl_issue8_attribution_slices.py \
+  --catalog results/bfcl/issue8_failure_conditioned_decomposition/eval_id_catalog.jsonl.gz \
+  --failure-matrix results/bfcl/issue8_failure_conditioned_decomposition/failure_matrix.jsonl.gz \
+  --out-dir runs/issue8_failure_conditioned_decomposition \
+  --smoke-limit 4
+```
+
+The script writes:
+
+- `pairs/decision_eligible_all.jsonl`
+- `pairs/heldout_audit_only.jsonl`
+- one full pair file per first-round attribution slice
+- one `.smoke.jsonl` file per slice
+- `attribution_slice_manifest.json`
+
+Heldout eval IDs are excluded from every attribution-selection file. They are
+written only to `heldout_audit_only.jsonl` for final auditing.
+
 ## Reproduction
 
 Build from source artifacts:
