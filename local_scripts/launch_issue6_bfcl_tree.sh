@@ -17,7 +17,7 @@ PARALLEL_BRANCHES="${PARALLEL_BRANCHES:-8}"
 BEAM_WIDTH="${BEAM_WIDTH:-3}"
 TOPKS="${TOPKS:-40000 60000 80000 100000 120000 140000 160000 180000 200000 220000 240000}"
 TORCH_INDEX_URL="${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu132}"
-TORCH_PACKAGE="${TORCH_PACKAGE:-torch}"
+TORCH_PACKAGES="${TORCH_PACKAGES:-torch torchvision}"
 
 need() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -36,6 +36,16 @@ echo
 
 pod_present() {
   lium exec "$TARGET" "true" 2>&1 | grep -q "Executing on"
+}
+
+remote_checked() {
+  local command="$1"
+  local quoted output rc
+  printf -v quoted '%q' "$command"
+  output="$(lium exec "$TARGET" "bash -lc $quoted; rc=\$?; echo __REMOTE_EXIT__:\$rc" 2>&1)"
+  printf '%s\n' "$output"
+  rc="$(printf '%s\n' "$output" | sed -n 's/^__REMOTE_EXIT__://p' | tail -1)"
+  [[ "$rc" == "0" ]]
 }
 
 if ! pod_present; then
@@ -132,7 +142,7 @@ PARALLEL_BRANCHES="${PARALLEL_BRANCHES:-8}"
 BEAM_WIDTH="${BEAM_WIDTH:-3}"
 TOPKS="${TOPKS:-40000 60000 80000 100000 120000 140000 160000 180000 200000 220000 240000}"
 TORCH_INDEX_URL="${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu132}"
-TORCH_PACKAGE="${TORCH_PACKAGE:-torch}"
+TORCH_PACKAGES="${TORCH_PACKAGES:-torch torchvision}"
 RUN_DIR="${REMOTE_REPO}/runs/issue6_bfcl_tree_search"
 DATA_DIR="${REMOTE_REPO}/data/bfcl_issue6_tree_search"
 LOG_DIR="${REMOTE_RUNS}/issue6_logs"
@@ -197,7 +207,7 @@ setup_env() {
     "peft>=0.19.1" \
     "safetensors" \
     "numpy"
-  .venv/bin/python -m pip install -U --force-reinstall "$TORCH_PACKAGE" --index-url "$TORCH_INDEX_URL"
+  .venv/bin/python -m pip install -U --force-reinstall $TORCH_PACKAGES --index-url "$TORCH_INDEX_URL"
   .venv/bin/python -m pip install --no-deps -e code
 }
 
@@ -934,7 +944,7 @@ mkdir -p "$tmpdir/repo"
 git archive --format=tar HEAD | tar -C "$tmpdir/repo" -xf -
 
 echo "== Preparing remote directories =="
-lium exec "$TARGET" "mkdir -p '$REMOTE_REPO' '$REMOTE_RUNS' /root"
+remote_checked "mkdir -p '$REMOTE_REPO' '$REMOTE_RUNS' /root"
 
 echo "== Syncing tracked repository snapshot =="
 lium rsync "$TARGET" "$tmpdir/repo/" "$REMOTE_REPO/"
@@ -943,16 +953,16 @@ echo "== Uploading credentials and launchers =="
 lium scp "$TARGET" "$tmpdir/issue6_env" /root/issue6_env
 lium scp "$TARGET" "$tmpdir/issue6_launch_full.sh" "$REMOTE_LAUNCH"
 lium scp "$TARGET" "$tmpdir/issue6_heartbeat.sh" "$REMOTE_HEARTBEAT"
-lium exec "$TARGET" "chmod 600 /root/issue6_env && chmod +x '$REMOTE_LAUNCH' '$REMOTE_HEARTBEAT'"
+remote_checked "chmod 600 /root/issue6_env && chmod +x '$REMOTE_LAUNCH' '$REMOTE_HEARTBEAT'"
 
 echo "== Verifying pod environment =="
-lium exec "$TARGET" "REMOTE_REPO='$REMOTE_REPO' REMOTE_RUNS='$REMOTE_RUNS' MAX_BRANCH_ROUNDS='$MAX_BRANCH_ROUNDS' PARALLEL_BRANCHES='$PARALLEL_BRANCHES' BEAM_WIDTH='$BEAM_WIDTH' TOPKS='$TOPKS' TORCH_INDEX_URL='$TORCH_INDEX_URL' TORCH_PACKAGE='$TORCH_PACKAGE' bash '$REMOTE_LAUNCH' check"
+remote_checked "REMOTE_REPO='$REMOTE_REPO' REMOTE_RUNS='$REMOTE_RUNS' MAX_BRANCH_ROUNDS='$MAX_BRANCH_ROUNDS' PARALLEL_BRANCHES='$PARALLEL_BRANCHES' BEAM_WIDTH='$BEAM_WIDTH' TOPKS='$TOPKS' TORCH_INDEX_URL='$TORCH_INDEX_URL' TORCH_PACKAGES='$TORCH_PACKAGES' bash '$REMOTE_LAUNCH' check"
 
 echo "== Launching remote tmux session: $SESSION =="
-lium exec "$TARGET" "bash -lc 'tmux has-session -t \"$SESSION\" 2>/dev/null && { echo \"tmux session already exists: $SESSION\"; tmux ls; exit 0; }; tmux new-session -d -s \"$SESSION\" \"REMOTE_REPO=$REMOTE_REPO REMOTE_RUNS=$REMOTE_RUNS MAX_BRANCH_ROUNDS=$MAX_BRANCH_ROUNDS PARALLEL_BRANCHES=$PARALLEL_BRANCHES BEAM_WIDTH=$BEAM_WIDTH TOPKS=\\\"$TOPKS\\\" TORCH_INDEX_URL=$TORCH_INDEX_URL TORCH_PACKAGE=$TORCH_PACKAGE bash $REMOTE_LAUNCH run\"; tmux ls'"
+remote_checked "tmux has-session -t \"$SESSION\" 2>/dev/null && { echo \"tmux session already exists: $SESSION\"; tmux ls; exit 0; }; tmux new-session -d -s \"$SESSION\" \"REMOTE_REPO=$REMOTE_REPO REMOTE_RUNS=$REMOTE_RUNS MAX_BRANCH_ROUNDS=$MAX_BRANCH_ROUNDS PARALLEL_BRANCHES=$PARALLEL_BRANCHES BEAM_WIDTH=$BEAM_WIDTH TOPKS=\\\"$TOPKS\\\" TORCH_INDEX_URL=$TORCH_INDEX_URL TORCH_PACKAGES=\\\"$TORCH_PACKAGES\\\" bash $REMOTE_LAUNCH run\"; tmux ls"
 
 echo "== Launching heartbeat session: $HEARTBEAT_SESSION =="
-lium exec "$TARGET" "bash -lc 'tmux has-session -t \"$HEARTBEAT_SESSION\" 2>/dev/null && { echo \"heartbeat tmux session already exists: $HEARTBEAT_SESSION\"; tmux ls; exit 0; }; tmux new-session -d -s \"$HEARTBEAT_SESSION\" \"REMOTE_REPO=$REMOTE_REPO REMOTE_RUNS=$REMOTE_RUNS bash $REMOTE_HEARTBEAT\"; tmux ls'"
+remote_checked "tmux has-session -t \"$HEARTBEAT_SESSION\" 2>/dev/null && { echo \"heartbeat tmux session already exists: $HEARTBEAT_SESSION\"; tmux ls; exit 0; }; tmux new-session -d -s \"$HEARTBEAT_SESSION\" \"REMOTE_REPO=$REMOTE_REPO REMOTE_RUNS=$REMOTE_RUNS bash $REMOTE_HEARTBEAT\"; tmux ls"
 
 cat <<EOF
 
