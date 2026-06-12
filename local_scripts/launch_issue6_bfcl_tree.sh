@@ -32,7 +32,11 @@ echo "== Lium active pods =="
 lium ps
 echo
 
-if ! lium exec "$TARGET" "true" >/dev/null 2>&1; then
+pod_present() {
+  lium ps | grep -F "$TARGET" >/dev/null 2>&1
+}
+
+if ! pod_present; then
   active="$(lium ps)"
   if [[ "$active" != "No active pods" ]]; then
     echo "Unrelated active pod(s) exist; refusing to launch issue #6 until the surface is explicit." >&2
@@ -43,8 +47,9 @@ if ! lium exec "$TARGET" "true" >/dev/null 2>&1; then
   lium up "$EXECUTOR" --name "$TARGET" --ttl "$POD_TTL" --yes
 fi
 
-if ! lium exec "$TARGET" "true" >/dev/null; then
+if ! pod_present; then
   echo "Pod target not reachable after create/check: $TARGET" >&2
+  lium ps >&2
   exit 4
 fi
 
