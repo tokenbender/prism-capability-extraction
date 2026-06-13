@@ -14,6 +14,12 @@ Source alignment: this repository follows the terminology defined in
 https://github.com/Occupying-Mars/circuit-shotting/issues/54
 ```
 
+This source alignment is for the term definition. It does not import older
+circuit-shotting experiment-guide practice into this repository. Any future
+experiment guide for this repo should be PRISM-native: derived from this repo,
+the paper, the public release surface, and the newer issue-led BFCL sequence in
+`tokenbender/prism-capability-extraction`.
+
 MACE replaces older `MVC` / `minimum viable circuit` language as the governing
 abstraction for extraction work. The extracted object is not assumed to be a
 classical circuit. It can be any minimum acceptable capability-bearing extract
