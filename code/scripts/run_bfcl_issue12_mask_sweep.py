@@ -44,6 +44,7 @@ def main() -> None:
     p.add_argument("--candidate-id", action="append", default=[])
     p.add_argument("--kind", action="append", default=[])
     p.add_argument("--max-candidates", type=int)
+    p.add_argument("--no-candidates", action="store_true")
     p.add_argument("--include-full-anchor", action="store_true")
     p.add_argument("--skip-existing", action=argparse.BooleanOptionalAction, default=True)
     args = p.parse_args()
@@ -62,7 +63,11 @@ def main() -> None:
     if args.kind:
         kinds = set(args.kind)
         candidates = [row for row in candidates if row.get("kind") in kinds]
-    if args.max_candidates:
+    if args.no_candidates:
+        candidates = []
+    elif args.max_candidates is not None:
+        if args.max_candidates < 0:
+            raise ValueError("--max-candidates must be non-negative")
         candidates = candidates[: args.max_candidates]
 
     jobs: list[dict[str, Any]] = []
@@ -120,7 +125,7 @@ def main() -> None:
             "--bfcl-canonicalization-prompt",
             "--normalized",
         ]
-        if args.limit:
+        if args.limit is not None:
             cmd += ["--limit", str(args.limit)]
         cmd += job["cmd_extra"]
         env = dict(os.environ)
