@@ -146,6 +146,7 @@ def main() -> None:
     parser.add_argument("--top-shard", type=int)
     parser.add_argument("--top-num-shards", type=int, default=1)
     parser.add_argument("--skip-top", action="store_true")
+    parser.add_argument("--only-top", action="store_true")
     parser.add_argument("--merge-top-shards", action="store_true")
     parser.add_argument("--write-checksums", action="store_true")
     args = parser.parse_args()
@@ -208,6 +209,22 @@ def main() -> None:
             top_n=args.top_n,
         )
         write_jsonl(top_dir / f"top_channels_shard{shard:02d}_of{total:02d}.jsonl", rows)
+        if args.only_top:
+            print(
+                json.dumps(
+                    {
+                        "top_shard": shard,
+                        "top_num_shards": total,
+                        "start": start,
+                        "end": end,
+                        "rows": len(rows),
+                        "output": str(top_dir / f"top_channels_shard{shard:02d}_of{total:02d}.jsonl"),
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+            return
 
     if args.merge_top_shards:
         top_files = sorted((args.atlas_dir / "top_shards").glob("top_channels_shard*_of*.jsonl"))
