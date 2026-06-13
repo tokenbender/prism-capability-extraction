@@ -755,11 +755,26 @@ def load_topk_mask(path: Path, k: int) -> dict[int, set[int]]:
     return selected
 
 
+def decoder_layers(model):
+    cur = model
+    for _ in range(8):
+        if hasattr(cur, "layers"):
+            return cur.layers
+        for attr in ("model", "base_model"):
+            nxt = getattr(cur, attr, None)
+            if nxt is not None and nxt is not cur:
+                cur = nxt
+                break
+        else:
+            break
+    raise AttributeError("could not locate decoder .layers")
+
+
 def install_mlp_keep_hooks(model, selected: dict[int, set[int]]):
     import torch
 
     hooks = []
-    for layer_idx, layer in enumerate(model.model.layers):
+    for layer_idx, layer in enumerate(decoder_layers(model)):
         keep = selected.get(layer_idx, set())
         keep_idx = torch.tensor(sorted(keep), dtype=torch.long)
 
