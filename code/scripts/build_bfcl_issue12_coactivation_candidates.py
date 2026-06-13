@@ -122,6 +122,78 @@ def top_items(scores: dict[int, float], k: int) -> list[int]:
     return [gid for gid, _score in heapq.nlargest(k, scores.items(), key=lambda kv: (kv[1], -kv[0]))]
 
 
+def top_items_array(scores: np.ndarray, k: int) -> list[int]:
+    if k <= 0:
+        return []
+    k = min(int(k), int(scores.size))
+    if k == scores.size:
+        idx = np.arange(scores.size)
+    else:
+        idx = np.argpartition(scores, -k)[-k:]
+    ordered = idx[np.lexsort((idx, -scores[idx]))]
+    return [int(gid) for gid in ordered[:k]]
+
+
+def fill_to_budget(core: list[int], ranking: list[int], budget: int) -> list[int]:
+    selected: list[int] = []
+    seen: set[int] = set()
+    for gid in core:
+        if gid in seen:
+            continue
+        selected.append(gid)
+        seen.add(gid)
+        if len(selected) >= budget:
+            return selected
+    for gid in ranking:
+        if gid in seen:
+            continue
+        selected.append(gid)
+        seen.add(gid)
+        if len(selected) >= budget:
+            return selected
+    return selected
+
+
+def build_dense_global_scores(
+    global_scores_path: Path,
+    query_rows: list[dict[str, Any]],
+    atlas_manifest: dict[str, Any],
+    *,
+    n_layers: int,
+    d_ffn: int,
+) -> tuple[np.ndarray, np.ndarray, dict[str, np.ndarray]]:
+    scores = np.load(global_scores_path, mmap_mode="r")
+    expected_shape = tuple(atlas_manifest["score_shape"])
+    if tuple(scores.shape) != expected_shape:
+        raise ValueError(f"dense global score shape mismatch: {scores.shape} != {expected_shape}")
+
+    total_channels = n_layers * d_ffn
+    dense_hotness = np.zeros(total_channels, dtype=np.float32)
+    dense_failure_pressure = np.zeros(total_channels, dtype=np.float32)
+    dense_category_scores: dict[str, np.ndarray] = {}
+    segments = list(atlas_manifest["segments"])
+    stats = list(atlas_manifest["stats"])
+
+    for row_idx, meta in enumerate(query_rows):
+        split = meta.get("split_role")
+        if split not in SPLIT_SELECT:
+            continue
+        query_index = int(meta.get("global_index", row_idx))
+        category = str(meta.get("category", "unknown"))
+        category_scores = dense_category_scores.setdefault(category, np.zeros(total_channels, dtype=np.float32))
+        fw = failure_weight(meta)
+        for seg_idx, segment in enumerate(segments):
+            seg_w = SEGMENT_WEIGHT.get(str(segment), 1.0)
+            for stat_idx, stat in enumerate(stats):
+                plane_w = seg_w * STAT_WEIGHT.get(str(stat), 1.0)
+                plane = scores[query_index, seg_idx, stat_idx].reshape(total_channels).astype(np.float32, copy=False)
+                dense_hotness += plane_w * plane
+                dense_failure_pressure += plane_w * fw * plane
+                category_scores += plane_w * fw * plane
+
+    return dense_hotness, dense_failure_pressure, dense_category_scores
+
+
 def select_by_communities(
     communities: list[dict[str, Any]],
     channel_scores: dict[int, float],
@@ -163,6 +235,7 @@ def main() -> None:
     p.add_argument("--top-channels", type=Path, required=True)
     p.add_argument("--query-manifest", type=Path, required=True)
     p.add_argument("--atlas-manifest", type=Path, required=True)
+    p.add_argument("--global-scores", type=Path)
     p.add_argument("--out-dir", type=Path, required=True)
     p.add_argument("--budgets", default="80000,120000,160000,200000,240000")
     p.add_argument("--top-per-plane", type=int, default=32)
@@ -186,6 +259,17 @@ def main() -> None:
 
     query_rows = read_jsonl(args.query_manifest)
     meta_by_eval_id = {row["eval_id"]: row for row in query_rows}
+    dense_hotness: np.ndarray | None = None
+    dense_failure_pressure: np.ndarray | None = None
+    dense_category_scores: dict[str, np.ndarray] = {}
+    if args.global_scores is not None:
+        dense_hotness, dense_failure_pressure, dense_category_scores = build_dense_global_scores(
+            args.global_scores,
+            query_rows,
+            atlas_manifest,
+            n_layers=n_layers,
+            d_ffn=d_ffn,
+        )
     query_feature_scores: dict[str, Counter[int]] = defaultdict(Counter)
     query_segment_scores: dict[str, dict[str, Counter[int]]] = defaultdict(lambda: defaultdict(Counter))
     hotness: Counter[int] = Counter()
@@ -311,6 +395,12 @@ def main() -> None:
     communities.sort(key=lambda row: (row["failure_score"], row["hotness_score"], row["size"]), reverse=True)
 
     candidates: list[dict[str, Any]] = []
+    hotness_ranking = top_items_array(dense_hotness, total_channels) if dense_hotness is not None else top_items(dict(hotness), total_channels)
+    failure_ranking = (
+        top_items_array(dense_failure_pressure, total_channels)
+        if dense_failure_pressure is not None
+        else top_items(dict(failure_pressure), total_channels)
+    )
 
     def add_candidate(candidate_id: str, kind: str, selected: list[int], lineage: dict[str, Any]) -> None:
         selected = list(dict.fromkeys(selected))
@@ -334,35 +424,54 @@ def main() -> None:
         add_candidate(
             f"top_hot_k{budget}",
             "top_hot_activation",
-            top_items(dict(hotness), budget),
-            {"source": "aggregate_hotness", "budget": budget},
+            hotness_ranking[:budget],
+            {"source": "aggregate_hotness", "budget": budget, "dense_budget_fill": dense_hotness is not None},
         )
         add_candidate(
             f"failure_pressure_k{budget}",
             "failure_pressure",
-            top_items(dict(failure_pressure), budget),
-            {"source": "aggregate_failure_pressure", "budget": budget},
+            failure_ranking[:budget],
+            {"source": "aggregate_failure_pressure", "budget": budget, "dense_budget_fill": dense_failure_pressure is not None},
         )
         add_candidate(
             f"coactivation_union_k{budget}",
             "coactivation_community_union",
-            select_by_communities(communities, dict(hotness), budget, prefer_failure=False),
-            {"source": "community_union_hotness", "budget": budget},
+            fill_to_budget(
+                select_by_communities(communities, dict(hotness), budget, prefer_failure=False),
+                hotness_ranking,
+                budget,
+            ),
+            {"source": "community_union_hotness", "budget": budget, "dense_budget_fill": dense_hotness is not None},
         )
         add_candidate(
             f"failure_community_union_k{budget}",
             "failure_pressure_community_union",
-            select_by_communities(communities, dict(failure_pressure), budget, prefer_failure=True),
-            {"source": "community_union_failure_pressure", "budget": budget},
+            fill_to_budget(
+                select_by_communities(communities, dict(failure_pressure), budget, prefer_failure=True),
+                failure_ranking,
+                budget,
+            ),
+            {"source": "community_union_failure_pressure", "budget": budget, "dense_budget_fill": dense_failure_pressure is not None},
         )
 
-    for category, scores in sorted(category_scores.items()):
+    category_source = dense_category_scores if dense_category_scores else {key: None for key in category_scores}
+    for category, dense_scores in sorted(category_source.items()):
+        category_ranking = (
+            top_items_array(dense_scores, total_channels)
+            if dense_scores is not None
+            else top_items(dict(category_scores[category]), total_channels)
+        )
         for budget in budgets:
             add_candidate(
                 f"category_{category}_failure_k{budget}",
                 "category_failure_pressure",
-                top_items(dict(scores), budget),
-                {"source": "category_failure_pressure", "category": category, "budget": budget},
+                category_ranking[:budget],
+                {
+                    "source": "category_failure_pressure",
+                    "category": category,
+                    "budget": budget,
+                    "dense_budget_fill": dense_scores is not None,
+                },
             )
 
     # Child and leave-one-out proposals around the strongest community union.
@@ -376,8 +485,13 @@ def main() -> None:
             add_candidate(
                 f"child_combo_{depth}_k{budget}",
                 "child_community_combination",
-                pool,
-                {"source": "top_failure_communities", "communities": limit, "budget": budget},
+                fill_to_budget(pool, failure_ranking, budget),
+                {
+                    "source": "top_failure_communities",
+                    "communities": limit,
+                    "budget": budget,
+                    "dense_budget_fill": dense_failure_pressure is not None,
+                },
             )
         for leave_idx, community in enumerate(top_communities[:4]):
             pool = []
@@ -391,11 +505,12 @@ def main() -> None:
             add_candidate(
                 f"loo_c{leave_idx:02d}_k{budget}",
                 "leave_one_community_out",
-                pool,
+                fill_to_budget(pool, failure_ranking, budget),
                 {
                     "source": "top12_failure_communities_minus_one",
                     "left_out_community": community["community_id"],
                     "budget": budget,
+                    "dense_budget_fill": dense_failure_pressure is not None,
                 },
             )
 
@@ -414,6 +529,8 @@ def main() -> None:
             "query_manifest_sha256": sha256_file(args.query_manifest),
             "atlas_manifest": str(args.atlas_manifest),
             "atlas_manifest_sha256": sha256_file(args.atlas_manifest),
+            "global_scores": str(args.global_scores) if args.global_scores is not None else None,
+            "global_scores_sha256": sha256_file(args.global_scores) if args.global_scores is not None else None,
         },
         "build_params": {
             key: str(value) if isinstance(value, Path) else value
