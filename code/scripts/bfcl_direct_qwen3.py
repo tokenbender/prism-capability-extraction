@@ -660,6 +660,11 @@ def load_model_and_tokenizer(args: argparse.Namespace):
         device_map=args.device_map,
         attn_implementation="eager",
     )
+    adapter = getattr(args, "adapter", None)
+    if adapter:
+        from peft import PeftModel
+
+        model = PeftModel.from_pretrained(model, adapter)
     model.eval()
     return model, tokenizer
 
@@ -853,6 +858,7 @@ def eval_mask(args: argparse.Namespace) -> None:
         "bfcl_canonicalization_prompt": args.bfcl_canonicalization_prompt,
         "mask_topk": args.topk or None,
         "attribution": str(args.attribution) if args.attribution else None,
+        "adapter": str(args.adapter) if args.adapter else None,
         "generations": str(args.output),
         "note": "crude exact structured match against BFCL simple possible answers",
     }
@@ -889,6 +895,7 @@ def main() -> None:
     p.add_argument("--pairs", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--model", default="Qwen/Qwen3-8B")
+    p.add_argument("--adapter", type=Path)
     p.add_argument("--dtype", default="bfloat16")
     p.add_argument("--device-map", default="auto")
     p.add_argument("--max-new-tokens", type=int, default=512)

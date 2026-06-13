@@ -37,6 +37,7 @@ def main() -> None:
     p.add_argument("--repo-root", type=Path, default=Path("."))
     p.add_argument("--devices", default="0,1,2,3,4,5,6,7")
     p.add_argument("--model", default="Qwen/Qwen3-8B")
+    p.add_argument("--adapter", type=Path)
     p.add_argument("--dtype", default="bfloat16")
     p.add_argument("--batch-size", type=int, default=8)
     p.add_argument("--max-new-tokens", type=int, default=512)
@@ -125,6 +126,8 @@ def main() -> None:
             "--bfcl-canonicalization-prompt",
             "--normalized",
         ]
+        if args.adapter:
+            cmd += ["--adapter", str(args.adapter)]
         if args.limit is not None:
             cmd += ["--limit", str(args.limit)]
         cmd += job["cmd_extra"]
