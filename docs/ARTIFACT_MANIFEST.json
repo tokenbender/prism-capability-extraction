@@ -6,17 +6,49 @@
     "Krishna Pagare"
   ],
   "release_type": "flattened_single_commit_code_and_artifact_index",
-  "status": "complete",
+  "status": "camera_ready_update_in_progress_private_weight_verified",
   "release_scope": {
-    "public_repository": "e-xperiments/prism-capability-extraction",
-    "description": "single public code snapshot for the released paper experiments",
-    "included_experiment_families": [
+    "public_repository": "tokenbender/prism-capability-extraction",
+    "description": "camera-ready code and evidence index; physical BFCL weights remain private pending provenance completion",
+    "primary_experiment_families": [
       "arithmetic capability extraction",
-      "EN-PT translation rescue",
-      "BFCL/function-calling substrate conditioning"
+      "physical BFCL/function-calling substrate extraction"
     ],
-    "large_artifact_policy": "Large generated datasets, raw attribution arrays, model adapters, and full model artifacts are hosted on Hugging Face and referenced by immutable revision SHA."
+    "historical_non_primary_families": [
+      "EN-PT translation rescue",
+      "BFCL k160/k240 runtime-mask lineage"
+    ],
+    "large_artifact_policy": "Public legacy artifacts are pinned on Hugging Face. The Issue #18 physical weights are checksum-addressed in a verified private ModelScope mirror until adapter provenance and Hugging Face publication are verified; the mutable ModelScope master revision is bound by a verification receipt and model SHA-256."
   },
+  "modelscope_artifacts": [
+    {
+      "name": "Issue #18 physical BFCL MACE substrate",
+      "type": "model",
+      "repo": "tokenbender/prism-bfcl-mace-140875-physical-restricted-v2",
+      "url": "https://modelscope.ai/models/tokenbender/prism-bfcl-mace-140875-physical-restricted-v2",
+      "revision": "master",
+      "visibility": "private",
+      "license_status": "unspecified_restricted",
+      "model_sha256": "d0e78a244b01e0d0cce027f9bc65cea304315f522dc4359de2fc9fc4b5f2fb64",
+      "receipt": "results/bfcl/issue18_physical_mace_v1/MODELSCOPE_RECEIPT.json",
+      "receipt_sha256": "7c54987d80b79b6fce16e8309b048ee7ecb2ca51b40456b2892d438310cb929c",
+      "artifact_status": "private_visibility_fresh_download_checksum_clean_load_verified"
+    }
+  ],
+  "wandb_runs": [
+    {
+      "name": "Issue #18 physical MACE evaluation and runtime",
+      "path": "ahm-rimer/prism-bfcl/bfcl_physical_mace_k140875_v1",
+      "url": "https://wandb.ai/ahm-rimer/prism-bfcl/runs/bfcl_physical_mace_k140875_v1",
+      "artifact": "ahm-rimer/prism-bfcl/issue18-physical-mace-evidence:v0",
+      "artifact_digest": "8c9d29ce14b4692712752fe3f529513b",
+      "run_state": "finished",
+      "artifact_status": "verified_v0_lineage_modelscope_v2_receipt_bound",
+      "clean_v1_status": "blocked_signed_storage_signature_mismatch",
+      "receipt": "results/bfcl/issue18_physical_mace_v1/WANDB_RECEIPT.json",
+      "residual": "results/bfcl/issue18_physical_mace_v1/WANDB_STORAGE_RESIDUAL.json"
+    }
+  ],
   "huggingface_artifacts": [
     {
       "name": "Arithmetic generated data, masks, and run receipts",
@@ -78,6 +110,7 @@
   "claims": [
     {
       "claim": "Arithmetic sparse substrate after conditioning",
+      "claim_status": "primary_camera_ready",
       "paper_result": "12,661 MLP channels, 91.33% autoregressive recovery",
       "included_receipts": [
         "results/arithmetic/r32_direct_group_rank_merged.json",
@@ -101,7 +134,8 @@
       "artifact_status": "complete"
     },
     {
-      "claim": "Translation broad-substrate rescue",
+      "claim": "Historical provenance: translation broad-substrate rescue",
+      "claim_status": "historical_non_primary",
       "paper_result": "rank-32 conservative floor at k120; rank-8 k160 rescue summary included in paper",
       "included_receipts": [
         "results/translation/summary.md",
@@ -121,7 +155,42 @@
       "artifact_status": "complete"
     },
     {
-      "claim": "Function calling improves at fixed k160 substrate",
+      "claim": "Physical function-calling substrate retains 598/671 of its same-environment dense parent",
+      "claim_status": "primary_camera_ready_private_artifact_verified_public_release_blocked",
+      "paper_result": "598/1007 normalized exact; 89.1207% of the 671/1007 same-environment dense merged parent; 54.769% of total parameters",
+      "included_receipts": [
+        "results/bfcl/issue18_physical_mace_v1/README.md",
+        "results/bfcl/issue18_physical_mace_v1/evaluation/bundle_inspection.json",
+        "results/bfcl/issue18_physical_mace_v1/evaluation/dense_vs_physical_summary.json",
+        "results/bfcl/issue18_physical_mace_v1/evaluation/logical_vs_physical_summary.json",
+        "results/bfcl/issue18_physical_mace_v1/evaluation/merge_vs_live_adapter_summary.json",
+        "results/bfcl/issue18_physical_mace_v1/evaluation/smoke_summary.json",
+        "results/bfcl/issue18_physical_mace_v1/benchmarks/comparison.json",
+        "results/bfcl/issue18_physical_mace_v1/REMOTE_MANIFEST.json",
+        "results/bfcl/issue18_physical_mace_v1/MODELSCOPE_RECEIPT.json",
+        "results/bfcl/issue18_physical_mace_v1/WANDB_RECEIPT.json",
+        "results/bfcl/issue18_physical_mace_v1/LOCAL_ARCHIVE_RECEIPT.json",
+        "results/bfcl/issue18_physical_mace_v1/LIUM_TEARDOWN_RECEIPT.json",
+        "results/bfcl/issue18_physical_mace_v1/WANDB_STORAGE_RESIDUAL.json"
+      ],
+      "code": [
+        "code/scripts/load_bfcl_physical_bundle.py",
+        "code/scripts/inspect_bfcl_physical_bundle.py",
+        "code/scripts/summarize_bfcl_physical_parity.py",
+        "code/scripts/benchmark_bfcl_physical_bundle.py",
+        "code/scripts/compare_bfcl_physical_benchmarks.py",
+        "code/scripts/build_bfcl_physical_release.py",
+        "code/scripts/bfcl_direct_qwen3.py"
+      ],
+      "external_artifacts": [
+        "private ModelScope tokenbender/prism-bfcl-mace-140875-physical-restricted-v2",
+        "W&B ahm-rimer/prism-bfcl/bfcl_physical_mace_k140875_v1"
+      ],
+      "artifact_status": "physical_experiment_and_private_preservation_complete_public_release_blocked"
+    },
+    {
+      "claim": "Historical provenance: function calling improves at fixed k160 substrate",
+      "claim_status": "historical_non_primary",
       "paper_result": "k160: 562/1007 normalized exact; 84.6% recovery at fixed substrate",
       "included_receipts": [
         "results/bfcl/eval_masked_summary.json",
@@ -143,7 +212,8 @@
       "artifact_status": "complete"
     },
     {
-      "claim": "Function calling k240 policy distillation reaches 568/1007",
+      "claim": "Historical provenance: function calling k240 policy distillation reaches 568/1007",
+      "claim_status": "historical_non_primary",
       "paper_result": "568/1007 normalized exact",
       "included_receipts": [
         "results/bfcl/README.md"

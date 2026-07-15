@@ -1,0 +1,15 @@
+{
+  "status": "verified",
+  "artifact_name": "prism-bfcl-mace-140875-physical-v1",
+  "archive_filename": "prism-bfcl-mace-140875-physical-v1.tar",
+  "archive_bytes": 8990531584,
+  "archive_sha256": "746eb891668cd543a890f1838032f1c54659d986d448d4c0809cfeb1100be5f1",
+  "extracted_file_count": 47,
+  "checksum_entries_passed": 46,
+  "sha256sums_sha256": "d1f1f2ee79a187c7276226e3c36fc00de84d9494bfb5a78c5c33d8e2cf631889",
+  "model_sha256": "d0e78a244b01e0d0cce027f9bc65cea304315f522dc4359de2fc9fc4b5f2fb64",
+  "clean_inventory": true,
+  "generated_cache_absent": true,
+  "credential_and_signed_url_scan_pass": true,
+  "recorded_at_utc": "2026-07-15T22:56:09Z"
+}

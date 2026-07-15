@@ -1,0 +1,62 @@
+{
+  "status": "pass",
+  "contract": {
+    "gpu": "NVIDIA B200",
+    "torch": "2.12.0+cu130",
+    "cuda": "13.0",
+    "dtype": "bfloat16",
+    "attention_implementation": "eager",
+    "batch_size": 8,
+    "max_new_tokens": 128,
+    "warmup": 1,
+    "repeats": 5,
+    "decode_steps_per_batch": 32
+  },
+  "dense_report": "<experiment-root>/outputs/final_phase_benchmark_dense.json",
+  "physical_report": "<experiment-root>/outputs/final_phase_benchmark_physical.json",
+  "load_seconds": {
+    "dense": 4.633653709082864,
+    "physical": 4.322254491969943,
+    "physical_change_percent": -6.7203817260344305
+  },
+  "after_load_allocated_bytes": {
+    "dense": 16383586816.0,
+    "physical": 9001792000.0,
+    "physical_reduction_percent": 45.05603625691435
+  },
+  "after_load_reserved_bytes": {
+    "dense": 16385048576.0,
+    "physical": 9221177344.0,
+    "physical_reduction_percent": 43.722001791885326
+  },
+  "peak_allocated_bytes": {
+    "dense": 18135367680.0,
+    "physical": 10753805312.0,
+    "physical_reduction_percent": 40.7025790612479
+  },
+  "peak_reserved_bytes": {
+    "dense": 19035848704.0,
+    "physical": 11720982528.0,
+    "physical_reduction_percent": 38.42679299327971
+  },
+  "generated_tokens_per_second": {
+    "dense": 239.84626601743312,
+    "physical": 251.07297133943757,
+    "physical_change_percent": 4.68079220428157
+  },
+  "prefill_tokens_per_second": {
+    "dense": 32787.54737305767,
+    "physical": 23040.581876422548,
+    "physical_change_percent": -29.72764441857717
+  },
+  "decode_tokens_per_second": {
+    "dense": 257.2782584626146,
+    "physical": 277.44844729455514,
+    "physical_change_percent": 7.839834175055849
+  },
+  "decode_milliseconds_per_step": {
+    "dense": 31.094744412985165,
+    "physical": 28.83420828123538,
+    "physical_change_percent": -7.2698334539317955
+  }
+}

@@ -1,0 +1,714 @@
+{
+  "status": "pass",
+  "bundle": "<experiment-root>/bundle/prism-bfcl-mace-140875-physical-v1",
+  "bundle_format": "qwen_physical_mlp_substrate_v1",
+  "mask": "<experiment-root>/inputs/mace140875.npz",
+  "mask_sha256": "f83816319ec7d39cd4d95e8c8f44cecc139f23657233ccdd061bda1f71350567",
+  "model_safetensors_sha256": {
+    "model.safetensors": "d0e78a244b01e0d0cce027f9bc65cea304315f522dc4359de2fc9fc4b5f2fb64"
+  },
+  "layers": 36,
+  "hidden_size": 4096,
+  "dense_intermediate_size": 12288,
+  "retained_channels": 140875,
+  "dense_channels": 442368,
+  "retained_channel_fraction": 0.31845657913773145,
+  "retained_widths": [
+    9087,
+    605,
+    885,
+    1179,
+    2252,
+    3318,
+    2757,
+    3095,
+    4300,
+    4678,
+    4693,
+    4792,
+    4549,
+    5539,
+    6348,
+    6380,
+    5875,
+    5499,
+    5339,
+    5218,
+    5603,
+    5658,
+    5582,
+    5008,
+    4262,
+    3822,
+    3092,
+    2788,
+    2542,
+    2141,
+    1961,
+    1842,
+    1753,
+    2246,
+    3194,
+    2993
+  ],
+  "retained_mlp_parameters": 1731072000,
+  "observed_mlp_parameters": 1731072000,
+  "bundle_total_parameters": 4485989376,
+  "full_model_total_parameters": 8190735360,
+  "retained_total_parameter_fraction": 0.5476906747479142,
+  "bundle_safetensors_bytes": 8972024720,
+  "full_model_safetensors_bytes": 16381516824,
+  "retained_serialized_tensor_fraction": 0.547691939421348,
+  "dense_mlp_dimensions_absent": true,
+  "metadata_widths_match_mask": true,
+  "layer_shapes": [
+    {
+      "layer": 0,
+      "retained_width": 9087,
+      "tensors": {
+        "model.layers.0.mlp.gate_proj.weight": [
+          9087,
+          4096
+        ],
+        "model.layers.0.mlp.up_proj.weight": [
+          9087,
+          4096
+        ],
+        "model.layers.0.mlp.down_proj.weight": [
+          4096,
+          9087
+        ]
+      }
+    },
+    {
+      "layer": 1,
+      "retained_width": 605,
+      "tensors": {
+        "model.layers.1.mlp.gate_proj.weight": [
+          605,
+          4096
+        ],
+        "model.layers.1.mlp.up_proj.weight": [
+          605,
+          4096
+        ],
+        "model.layers.1.mlp.down_proj.weight": [
+          4096,
+          605
+        ]
+      }
+    },
+    {
+      "layer": 2,
+      "retained_width": 885,
+      "tensors": {
+        "model.layers.2.mlp.gate_proj.weight": [
+          885,
+          4096
+        ],
+        "model.layers.2.mlp.up_proj.weight": [
+          885,
+          4096
+        ],
+        "model.layers.2.mlp.down_proj.weight": [
+          4096,
+          885
+        ]
+      }
+    },
+    {
+      "layer": 3,
+      "retained_width": 1179,
+      "tensors": {
+        "model.layers.3.mlp.gate_proj.weight": [
+          1179,
+          4096
+        ],
+        "model.layers.3.mlp.up_proj.weight": [
+          1179,
+          4096
+        ],
+        "model.layers.3.mlp.down_proj.weight": [
+          4096,
+          1179
+        ]
+      }
+    },
+    {
+      "layer": 4,
+      "retained_width": 2252,
+      "tensors": {
+        "model.layers.4.mlp.gate_proj.weight": [
+          2252,
+          4096
+        ],
+        "model.layers.4.mlp.up_proj.weight": [
+          2252,
+          4096
+        ],
+        "model.layers.4.mlp.down_proj.weight": [
+          4096,
+          2252
+        ]
+      }
+    },
+    {
+      "layer": 5,
+      "retained_width": 3318,
+      "tensors": {
+        "model.layers.5.mlp.gate_proj.weight": [
+          3318,
+          4096
+        ],
+        "model.layers.5.mlp.up_proj.weight": [
+          3318,
+          4096
+        ],
+        "model.layers.5.mlp.down_proj.weight": [
+          4096,
+          3318
+        ]
+      }
+    },
+    {
+      "layer": 6,
+      "retained_width": 2757,
+      "tensors": {
+        "model.layers.6.mlp.gate_proj.weight": [
+          2757,
+          4096
+        ],
+        "model.layers.6.mlp.up_proj.weight": [
+          2757,
+          4096
+        ],
+        "model.layers.6.mlp.down_proj.weight": [
+          4096,
+          2757
+        ]
+      }
+    },
+    {
+      "layer": 7,
+      "retained_width": 3095,
+      "tensors": {
+        "model.layers.7.mlp.gate_proj.weight": [
+          3095,
+          4096
+        ],
+        "model.layers.7.mlp.up_proj.weight": [
+          3095,
+          4096
+        ],
+        "model.layers.7.mlp.down_proj.weight": [
+          4096,
+          3095
+        ]
+      }
+    },
+    {
+      "layer": 8,
+      "retained_width": 4300,
+      "tensors": {
+        "model.layers.8.mlp.gate_proj.weight": [
+          4300,
+          4096
+        ],
+        "model.layers.8.mlp.up_proj.weight": [
+          4300,
+          4096
+        ],
+        "model.layers.8.mlp.down_proj.weight": [
+          4096,
+          4300
+        ]
+      }
+    },
+    {
+      "layer": 9,
+      "retained_width": 4678,
+      "tensors": {
+        "model.layers.9.mlp.gate_proj.weight": [
+          4678,
+          4096
+        ],
+        "model.layers.9.mlp.up_proj.weight": [
+          4678,
+          4096
+        ],
+        "model.layers.9.mlp.down_proj.weight": [
+          4096,
+          4678
+        ]
+      }
+    },
+    {
+      "layer": 10,
+      "retained_width": 4693,
+      "tensors": {
+        "model.layers.10.mlp.gate_proj.weight": [
+          4693,
+          4096
+        ],
+        "model.layers.10.mlp.up_proj.weight": [
+          4693,
+          4096
+        ],
+        "model.layers.10.mlp.down_proj.weight": [
+          4096,
+          4693
+        ]
+      }
+    },
+    {
+      "layer": 11,
+      "retained_width": 4792,
+      "tensors": {
+        "model.layers.11.mlp.gate_proj.weight": [
+          4792,
+          4096
+        ],
+        "model.layers.11.mlp.up_proj.weight": [
+          4792,
+          4096
+        ],
+        "model.layers.11.mlp.down_proj.weight": [
+          4096,
+          4792
+        ]
+      }
+    },
+    {
+      "layer": 12,
+      "retained_width": 4549,
+      "tensors": {
+        "model.layers.12.mlp.gate_proj.weight": [
+          4549,
+          4096
+        ],
+        "model.layers.12.mlp.up_proj.weight": [
+          4549,
+          4096
+        ],
+        "model.layers.12.mlp.down_proj.weight": [
+          4096,
+          4549
+        ]
+      }
+    },
+    {
+      "layer": 13,
+      "retained_width": 5539,
+      "tensors": {
+        "model.layers.13.mlp.gate_proj.weight": [
+          5539,
+          4096
+        ],
+        "model.layers.13.mlp.up_proj.weight": [
+          5539,
+          4096
+        ],
+        "model.layers.13.mlp.down_proj.weight": [
+          4096,
+          5539
+        ]
+      }
+    },
+    {
+      "layer": 14,
+      "retained_width": 6348,
+      "tensors": {
+        "model.layers.14.mlp.gate_proj.weight": [
+          6348,
+          4096
+        ],
+        "model.layers.14.mlp.up_proj.weight": [
+          6348,
+          4096
+        ],
+        "model.layers.14.mlp.down_proj.weight": [
+          4096,
+          6348
+        ]
+      }
+    },
+    {
+      "layer": 15,
+      "retained_width": 6380,
+      "tensors": {
+        "model.layers.15.mlp.gate_proj.weight": [
+          6380,
+          4096
+        ],
+        "model.layers.15.mlp.up_proj.weight": [
+          6380,
+          4096
+        ],
+        "model.layers.15.mlp.down_proj.weight": [
+          4096,
+          6380
+        ]
+      }
+    },
+    {
+      "layer": 16,
+      "retained_width": 5875,
+      "tensors": {
+        "model.layers.16.mlp.gate_proj.weight": [
+          5875,
+          4096
+        ],
+        "model.layers.16.mlp.up_proj.weight": [
+          5875,
+          4096
+        ],
+        "model.layers.16.mlp.down_proj.weight": [
+          4096,
+          5875
+        ]
+      }
+    },
+    {
+      "layer": 17,
+      "retained_width": 5499,
+      "tensors": {
+        "model.layers.17.mlp.gate_proj.weight": [
+          5499,
+          4096
+        ],
+        "model.layers.17.mlp.up_proj.weight": [
+          5499,
+          4096
+        ],
+        "model.layers.17.mlp.down_proj.weight": [
+          4096,
+          5499
+        ]
+      }
+    },
+    {
+      "layer": 18,
+      "retained_width": 5339,
+      "tensors": {
+        "model.layers.18.mlp.gate_proj.weight": [
+          5339,
+          4096
+        ],
+        "model.layers.18.mlp.up_proj.weight": [
+          5339,
+          4096
+        ],
+        "model.layers.18.mlp.down_proj.weight": [
+          4096,
+          5339
+        ]
+      }
+    },
+    {
+      "layer": 19,
+      "retained_width": 5218,
+      "tensors": {
+        "model.layers.19.mlp.gate_proj.weight": [
+          5218,
+          4096
+        ],
+        "model.layers.19.mlp.up_proj.weight": [
+          5218,
+          4096
+        ],
+        "model.layers.19.mlp.down_proj.weight": [
+          4096,
+          5218
+        ]
+      }
+    },
+    {
+      "layer": 20,
+      "retained_width": 5603,
+      "tensors": {
+        "model.layers.20.mlp.gate_proj.weight": [
+          5603,
+          4096
+        ],
+        "model.layers.20.mlp.up_proj.weight": [
+          5603,
+          4096
+        ],
+        "model.layers.20.mlp.down_proj.weight": [
+          4096,
+          5603
+        ]
+      }
+    },
+    {
+      "layer": 21,
+      "retained_width": 5658,
+      "tensors": {
+        "model.layers.21.mlp.gate_proj.weight": [
+          5658,
+          4096
+        ],
+        "model.layers.21.mlp.up_proj.weight": [
+          5658,
+          4096
+        ],
+        "model.layers.21.mlp.down_proj.weight": [
+          4096,
+          5658
+        ]
+      }
+    },
+    {
+      "layer": 22,
+      "retained_width": 5582,
+      "tensors": {
+        "model.layers.22.mlp.gate_proj.weight": [
+          5582,
+          4096
+        ],
+        "model.layers.22.mlp.up_proj.weight": [
+          5582,
+          4096
+        ],
+        "model.layers.22.mlp.down_proj.weight": [
+          4096,
+          5582
+        ]
+      }
+    },
+    {
+      "layer": 23,
+      "retained_width": 5008,
+      "tensors": {
+        "model.layers.23.mlp.gate_proj.weight": [
+          5008,
+          4096
+        ],
+        "model.layers.23.mlp.up_proj.weight": [
+          5008,
+          4096
+        ],
+        "model.layers.23.mlp.down_proj.weight": [
+          4096,
+          5008
+        ]
+      }
+    },
+    {
+      "layer": 24,
+      "retained_width": 4262,
+      "tensors": {
+        "model.layers.24.mlp.gate_proj.weight": [
+          4262,
+          4096
+        ],
+        "model.layers.24.mlp.up_proj.weight": [
+          4262,
+          4096
+        ],
+        "model.layers.24.mlp.down_proj.weight": [
+          4096,
+          4262
+        ]
+      }
+    },
+    {
+      "layer": 25,
+      "retained_width": 3822,
+      "tensors": {
+        "model.layers.25.mlp.gate_proj.weight": [
+          3822,
+          4096
+        ],
+        "model.layers.25.mlp.up_proj.weight": [
+          3822,
+          4096
+        ],
+        "model.layers.25.mlp.down_proj.weight": [
+          4096,
+          3822
+        ]
+      }
+    },
+    {
+      "layer": 26,
+      "retained_width": 3092,
+      "tensors": {
+        "model.layers.26.mlp.gate_proj.weight": [
+          3092,
+          4096
+        ],
+        "model.layers.26.mlp.up_proj.weight": [
+          3092,
+          4096
+        ],
+        "model.layers.26.mlp.down_proj.weight": [
+          4096,
+          3092
+        ]
+      }
+    },
+    {
+      "layer": 27,
+      "retained_width": 2788,
+      "tensors": {
+        "model.layers.27.mlp.gate_proj.weight": [
+          2788,
+          4096
+        ],
+        "model.layers.27.mlp.up_proj.weight": [
+          2788,
+          4096
+        ],
+        "model.layers.27.mlp.down_proj.weight": [
+          4096,
+          2788
+        ]
+      }
+    },
+    {
+      "layer": 28,
+      "retained_width": 2542,
+      "tensors": {
+        "model.layers.28.mlp.gate_proj.weight": [
+          2542,
+          4096
+        ],
+        "model.layers.28.mlp.up_proj.weight": [
+          2542,
+          4096
+        ],
+        "model.layers.28.mlp.down_proj.weight": [
+          4096,
+          2542
+        ]
+      }
+    },
+    {
+      "layer": 29,
+      "retained_width": 2141,
+      "tensors": {
+        "model.layers.29.mlp.gate_proj.weight": [
+          2141,
+          4096
+        ],
+        "model.layers.29.mlp.up_proj.weight": [
+          2141,
+          4096
+        ],
+        "model.layers.29.mlp.down_proj.weight": [
+          4096,
+          2141
+        ]
+      }
+    },
+    {
+      "layer": 30,
+      "retained_width": 1961,
+      "tensors": {
+        "model.layers.30.mlp.gate_proj.weight": [
+          1961,
+          4096
+        ],
+        "model.layers.30.mlp.up_proj.weight": [
+          1961,
+          4096
+        ],
+        "model.layers.30.mlp.down_proj.weight": [
+          4096,
+          1961
+        ]
+      }
+    },
+    {
+      "layer": 31,
+      "retained_width": 1842,
+      "tensors": {
+        "model.layers.31.mlp.gate_proj.weight": [
+          1842,
+          4096
+        ],
+        "model.layers.31.mlp.up_proj.weight": [
+          1842,
+          4096
+        ],
+        "model.layers.31.mlp.down_proj.weight": [
+          4096,
+          1842
+        ]
+      }
+    },
+    {
+      "layer": 32,
+      "retained_width": 1753,
+      "tensors": {
+        "model.layers.32.mlp.gate_proj.weight": [
+          1753,
+          4096
+        ],
+        "model.layers.32.mlp.up_proj.weight": [
+          1753,
+          4096
+        ],
+        "model.layers.32.mlp.down_proj.weight": [
+          4096,
+          1753
+        ]
+      }
+    },
+    {
+      "layer": 33,
+      "retained_width": 2246,
+      "tensors": {
+        "model.layers.33.mlp.gate_proj.weight": [
+          2246,
+          4096
+        ],
+        "model.layers.33.mlp.up_proj.weight": [
+          2246,
+          4096
+        ],
+        "model.layers.33.mlp.down_proj.weight": [
+          4096,
+          2246
+        ]
+      }
+    },
+    {
+      "layer": 34,
+      "retained_width": 3194,
+      "tensors": {
+        "model.layers.34.mlp.gate_proj.weight": [
+          3194,
+          4096
+        ],
+        "model.layers.34.mlp.up_proj.weight": [
+          3194,
+          4096
+        ],
+        "model.layers.34.mlp.down_proj.weight": [
+          4096,
+          3194
+        ]
+      }
+    },
+    {
+      "layer": 35,
+      "retained_width": 2993,
+      "tensors": {
+        "model.layers.35.mlp.gate_proj.weight": [
+          2993,
+          4096
+        ],
+        "model.layers.35.mlp.up_proj.weight": [
+          2993,
+          4096
+        ],
+        "model.layers.35.mlp.down_proj.weight": [
+          4096,
+          2993
+        ]
+      }
+    }
+  ]
+}

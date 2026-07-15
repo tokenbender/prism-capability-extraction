@@ -1,0 +1,44 @@
+{
+  "status": "verified_v0_lineage",
+  "run_path": [
+    "ahm-rimer",
+    "prism-bfcl",
+    "bfcl_physical_mace_k140875_v1"
+  ],
+  "run_url": "https://wandb.ai/ahm-rimer/prism-bfcl/runs/bfcl_physical_mace_k140875_v1",
+  "run_state": "finished",
+  "lineage_run": "ahm-rimer/prism-bfcl/yxfm3mck",
+  "evidence_artifact": {
+    "qualified_name": "ahm-rimer/prism-bfcl/issue18-physical-mace-evidence:v0",
+    "version": "v0",
+    "digest": "8c9d29ce14b4692712752fe3f529513b",
+    "size": 18462020,
+    "fresh_download_pass": true,
+    "fresh_download_source": "preserved_pre_outage_fresh_download",
+    "fresh_download_files": 47,
+    "fresh_download_bytes": 18462020,
+    "canonical_files_compared": 46,
+    "canonical_bytes_compared": 18412183,
+    "canonical_inventory_match": true,
+    "stale_extras": [
+      "scripts/__pycache__/bfcl_direct_qwen3.cpython-312.pyc"
+    ],
+    "stale_extra_details": {
+      "scripts/__pycache__/bfcl_direct_qwen3.cpython-312.pyc": {
+        "bytes": 49837,
+        "sha256": "dd6cd77187ee0bdfb26afe1fdc7a7d2cc82db927ae65d62a7935f1b22999e2ce"
+      }
+    },
+    "canonical_release_excludes_stale_extras": true,
+    "metadata_modelscope_receipt_verified": true
+  },
+  "model_sha256": "d0e78a244b01e0d0cce027f9bc65cea304315f522dc4359de2fc9fc4b5f2fb64",
+  "modelscope_repo": "tokenbender/prism-bfcl-mace-140875-physical-restricted-v2",
+  "modelscope_revision": "master",
+  "modelscope_receipt_sha256": "7c54987d80b79b6fce16e8309b048ee7ecb2ca51b40456b2892d438310cb929c",
+  "modelscope_receipt_delivery": "artifact_metadata",
+  "wandb_v1_status": "blocked_signed_storage_signature_mismatch",
+  "wandb_v1_absence_verified": true,
+  "publication_boundary": "private ModelScope mirror verified; public release remains blocked on adapter provenance",
+  "verified_at_utc": "2026-07-15T22:54:16.031600+00:00"
+}

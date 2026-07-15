@@ -1,0 +1,31 @@
+{
+  "status": "open_external_provider_residual",
+  "provider": "Weights & Biases",
+  "scope": "clean v1 evidence artifact upload",
+  "v1_upload_attempts": 4,
+  "independent_environments": [
+    "local Python 3.9 client",
+    "local Python 3.11 client",
+    "task-owned Lium Python 3.12 environment",
+    "post-recovery retry"
+  ],
+  "error_code": "SignatureDoesNotMatch",
+  "failure_surface": "provider-issued signed object-storage URLs for artifact payload and manifest operations",
+  "v1_status": "absent",
+  "v1_absence_verified": true,
+  "post_outage_remote_download_reverification": "blocked_by_the_same_signed_storage_failure",
+  "verified_fallback": {
+    "artifact": "ahm-rimer/prism-bfcl/issue18-physical-mace-evidence:v0",
+    "digest": "8c9d29ce14b4692712752fe3f529513b",
+    "run_state": "finished",
+    "preserved_pre_outage_download_verified": true,
+    "canonical_files_compared": 46,
+    "canonical_inventory_match": true,
+    "modelscope_receipt_bound_in_metadata": true,
+    "modelscope_receipt_sha256": "7c54987d80b79b6fce16e8309b048ee7ecb2ca51b40456b2892d438310cb929c",
+    "historical_extra_excluded_from_canonical_release": "scripts/__pycache__/bfcl_direct_qwen3.cpython-312.pyc"
+  },
+  "preservation_impact": "none; the clean archive is preserved locally and in the verified private ModelScope v2 mirror",
+  "security_boundary": "no signed URLs or credentials are stored in this receipt",
+  "recorded_at_utc": "2026-07-15T22:54:16.031600+00:00"
+}

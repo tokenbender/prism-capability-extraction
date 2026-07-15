@@ -1,0 +1,88 @@
+{
+  "source_model": {
+    "repo_id": "Qwen/Qwen3-8B",
+    "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "revision_note": "reconstructed replay pin; original Issue #12 used a floating ID"
+  },
+  "topk": 140875,
+  "dtype": "bfloat16",
+  "format": "qwen_physical_mlp_substrate_v1",
+  "attention_implementation": "eager",
+  "isolation": {
+    "layers": 36,
+    "kept_total": 140875,
+    "kept_per_layer": {
+      "0": 9087,
+      "1": 605,
+      "2": 885,
+      "3": 1179,
+      "4": 2252,
+      "5": 3318,
+      "6": 2757,
+      "7": 3095,
+      "8": 4300,
+      "9": 4678,
+      "10": 4693,
+      "11": 4792,
+      "12": 4549,
+      "13": 5539,
+      "14": 6348,
+      "15": 6380,
+      "16": 5875,
+      "17": 5499,
+      "18": 5339,
+      "19": 5218,
+      "20": 5603,
+      "21": 5658,
+      "22": 5582,
+      "23": 5008,
+      "24": 4262,
+      "25": 3822,
+      "26": 3092,
+      "27": 2788,
+      "28": 2542,
+      "29": 2141,
+      "30": 1961,
+      "31": 1842,
+      "32": 1753,
+      "33": 2246,
+      "34": 3194,
+      "35": 2993
+    },
+    "mode": "physical_mlp_substrate_full_attention",
+    "attention": "unchanged full attention blocks"
+  },
+  "artifact_id": "prism-bfcl-mace-140875-physical-v1",
+  "visibility": "private_verification_stage",
+  "adapter": {
+    "repo_id": "TokenBender/circuit-discovery",
+    "repo_type": "dataset",
+    "revision": "cdebd3e01fab1d886f169ed87470a4e83d10a5b5",
+    "path": "bfcl/issue6_tree_search_v1/run/branches/b007/unmasked_r32/adapter",
+    "weights_sha256": "5586cdd56acc4b0eac3bf34896dd85d235433227f8693ee912fae47f78447892"
+  },
+  "candidate": {
+    "id": "category_repair_java_r500_protect_tail_b140875_p10000",
+    "mask_sha256": "f83816319ec7d39cd4d95e8c8f44cecc139f23657233ccdd061bda1f71350567",
+    "selected_set_sha1": "7492d1944be3320c59a49eaf2b57189badd3524a",
+    "selected_channels": 140875,
+    "dense_channels": 442368
+  },
+  "evaluation_contract": {
+    "pairs_sha256": "f5466f7d1c17744bcfc2b6bc1e1647e2095c98762e5afd6fe7641dfcb6c1276e",
+    "scorer_sha256": "17ce35b8ca1633e6cf8a5da5de032d5671b33b184f52daf5b8f9a63f9b76bc12",
+    "batch_size": 8,
+    "max_new_tokens": 512,
+    "attention": "eager",
+    "dtype": "bfloat16",
+    "thinking": false,
+    "bfcl_canonicalization_prompt": true,
+    "metric": "PRISM internal normalized exact; not official BFCL leaderboard",
+    "tokenizer_fix_mistral_regex": false
+  },
+  "source_repository": {
+    "repo": "tokenbender/prism-capability-extraction",
+    "branch": "issue18-camera-ready-physical-mace",
+    "source_commit": "07b46cdd41648dd83fbe8180752085bd59adafb5"
+  }
+}

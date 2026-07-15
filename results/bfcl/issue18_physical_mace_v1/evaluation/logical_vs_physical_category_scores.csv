@@ -1,0 +1,7 @@
+group,examples,physical_normalized_correct,physical_normalized_accuracy,frozen_normalized_correct,frozen_normalized_accuracy,normalized_correct_delta,physical_raw_correct,frozen_raw_correct,raw_correct_delta
+exec_simple,100,87,0.87,87,0.87,0,87,87,0
+java,100,58,0.58,60,0.6,-2,58,60,-2
+javascript,50,31,0.62,30,0.6,1,27,26,1
+live_simple,258,96,0.37209302325581395,99,0.38372093023255816,-3,92,95,-3
+simple,400,284,0.71,284,0.71,0,279,279,0
+sql,99,42,0.42424242424242425,40,0.40404040404040403,2,42,40,2

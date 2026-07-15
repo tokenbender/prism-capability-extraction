@@ -1,0 +1,37 @@
+{
+  "python": "3.12.3",
+  "platform": "Linux-7.0.0-28-generic-x86_64-with-glibc2.39",
+  "packages": {
+    "torch": "2.12.0+cu130",
+    "transformers": "4.57.6",
+    "accelerate": "1.14.0",
+    "safetensors": "0.8.0",
+    "peft": "0.19.1",
+    "numpy": "2.4.4"
+  },
+  "hardware": {
+    "cuda_available": true,
+    "cuda_runtime": "13.0",
+    "gpu_count": 8,
+    "gpus": [
+      "NVIDIA B200",
+      "NVIDIA B200",
+      "NVIDIA B200",
+      "NVIDIA B200",
+      "NVIDIA B200",
+      "NVIDIA B200",
+      "NVIDIA B200",
+      "NVIDIA B200"
+    ],
+    "nvidia_smi": [
+      "0, NVIDIA B200, 183359, 595.71.05",
+      "1, NVIDIA B200, 183359, 595.71.05",
+      "2, NVIDIA B200, 183359, 595.71.05",
+      "3, NVIDIA B200, 183359, 595.71.05",
+      "4, NVIDIA B200, 183359, 595.71.05",
+      "5, NVIDIA B200, 183359, 595.71.05",
+      "6, NVIDIA B200, 183359, 595.71.05",
+      "7, NVIDIA B200, 183359, 595.71.05"
+    ]
+  }
+}

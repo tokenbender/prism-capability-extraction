@@ -1,9 +1,15 @@
 # BFCL / Function-Calling Receipts
 
 This directory contains small BFCL/function-calling receipts included directly
-in the git release. Large generated artifacts, adapters, datasets, and full
-model outputs are released on Hugging Face and pinned in
-`docs/ARTIFACT_MANIFEST.json`.
+in the git release. Public legacy generated artifacts, adapters, datasets, and
+full-model outputs are released on Hugging Face and pinned in
+`docs/ARTIFACT_MANIFEST.json`. The Issue #18 physical substrate is privately
+preserved on ModelScope pending adapter provenance and public-release approval;
+its receipt and model SHA-256, rather than mutable `master`, are the proof surface.
+
+The current camera-ready evidence is the Issue #18 physical MACE substrate in
+`issue18_physical_mace_v1/`. Older k160/k240 results below are retained as
+historical runtime-mask lineage and are not the primary physical-model claim.
 
 ## Included Local Receipts
 
@@ -15,6 +21,8 @@ model outputs are released on Hugging Face and pinned in
 - `gkd_aopd_hybrid_k160_v0__train_summary.json`: k160 hybrid train summary.
 - `r32_more_online_repro_summary.json`: reproduction summary for the uploaded
   full-model artifact.
+- `issue18_physical_mace_v1/`: physical jagged-MLP bundle receipts, strict
+  loader provenance, full parity audit, and same-harness benchmark.
 
 ## Public Artifact Pointers
 
@@ -24,4 +32,3 @@ model outputs are released on Hugging Face and pinned in
 | k160 rank-32 adapter | `Occupying-Mars/issue49-k160-r32-len1024-adapter` | `e5104eee6e9dd0fff11f377b743330429970d672` |
 | k240 rank-16 adapter | `Occupying-Mars/issue49-k240-r16-adapter` | `b9018cc3090b856df701240fd73f9f98c627917c` |
 | r32 more-online full model | `TokenBender/issue51-r32-more-online-codex-repro-551-full` | `ff4daac9e49a8f927153c9a04daa9faba2fb5a66` |
-

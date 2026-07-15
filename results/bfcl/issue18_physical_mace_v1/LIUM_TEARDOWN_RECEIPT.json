@@ -1,0 +1,29 @@
+{
+  "status": "verified",
+  "pod": {
+    "huid": "noble-orbit-98",
+    "name": "prism-bfcl-physical-mace-v1",
+    "config": "8xB200",
+    "task_owned": true,
+    "hourly_usd": 0.0
+  },
+  "preservation_complete_before_removal": true,
+  "credential_cleanup": {
+    "pod_transient_wandb_credentials_removed": true,
+    "pod_transient_modelscope_credentials_removed": true,
+    "local_transient_wandb_credentials_removed": true,
+    "local_transient_modelscope_credentials_removed": true,
+    "verified_before_removal": true
+  },
+  "removal_window_utc": {
+    "start": "2026-07-15T22:56:01Z",
+    "end": "2026-07-15T22:56:09Z"
+  },
+  "removed": true,
+  "post_removal_check": {
+    "command": "lium ps",
+    "checked_at_utc": "2026-07-15T22:56:09Z",
+    "result": "No active pods"
+  },
+  "other_pods_modified": false
+}

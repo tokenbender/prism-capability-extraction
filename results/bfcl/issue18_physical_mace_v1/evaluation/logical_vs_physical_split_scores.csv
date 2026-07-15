@@ -1,0 +1,5 @@
+group,examples,physical_normalized_correct,physical_normalized_accuracy,frozen_normalized_correct,frozen_normalized_accuracy,normalized_correct_delta,physical_raw_correct,frozen_raw_correct,raw_correct_delta
+calibration,152,90,0.5921052631578947,89,0.5855263157894737,1,88,87,1
+heldout,100,55,0.55,55,0.55,0,54,54,0
+train,609,365,0.5993431855500821,366,0.6009852216748769,-1,355,356,-1
+validation,146,88,0.6027397260273972,90,0.6164383561643836,-2,88,90,-2
