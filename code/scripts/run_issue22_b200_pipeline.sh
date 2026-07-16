@@ -89,41 +89,252 @@ python "${SCRIPTS}/search_arithmetic_standalone_mace.py" \
   --attention-implementation eager \
   --output-dir "${RUN_ROOT}/search"
 
-python "${SCRIPTS}/build_arithmetic_physical_bundle.py" \
-  --model "${MERGED_MODEL}" \
-  --mask "${RUN_ROOT}/search/winner/mask.npz" \
-  --candidate-id issue22-mace90-winner \
-  --dtype bfloat16 \
-  --device cuda:0 \
-  --output "${RUN_ROOT}/physical_bundle"
+PHYSICAL_ROOT="${RUN_ROOT}/physical_candidates"
+PHYSICAL_QUEUE="${PHYSICAL_ROOT}/logical_mace_queue.tsv"
+PHYSICAL_ATTEMPTS="${PHYSICAL_ROOT}/attempts.jsonl"
+PHYSICAL_SELECTION="${RUN_ROOT}/physical_selection.json"
+PHYSICAL_GATE_FAILURE_EXIT_CODE=3
+mkdir -p "${PHYSICAL_ROOT}"
+: > "${PHYSICAL_ATTEMPTS}"
 
-python "${SCRIPTS}/evaluate_arithmetic_standalone.py" \
-  --mode physical \
-  --bundle "${RUN_ROOT}/physical_bundle" \
-  --historical-pair "hundreds=${HUNDREDS}" \
-  --historical-pair "tens=${TENS}" \
-  --historical-pair "ones=${ONES}" \
-  --historical-final-n 500 \
-  --batch-size "${EVAL_BATCH}" \
-  --max-new-tokens 8 \
-  --device cuda:0 \
-  --output-dir "${RUN_ROOT}/physical_eval"
+# Preserve search/winner as the bounded logical winner. Physicalization is a
+# separate frontier because BF16 shape changes need not preserve that winner's
+# standalone predictions.
+jq -er '
+  [.rounds[] | select(.passes_mace == true)]
+  | sort_by(.kept, -(.comparison.matched_dense_recovery), .round)
+  | if length == 0 then
+      error("logical search produced no MACE-passing physical candidates")
+    else
+      .[]
+      | [.round, .label, .mask_path, .predictions_path, .kept]
+      | @tsv
+    end
+' "${RUN_ROOT}/search/manifest.json" > "${PHYSICAL_QUEUE}"
 
-python "${SCRIPTS}/compare_arithmetic_physical_parity.py" \
-  --logical "${RUN_ROOT}/search/winner/predictions.jsonl" \
-  --physical "${RUN_ROOT}/physical_eval/predictions.jsonl" \
-  --retention-floor 0.99 \
-  --output "${RUN_ROOT}/physical_parity.json" \
-  --differences "${RUN_ROOT}/physical_parity_differences.jsonl"
+SELECTED_ROUND=""
+SELECTED_DIR=""
+while IFS=$'\t' read -r ROUND LABEL MASK LOGICAL_PREDICTIONS KEPT; do
+  CANDIDATE_DIR="${PHYSICAL_ROOT}/round${ROUND}"
+  CANDIDATE_BUNDLE="${CANDIDATE_DIR}/bundle"
+  CANDIDATE_EVAL="${CANDIDATE_DIR}/eval"
+  CANDIDATE_PARITY="${CANDIDATE_DIR}/parity.json"
+  CANDIDATE_DIFFERENCES="${CANDIDATE_DIR}/parity_differences.jsonl"
+  mkdir -p "${CANDIDATE_DIR}"
+
+  python "${SCRIPTS}/build_arithmetic_physical_bundle.py" \
+    --model "${MERGED_MODEL}" \
+    --mask "${MASK}" \
+    --candidate-id "issue22-physical-round${ROUND}-${LABEL}" \
+    --dtype bfloat16 \
+    --device cuda:0 \
+    --output "${CANDIDATE_BUNDLE}"
+
+  python "${SCRIPTS}/evaluate_arithmetic_standalone.py" \
+    --mode physical \
+    --bundle "${CANDIDATE_BUNDLE}" \
+    --historical-pair "hundreds=${HUNDREDS}" \
+    --historical-pair "tens=${TENS}" \
+    --historical-pair "ones=${ONES}" \
+    --historical-final-n 500 \
+    --batch-size "${EVAL_BATCH}" \
+    --max-new-tokens 8 \
+    --device cuda:0 \
+    --output-dir "${CANDIDATE_EVAL}"
+
+  COMPARE_STATUS=0
+  python "${SCRIPTS}/compare_arithmetic_physical_parity.py" \
+    --logical "${LOGICAL_PREDICTIONS}" \
+    --physical "${CANDIDATE_EVAL}/predictions.jsonl" \
+    --dense "${RUN_ROOT}/dense/predictions.jsonl" \
+    --retention-floor 0.99 \
+    --recovery-floor 0.90 \
+    --output "${CANDIDATE_PARITY}" \
+    --differences "${CANDIDATE_DIFFERENCES}" \
+    || COMPARE_STATUS=$?
+
+  case "${COMPARE_STATUS}" in
+    0)
+      jq -e '.status == "pass"' "${CANDIDATE_PARITY}" > /dev/null
+      ;;
+    "${PHYSICAL_GATE_FAILURE_EXIT_CODE}")
+      jq -e '.status == "fail"' "${CANDIDATE_PARITY}" > /dev/null
+      ;;
+    *)
+      echo \
+        "physical comparator failed unexpectedly for round ${ROUND}: " \
+        "exit ${COMPARE_STATUS}" >&2
+      exit "${COMPARE_STATUS}"
+      ;;
+  esac
+
+  jq -cn \
+    --argjson round "${ROUND}" \
+    --arg bundle "${CANDIDATE_BUNDLE}" \
+    --arg evaluation "${CANDIDATE_EVAL}" \
+    --arg parity "${CANDIDATE_PARITY}" \
+    --arg differences "${CANDIDATE_DIFFERENCES}" \
+    --slurpfile search "${RUN_ROOT}/search/manifest.json" \
+    --slurpfile acceptance "${CANDIDATE_PARITY}" \
+    --slurpfile metadata \
+      "${CANDIDATE_BUNDLE}/substrate_metadata.json" \
+    '
+      ($search[0].rounds | map(select(.round == $round)) | first) as $logical
+      | $acceptance[0] as $physical
+      | $metadata[0] as $bundle_metadata
+      | if $logical == null then
+          error("physical candidate round is absent from search manifest")
+        else
+          {
+            round: $logical.round,
+            search_label: $logical.label,
+            kept: $logical.kept,
+            available: $logical.available,
+            kept_fraction: $logical.kept_fraction,
+            search_selection_sha256: $logical.selection_sha256,
+            search_mask_sha256: $logical.mask_sha256,
+            logical_candidate_correct:
+              $logical.comparison.candidate_correct,
+            logical_matched_dense_correct:
+              $logical.comparison.matched_dense_correct,
+            logical_matched_dense_recovery:
+              $logical.comparison.matched_dense_recovery,
+            logical_passes_mace: $logical.passes_mace,
+            physical_correct: $physical.physical_correct,
+            matched_dense_correct:
+              $physical.dense_recovery.matched_dense_correct,
+            matched_dense_recovery:
+              $physical.dense_recovery.matched_dense_recovery,
+            passes_mace90:
+              ($physical.dense_recovery.status == "pass"),
+            logical_correctness_retention:
+              $physical.logical_correctness_retention,
+            passes_parity99: ($physical.parity_status == "pass"),
+            accepted: ($physical.status == "pass"),
+            gates: $physical.gates,
+            physical_checkpoint_sha256:
+              $bundle_metadata.physicalization.checkpoint_sha256,
+            physical_parameters:
+              $bundle_metadata.physicalization.physical_parameters,
+            artifacts: {
+              search_mask: $logical.mask_path,
+              logical_predictions: $logical.predictions_path,
+              bundle: $bundle,
+              evaluation: $evaluation,
+              parity: $parity,
+              parity_differences: $differences
+            }
+          }
+        end
+    ' >> "${PHYSICAL_ATTEMPTS}"
+
+  if [[ "${COMPARE_STATUS}" -eq 0 ]]; then
+    SELECTED_ROUND="${ROUND}"
+    SELECTED_DIR="${CANDIDATE_DIR}"
+    break
+  fi
+done < "${PHYSICAL_QUEUE}"
+
+jq -s \
+  --arg selected_round "${SELECTED_ROUND}" \
+  --arg search_manifest "${RUN_ROOT}/search/manifest.json" \
+  --arg candidate_queue "${PHYSICAL_QUEUE}" \
+  --arg logical_winner_mask "${RUN_ROOT}/search/winner/mask.npz" \
+  --arg logical_winner_predictions \
+    "${RUN_ROOT}/search/winner/predictions.jsonl" \
+  --slurpfile search "${RUN_ROOT}/search/manifest.json" \
+  '
+    . as $attempts
+    | $search[0].winner as $logical_winner
+    | {
+        schema_version: "prism_arithmetic_physical_selection_v1",
+        status: (
+          if $selected_round == "" then "fail" else "pass" end
+        ),
+        selection_rule: (
+          "fewest channels among bounded logical MACE-pass candidates whose "
+          + "physical form passes MACE-90 and retains at least 99% of "
+          + "logical-zero correct rows"
+        ),
+        candidate_order: (
+          "kept ascending, logical matched-dense recovery descending, "
+          + "search round ascending"
+        ),
+        stop_rule: "first candidate passing both frozen physical gates",
+        floors: {
+          physical_matched_dense_recovery: 0.90,
+          logical_correctness_retention: 0.99
+        },
+        dense_recovery_denominator:
+          "correct rows in the frozen standalone dense evaluation",
+        eligible_logical_candidate_count: (
+          $search[0].rounds
+          | map(select(.passes_mace == true))
+          | length
+        ),
+        candidate_queue_artifact: $candidate_queue,
+        logical_winner_preserved: true,
+        logical_winner: {
+          semantics: "bounded standalone logical-zero MACE winner",
+          round: $logical_winner.round,
+          label: $logical_winner.label,
+          kept: $logical_winner.kept,
+          matched_dense_recovery:
+            $logical_winner.comparison.matched_dense_recovery,
+          artifacts: {
+            mask: $logical_winner_mask,
+            predictions: $logical_winner_predictions,
+            search_manifest: $search_manifest
+          }
+        },
+        bounded_minimality: ($selected_round != ""),
+        global_minimality_claimed: false,
+        tested_candidate_count: ($attempts | length),
+        untested_larger_candidate_count: (
+          (
+            $search[0].rounds
+            | map(select(.passes_mace == true))
+            | length
+          ) - ($attempts | length)
+        ),
+        tested_candidates: $attempts,
+        selected: (
+          if $selected_round == "" then
+            null
+          else
+            (
+              $attempts
+              | map(select((.round | tostring) == $selected_round))
+              | first
+            )
+          end
+        )
+      }
+  ' "${PHYSICAL_ATTEMPTS}" > "${PHYSICAL_SELECTION}.partial"
+mv "${PHYSICAL_SELECTION}.partial" "${PHYSICAL_SELECTION}"
+
+if [[ -z "${SELECTED_DIR}" ]]; then
+  echo \
+    "no bounded logical MACE candidate passed the frozen physical gates; " \
+    "see ${PHYSICAL_SELECTION}" >&2
+  exit 1
+fi
+
+SELECTED_BUNDLE="$(
+  jq -er '.selected.artifacts.bundle' "${PHYSICAL_SELECTION}"
+)"
+SELECTED_EVAL="$(
+  jq -er '.selected.artifacts.evaluation' "${PHYSICAL_SELECTION}"
+)"
 
 QUALITY_CORRECT="$(
   jq -s --argjson limit "${SWEEP_LIMIT}" \
     '.[0:$limit] | map(select(.exact_numeric_correct == true)) | length' \
-    "${RUN_ROOT}/physical_eval/predictions.jsonl"
+    "${SELECTED_EVAL}/predictions.jsonl"
 )"
 
 python "${SCRIPTS}/benchmark_arithmetic_physical_throughput.py" \
-  --bundle "${RUN_ROOT}/physical_bundle" \
+  --bundle "${SELECTED_BUNDLE}" \
   --dense-model "${MERGED_MODEL}" \
   --records "${RUN_ROOT}/dense/records.jsonl" \
   --candidate-config "${CONFIG}" \

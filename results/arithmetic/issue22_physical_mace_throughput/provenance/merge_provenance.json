@@ -1,0 +1,343 @@
+{
+  "schema": "prism_arithmetic_merge_provenance_v1",
+  "status": "pass",
+  "hard_gate": {
+    "criterion": "identical state keys, shapes, dtypes, and torch.equal tensors",
+    "exact_tensor_identity": true
+  },
+  "sources": {
+    "base": {
+      "kind": "local",
+      "requested": "/root/issue22_inputs/qwen25_math_1p5b_base",
+      "requested_revision": null,
+      "resolved_revision": "e8c276ef6e2ebd74b5e91bbbdf6370d6044b9e03eaad44bdfceb19d853d67440",
+      "local_manifest": {
+        "root": "/root/issue22_inputs/qwen25_math_1p5b_base",
+        "file_count": 10,
+        "total_bytes": 3098971881,
+        "manifest_sha256": "e8c276ef6e2ebd74b5e91bbbdf6370d6044b9e03eaad44bdfceb19d853d67440",
+        "files": [
+          {
+            "path": ".gitattributes",
+            "bytes": 1519,
+            "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361"
+          },
+          {
+            "path": "LICENSE",
+            "bytes": 11343,
+            "sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e"
+          },
+          {
+            "path": "README.md",
+            "bytes": 3426,
+            "sha256": "2fa98ea4581329d6c9e2d58d28be62484d68ff596f59bc9e4d1f20ff950a0b80"
+          },
+          {
+            "path": "config.json",
+            "bytes": 676,
+            "sha256": "81d1dc3c9d4797466a24bfc140776894d15ac4ccce58a0220462b2106f2f4831"
+          },
+          {
+            "path": "generation_config.json",
+            "bytes": 138,
+            "sha256": "8c970692323e3ea0e9b8b0a4dca79388d31226e41f83c9fd6014804280ebf6e8"
+          },
+          {
+            "path": "merges.txt",
+            "bytes": 1671839,
+            "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3"
+          },
+          {
+            "path": "model.safetensors",
+            "bytes": 3087467144,
+            "sha256": "f7aa8d665ab44d3b461bed742fe93cdcedc15d2e31e50dc372c126e6f720857b"
+          },
+          {
+            "path": "tokenizer.json",
+            "bytes": 7031645,
+            "sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539"
+          },
+          {
+            "path": "tokenizer_config.json",
+            "bytes": 7318,
+            "sha256": "a668be4b083078aca7c38853dd929184e81534d72525a9c1ddb84ea6fd1de6f8"
+          },
+          {
+            "path": "vocab.json",
+            "bytes": 2776833,
+            "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+          }
+        ]
+      }
+    },
+    "adapter": {
+      "kind": "local",
+      "requested": "/root/issue22_inputs/hf_dataset/circuit-shotting/artifacts/pod_logs/steed-medium/full/qwen25_math_1p5b_2digit_max_recovery_v1/lora_r32_beta005/adapter",
+      "requested_revision": null,
+      "resolved_revision": "956a9044aa37b0073652a7bfbc4a73d93e18eabd7d7131cddb59c039ab432539",
+      "local_manifest": {
+        "root": "/root/issue22_inputs/hf_dataset/circuit-shotting/artifacts/pod_logs/steed-medium/full/qwen25_math_1p5b_2digit_max_recovery_v1/lora_r32_beta005/adapter",
+        "file_count": 2,
+        "total_bytes": 147771595,
+        "manifest_sha256": "956a9044aa37b0073652a7bfbc4a73d93e18eabd7d7131cddb59c039ab432539",
+        "files": [
+          {
+            "path": "adapter_config.json",
+            "bytes": 1099,
+            "sha256": "b85157bfd362e632d64f79b964eb82410f6a70019a4b3e97940b78ab52776bb1"
+          },
+          {
+            "path": "adapter_model.safetensors",
+            "bytes": 147770496,
+            "sha256": "2c5de239e9c5e2ebe2a47b3e676ddae49ad542d24e793ebc00fb3bee0d5461e6"
+          }
+        ]
+      }
+    },
+    "candidate": {
+      "kind": "local",
+      "requested": "/root/issue22_inputs/checkpoint-b-base-tokenizer",
+      "requested_revision": null,
+      "resolved_revision": "c987470b3c3146861d273ac89828aad504bda1895e510a0c798b28cf5d4048b0",
+      "local_manifest": {
+        "root": "/root/issue22_inputs/checkpoint-b-base-tokenizer",
+        "file_count": 7,
+        "total_bytes": 3098956306,
+        "manifest_sha256": "c987470b3c3146861d273ac89828aad504bda1895e510a0c798b28cf5d4048b0",
+        "files": [
+          {
+            "path": "config.json",
+            "bytes": 1389,
+            "sha256": "12b06de351c0a65aed9b7f78f5b816e129393314bd7879d116e7886246fcdd51"
+          },
+          {
+            "path": "generation_config.json",
+            "bytes": 138,
+            "sha256": "aa45f8636f1dc3287fb513e77ee3b822186b163aaa82f3f08d0c88eb34db7601"
+          },
+          {
+            "path": "merges.txt",
+            "bytes": 1671839,
+            "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3"
+          },
+          {
+            "path": "model.safetensors",
+            "bytes": 3087467144,
+            "sha256": "02f1d903334e09a100f725065bbe32cceff58ee6ae97c54e907ba7da5fea1345"
+          },
+          {
+            "path": "tokenizer.json",
+            "bytes": 7031645,
+            "sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539"
+          },
+          {
+            "path": "tokenizer_config.json",
+            "bytes": 7318,
+            "sha256": "a668be4b083078aca7c38853dd929184e81534d72525a9c1ddb84ea6fd1de6f8"
+          },
+          {
+            "path": "vocab.json",
+            "bytes": 2776833,
+            "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+          }
+        ]
+      }
+    }
+  },
+  "load_revisions": {
+    "base": null,
+    "adapter": null,
+    "candidate": null
+  },
+  "merge": {
+    "scale": 0.55,
+    "scaling_semantics": "capture each native PEFT scaling value, multiply the captured value by scale exactly once, then merge_and_unload",
+    "safe_merge_requested": true,
+    "safe_merge_supported": true,
+    "applied_scaling": {
+      "module_count": 196,
+      "entry_count": 196,
+      "canonical_sha256": "a90642064f68547e351bb88a607e361c1d7420a9035418c757fc8f4362eeb71c",
+      "samples": [
+        {
+          "module": "base_model.model.model.layers.0.self_attn.q_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.0.self_attn.k_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.0.self_attn.v_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.0.self_attn.o_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.0.mlp.gate_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.0.mlp.up_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.0.mlp.down_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.1.self_attn.q_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.1.self_attn.k_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.1.self_attn.v_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.1.self_attn.o_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.1.mlp.gate_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.1.mlp.up_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.1.mlp.down_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.2.self_attn.q_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.2.self_attn.k_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.2.self_attn.v_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.2.self_attn.o_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.2.mlp.gate_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        },
+        {
+          "module": "base_model.model.model.layers.2.mlp.up_proj",
+          "adapter": "default",
+          "captured_scaling": 11.31370849898476,
+          "applied_scaling": 6.222539674441618
+        }
+      ],
+      "sample_limit": 20
+    },
+    "reconstructed_model_class": "Qwen2ForCausalLM",
+    "candidate_model_class": "Qwen2ForCausalLM"
+  },
+  "runtime": {
+    "device": "cuda:0",
+    "dtype": "torch.bfloat16",
+    "attention_implementation": "eager"
+  },
+  "package_versions": {
+    "python": "3.12.3",
+    "torch": "2.12.0+cu130",
+    "transformers": "4.57.6",
+    "peft": "0.19.1",
+    "accelerate": "1.14.0",
+    "safetensors": "0.8.0",
+    "huggingface_hub": "0.36.2"
+  },
+  "comparison": {
+    "status": "pass",
+    "exact_tensor_identity": true,
+    "reconstructed_key_count": 339,
+    "candidate_key_count": 339,
+    "common_key_count": 339,
+    "missing_key_count": 0,
+    "unexpected_key_count": 0,
+    "missing_keys": [],
+    "unexpected_keys": [],
+    "shape_mismatch_count": 0,
+    "dtype_mismatch_count": 0,
+    "tensor_mismatch_count": 0,
+    "shape_mismatches": [],
+    "dtype_mismatches": [],
+    "tensor_mismatches": [],
+    "compared_tensor_count": 339,
+    "compared_element_count": 1777088000,
+    "mismatched_element_count": 0,
+    "global_max_abs_error": 0.0,
+    "mismatch_samples": [],
+    "mismatch_sample_limit": 50
+  },
+  "timings_seconds": {
+    "base_and_adapter_load": 0.9819360708352178,
+    "merge": 0.11164327012374997,
+    "candidate_load": 0.3087452941108495,
+    "comparison": 1.5989078811835498,
+    "total": 6.135907909134403
+  },
+  "requested": {
+    "base_model": "/root/issue22_inputs/qwen25_math_1p5b_base",
+    "base_revision": null,
+    "adapter": "/root/issue22_inputs/hf_dataset/circuit-shotting/artifacts/pod_logs/steed-medium/full/qwen25_math_1p5b_2digit_max_recovery_v1/lora_r32_beta005/adapter",
+    "adapter_revision": null,
+    "candidate": "/root/issue22_inputs/checkpoint-b-base-tokenizer",
+    "candidate_revision": null,
+    "scale": 0.55,
+    "dtype": "bfloat16",
+    "device": "cuda:0"
+  }
+}

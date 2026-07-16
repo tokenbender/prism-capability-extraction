@@ -1,0 +1,30 @@
+{
+  "schema": "prism_safetensors_sharding_v1",
+  "status": "pass",
+  "operation": "partition the canonical 338-tensor state into deterministic standard safetensors shards",
+  "canonical_unsharded": {
+    "sha256": "682f4b6812f2f7452e3b646cabf4bea0452cf752375339b544def400f10c90cb",
+    "file_bytes": 3081541256,
+    "tensor_count": 338,
+    "tensor_bytes": 3081502720
+  },
+  "published": {
+    "index": "model.safetensors.index.json",
+    "index_sha256": "9af6cd176de17c96c1f75d2c66c19d320d0d849c6d5dc61443c9973f1db30095",
+    "shard_count": 12,
+    "shard_file_bytes": 3081540824,
+    "index_file_bytes": 27693,
+    "payload_bytes": 3081568517,
+    "tensor_count": 338,
+    "tensor_bytes": 3081502720,
+    "shard_manifest_sha256": "571a1e50bdddb5dc289367663f24090c4225725cbac4006c0c009bc08cbc5521"
+  },
+  "proof": {
+    "weight_map_key_count": 338,
+    "missing_keys": 0,
+    "duplicate_keys": 0,
+    "tensor_byte_delta": 0,
+    "loader_strict_load_required": true
+  },
+  "semantic_change": false
+}

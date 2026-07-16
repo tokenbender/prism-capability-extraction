@@ -6,12 +6,13 @@
     "Krishna Pagare"
   ],
   "release_type": "flattened_single_commit_code_and_artifact_index",
-  "status": "camera_ready_update_in_progress_private_weight_verified",
+  "status": "camera_ready_update_in_progress_private_weights_verified",
   "release_scope": {
     "public_repository": "tokenbender/prism-capability-extraction",
-    "description": "camera-ready code and evidence index; physical BFCL weights remain private pending provenance completion",
+    "description": "camera-ready code and evidence index; physical BFCL and arithmetic weights remain private with per-artifact verification status recorded below",
     "primary_experiment_families": [
-      "arithmetic capability extraction",
+      "historical donor-patched arithmetic causal intervention",
+      "standalone physical arithmetic MACE extraction and one-B200 runtime optimization",
       "physical BFCL/function-calling substrate extraction",
       "quality-gated physical BFCL runtime optimization"
     ],
@@ -19,7 +20,7 @@
       "EN-PT translation rescue",
       "BFCL k160/k240 runtime-mask lineage"
     ],
-    "large_artifact_policy": "Public legacy artifacts are pinned on Hugging Face. The Issue #18 physical weights are checksum-addressed in a verified private ModelScope mirror until adapter provenance and Hugging Face publication are verified; the mutable ModelScope master revision is bound by a verification receipt and model SHA-256."
+    "large_artifact_policy": "Public legacy artifacts are pinned on Hugging Face. Issue #18 BFCL weights are checksum-addressed in a fully verified private ModelScope mirror. Issue #22 arithmetic weights are bound to an immutable private ModelScope tag, a fresh-download checksum receipt, and a strict clean-load receipt."
   },
   "modelscope_artifacts": [
     {
@@ -34,6 +35,22 @@
       "receipt": "results/bfcl/issue18_physical_mace_v1/MODELSCOPE_RECEIPT.json",
       "receipt_sha256": "7c54987d80b79b6fce16e8309b048ee7ecb2ca51b40456b2892d438310cb929c",
       "artifact_status": "private_visibility_fresh_download_checksum_clean_load_verified"
+    },
+    {
+      "name": "Issue #22 standalone physical arithmetic MACE substrate",
+      "type": "model",
+      "repo": "tokenbender/prism-arithmetic-mace-physical-v1",
+      "url": "https://modelscope.ai/models/tokenbender/prism-arithmetic-mace-physical-v1",
+      "visibility": "private",
+      "license_status": "apache_2_0_base_and_derived_artifact",
+      "evaluated_checkpoint_sha256": "7d8315ae8da2734e322eb95d692d4975e13d58730bff30ffbe26926d2de41e02",
+      "published_checkpoint_index_sha256": "9af6cd176de17c96c1f75d2c66c19d320d0d849c6d5dc61443c9973f1db30095",
+      "published_shard_manifest_sha256": "571a1e50bdddb5dc289367663f24090c4225725cbac4006c0c009bc08cbc5521",
+      "revision": "issue22-physical-v1.2",
+      "receipt": "results/arithmetic/issue22_physical_mace_throughput/publication/MODELSCOPE_RECEIPT.json",
+      "receipt_sha256": "83b9b5e79e3b61ddc87702097b74c39fe2a740920f36516d5ede1d17b4f031c1",
+      "artifact_status": "private_visibility_immutable_tag_fresh_download_checksum_clean_load_verified",
+      "verification_boundary": "The immutable private tag exactly matches all 44 uploaded payload files. The 43 entries named by SHA256SUMS passed, the checksum manifest is separately hash-bound, and a strict donor-free CPU clean load is verified."
     }
   ],
   "wandb_runs": [
@@ -59,6 +76,17 @@
       "run_state": "finished",
       "artifact_status": "verified_uploaded",
       "receipt": "results/bfcl/issue19_physical_throughput/WANDB_RECEIPT.json"
+    },
+    {
+      "name": "Issue #22 standalone physical arithmetic MACE and one-B200 runtime",
+      "path": "ahm-rimer/prism-arithmetic",
+      "url": "https://wandb.ai/ahm-rimer/prism-arithmetic/groups/issue22-arithmetic-physical-throughput",
+      "group": "issue22-arithmetic-physical-throughput",
+      "artifact": "issue22-arithmetic-physical-throughput-evidence:v0",
+      "artifact_digest": "1ea5edf20728d1435529ea735e49105d",
+      "run_state": "six_finished_runs",
+      "artifact_status": "verified_uploaded",
+      "receipt": "results/arithmetic/issue22_physical_mace_throughput/publication/WANDB_RECEIPT.json"
     }
   ],
   "huggingface_artifacts": [
@@ -121,9 +149,10 @@
   ],
   "claims": [
     {
-      "claim": "Arithmetic sparse substrate after conditioning",
-      "claim_status": "primary_camera_ready",
-      "paper_result": "12,661 MLP channels, 91.33% autoregressive recovery",
+      "claim": "Historical arithmetic donor-patched causal intervention after conditioning",
+      "claim_status": "primary_camera_ready_causal_intervention_not_standalone_physical",
+      "paper_result": "12,661 / 250,880 MLP channels; 1,370 / 1,500 = 91.3333% autoregressive exact under dense counterfactual donor patching and gold-answer-length generation",
+      "claim_boundary": "This result restores discarded prompt-token MLP activations from a dense counterfactual pass and supplies the gold answer length. It is historical causal-intervention evidence, not a standalone zero-isolated or physical-compression result.",
       "included_receipts": [
         "results/arithmetic/r32_direct_group_rank_merged.json",
         "results/arithmetic/scale055_transfer_full_answer.json",
@@ -144,6 +173,48 @@
         "TokenBender/circuit-discovery model"
       ],
       "artifact_status": "complete"
+    },
+    {
+      "claim": "Bounded standalone physical arithmetic MACE and fastest tested quality-valid one-B200 physical setup",
+      "claim_status": "primary_camera_ready_bounded_result_private_modelscope_verified",
+      "paper_result": "250,237 / 250,880 physical MLP channels; 1,386 / 1,500 exact; 1,378 / 1,406 = 98.0085% matched-dense recovery; 1,376 / 1,388 = 99.1354% logical-correctness retention; 10,208.963 median examples/s over five repeats",
+      "claim_boundary": "Smallest passing candidate among the evaluated bounded physical frontier; global minimality is not claimed. The artifact removes 0.2563% of MLP channels. Runtime is synchronized pretokenized generate-only throughput for the frozen 1,500-row workload, one B200, and recorded stack; it is 0.3474% slower than the equally optimized dense parent, so no dense speedup is claimed.",
+      "git_evidence_sha256sums": {
+        "path": "results/arithmetic/issue22_physical_mace_throughput/SHA256SUMS",
+        "entries": 59,
+        "sha256": "23faad51801f631d46580adad59e60a495d06ca1768701b893e90b2548984f19"
+      },
+      "included_receipts": [
+        "results/arithmetic/issue22_physical_mace_throughput/selection.json",
+        "results/arithmetic/issue22_physical_mace_throughput/physical_selection.json",
+        "results/arithmetic/issue22_physical_mace_throughput/evaluation/dense_manifest.json",
+        "results/arithmetic/issue22_physical_mace_throughput/evaluation/physical_manifest.json",
+        "results/arithmetic/issue22_physical_mace_throughput/evaluation/physical_dense_recovery.json",
+        "results/arithmetic/issue22_physical_mace_throughput/evaluation/logical_vs_physical.json",
+        "results/arithmetic/issue22_physical_mace_throughput/evaluation/logical_vs_physical_differences.jsonl",
+        "results/arithmetic/issue22_physical_mace_throughput/benchmarks/finalist_comparison.json",
+        "results/arithmetic/issue22_physical_mace_throughput/benchmarks/max_batch_benchmark.json",
+        "results/arithmetic/issue22_physical_mace_throughput/profiling/physical_sdpa_packed16_triton_b1500.json",
+        "results/arithmetic/issue22_physical_mace_throughput/publication/WANDB_RECEIPT.json",
+        "results/arithmetic/issue22_physical_mace_throughput/publication/MODELSCOPE_RECEIPT.json",
+        "results/arithmetic/issue22_physical_mace_throughput/publication/LOCAL_ARCHIVE_RECEIPT.json",
+        "results/arithmetic/issue22_physical_mace_throughput/publication/LIUM_TEARDOWN_RECEIPT.json"
+      ],
+      "code": [
+        "code/scripts/build_arithmetic_physical_bundle.py",
+        "code/scripts/load_arithmetic_physical_bundle.py",
+        "code/scripts/evaluate_arithmetic_standalone.py",
+        "code/scripts/compare_arithmetic_physical_parity.py",
+        "code/scripts/benchmark_arithmetic_physical_throughput.py",
+        "code/scripts/profile_arithmetic_physical_runtime.py",
+        "code/scripts/run_issue22_b200_pipeline.sh"
+      ],
+      "external_artifacts": [
+        "private ModelScope tokenbender/prism-arithmetic-mace-physical-v1@issue22-physical-v1.2; fresh-download checksum and strict clean load verified",
+        "W&B ahm-rimer/prism-arithmetic group issue22-arithmetic-physical-throughput",
+        "W&B artifact issue22-arithmetic-physical-throughput-evidence:v0"
+      ],
+      "artifact_status": "local_evidence_wandb_private_modelscope_local_archive_and_executor_teardown_verified"
     },
     {
       "claim": "Historical provenance: translation broad-substrate rescue",

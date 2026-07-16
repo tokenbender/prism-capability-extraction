@@ -1,0 +1,1797 @@
+{
+  "status": "pass",
+  "created_at": "2026-07-16T09:41:43.872927+00:00",
+  "run_id": "ac755214-4c4a-4668-9525-6ce817504fb9",
+  "contract": {
+    "run_id": "ac755214-4c4a-4668-9525-6ce817504fb9",
+    "workload_sha256": "87d21090dccffaad66aa095ef161cb7f39fb8448f19cfb61bd8369e2b9130e0d",
+    "records_source": "/root/issue22_run/dense/records.jsonl",
+    "records_source_sha256": "398e2484bac06983be459de24493e7913e91bc8f2357fd318fc87e788570b01d",
+    "examples": 1500,
+    "min_value": null,
+    "max_value": null,
+    "num_records": null,
+    "seed": null,
+    "prompt_formats": null,
+    "record_limit": null,
+    "prompt_contract": "generation_prompt_if_present_else_prompt_exact",
+    "quality_metric": "strict_first_line_integer_v1",
+    "scorer": {
+      "name": "strict_first_line_integer_v1",
+      "description": "Take the first non-empty generated line, allow one terminal punctuation mark, require the rest of that line to be empty, parse it as a base-10 integer, and compare numeric equality with the gold sum."
+    },
+    "isolation": "standalone_model_no_counterfactual_donor",
+    "generation_mode": "fixed_cap_greedy_unguided",
+    "max_new_tokens": 8,
+    "generated_tokens_contract": "non_stop_token_ids_after_eos_and_pad_trimming",
+    "generated_token_slots_contract": "returned_generation_suffix_slots_including_terminal_and_padding",
+    "throughput_timing_contract": "synchronized_pretokenized_generate_only_decode_scoring_excluded",
+    "warmup": 1,
+    "repeats": 5,
+    "latency_repeats": 1
+  },
+  "environment": {
+    "device": "cuda:0",
+    "gpu": "NVIDIA B200",
+    "gpu_capability": [
+      10,
+      0
+    ],
+    "torch": "2.12.0+cu130",
+    "cuda": "13.0"
+  },
+  "candidate_specs": [
+    {
+      "name": "dense_parent_sdpa_outer_reduce_dynamic",
+      "role": "dense_parent",
+      "model_kind": "dense",
+      "attention_implementation": "sdpa",
+      "mlp_implementation": "separate",
+      "activation_implementation": "torch",
+      "hybrid_activation_threshold_rows": 2048,
+      "width_alignment": 1,
+      "outer_compile_mode": "reduce-overhead",
+      "cache_implementation": "dynamic",
+      "generation_disable_compile": false,
+      "generation_compile_dynamic": false
+    },
+    {
+      "name": "physical_sdpa_packed16_dynamic_triton",
+      "role": "optimized_physical",
+      "model_kind": "physical",
+      "attention_implementation": "sdpa",
+      "mlp_implementation": "packed_gate_up",
+      "activation_implementation": "triton",
+      "hybrid_activation_threshold_rows": 2048,
+      "width_alignment": 16,
+      "outer_compile_mode": "none",
+      "cache_implementation": "dynamic",
+      "generation_disable_compile": false,
+      "generation_compile_dynamic": false
+    }
+  ],
+  "batch_sizes": [
+    1500
+  ],
+  "attempts_jsonl": "/root/issue22_run/max_batch_benchmark_attempts.jsonl",
+  "attempts": [
+    {
+      "status": "pass",
+      "created_at": "2026-07-16T09:41:36.752734+00:00",
+      "candidate": {
+        "name": "dense_parent_sdpa_outer_reduce_dynamic",
+        "role": "dense_parent",
+        "model_kind": "dense",
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "separate",
+        "activation_implementation": "torch",
+        "hybrid_activation_threshold_rows": 2048,
+        "width_alignment": 1,
+        "outer_compile_mode": "reduce-overhead",
+        "cache_implementation": "dynamic",
+        "generation_disable_compile": false,
+        "generation_compile_dynamic": false
+      },
+      "batch_size": 1500,
+      "contract": {
+        "run_id": "ac755214-4c4a-4668-9525-6ce817504fb9",
+        "workload_sha256": "87d21090dccffaad66aa095ef161cb7f39fb8448f19cfb61bd8369e2b9130e0d",
+        "records_source": "/root/issue22_run/dense/records.jsonl",
+        "records_source_sha256": "398e2484bac06983be459de24493e7913e91bc8f2357fd318fc87e788570b01d",
+        "examples": 1500,
+        "min_value": null,
+        "max_value": null,
+        "num_records": null,
+        "seed": null,
+        "prompt_formats": null,
+        "record_limit": null,
+        "prompt_contract": "generation_prompt_if_present_else_prompt_exact",
+        "quality_metric": "strict_first_line_integer_v1",
+        "scorer": {
+          "name": "strict_first_line_integer_v1",
+          "description": "Take the first non-empty generated line, allow one terminal punctuation mark, require the rest of that line to be empty, parse it as a base-10 integer, and compare numeric equality with the gold sum."
+        },
+        "isolation": "standalone_model_no_counterfactual_donor",
+        "generation_mode": "fixed_cap_greedy_unguided",
+        "max_new_tokens": 8,
+        "generated_tokens_contract": "non_stop_token_ids_after_eos_and_pad_trimming",
+        "generated_token_slots_contract": "returned_generation_suffix_slots_including_terminal_and_padding",
+        "throughput_timing_contract": "synchronized_pretokenized_generate_only_decode_scoring_excluded",
+        "warmup": 1,
+        "repeats": 5,
+        "latency_repeats": 1,
+        "batch_size": 1500,
+        "generation_compile": {
+          "mode": "not_applicable",
+          "disable_compile": null,
+          "compile_config": null
+        }
+      },
+      "load_receipt": {
+        "status": "pass",
+        "kind": "dense_parent",
+        "model": "/root/issue22_inputs/checkpoint-b-base-tokenizer",
+        "revision": null,
+        "parameters": 1543714304,
+        "parameter_dtype": "torch.bfloat16",
+        "donor_model_loaded": false
+      },
+      "setup_summary": {
+        "load_seconds": 1.5561119650956243,
+        "outer_compile_wrap_seconds": 0.4528329069726169,
+        "after_load_allocated_bytes": 3088346624,
+        "after_load_reserved_bytes": 3286237184
+      },
+      "encoded_batch_count": 1,
+      "quality_gate": {
+        "status": "pass",
+        "pass": true,
+        "correct": 1403,
+        "examples": 1500,
+        "accuracy": 0.9353333333333333,
+        "floor_accuracy": 0.924,
+        "floor_correct": 1386
+      },
+      "quality_stability": {
+        "correct_values": [
+          1403,
+          1403,
+          1403,
+          1403,
+          1403
+        ],
+        "prediction_sha256_values": [
+          "1190d73a30d8d3b509704046710c5597923fe95aa4b7e59e13b4706c4187d53f",
+          "1190d73a30d8d3b509704046710c5597923fe95aa4b7e59e13b4706c4187d53f",
+          "1190d73a30d8d3b509704046710c5597923fe95aa4b7e59e13b4706c4187d53f",
+          "1190d73a30d8d3b509704046710c5597923fe95aa4b7e59e13b4706c4187d53f",
+          "1190d73a30d8d3b509704046710c5597923fe95aa4b7e59e13b4706c4187d53f"
+        ],
+        "all_repeats_identical": true
+      },
+      "warmup_measurements": [
+        {
+          "elapsed_seconds": 0.5907086150255054,
+          "measurement_contract": "sum of synchronized pretokenized model.generate calls; decode and scoring excluded",
+          "examples": 1500,
+          "correct": 1403,
+          "accuracy": 0.9353333333333333,
+          "quality_summary": {
+            "correct": 1403,
+            "n": 1500,
+            "accuracy": 0.9353333333333333,
+            "by_carry": {
+              "carry": {
+                "correct": 684,
+                "n": 721,
+                "accuracy": 0.9486823855755895
+              },
+              "no_carry": {
+                "correct": 719,
+                "n": 779,
+                "accuracy": 0.9229781771501926
+              }
+            },
+            "by_carry_class": {
+              "leading": {
+                "correct": 512,
+                "n": 536,
+                "accuracy": 0.9552238805970149
+              },
+              "none": {
+                "correct": 207,
+                "n": 243,
+                "accuracy": 0.8518518518518519
+              },
+              "ones": {
+                "correct": 152,
+                "n": 170,
+                "accuracy": 0.8941176470588236
+              },
+              "ones_and_leading": {
+                "correct": 532,
+                "n": 551,
+                "accuracy": 0.9655172413793104
+              }
+            },
+            "by_result_length": {
+              "2": {
+                "correct": 359,
+                "n": 413,
+                "accuracy": 0.8692493946731235
+              },
+              "3": {
+                "correct": 1044,
+                "n": 1087,
+                "accuracy": 0.9604415823367065
+              }
+            },
+            "by_prompt_format": {
+              "historical_spaced": {
+                "correct": 1403,
+                "n": 1500,
+                "accuracy": 0.9353333333333333
+              }
+            },
+            "by_source_position": {
+              "hundreds": {
+                "correct": 478,
+                "n": 500,
+                "accuracy": 0.956
+              },
+              "ones": {
+                "correct": 468,
+                "n": 500,
+                "accuracy": 0.936
+              },
+              "tens": {
+                "correct": 457,
+                "n": 500,
+                "accuracy": 0.914
+              }
+            }
+          },
+          "generated_tokens": 12000,
+          "generated_token_slots": 12000,
+          "examples_per_second": 2539.323046668675,
+          "generated_tokens_per_second": 20314.5843733494,
+          "generated_token_slots_per_second": 20314.5843733494,
+          "correct_examples_per_second": 2375.1134896507674,
+          "prediction_sha256": "1190d73a30d8d3b509704046710c5597923fe95aa4b7e59e13b4706c4187d53f",
+          "peak_allocated_bytes": 6049684480,
+          "peak_reserved_bytes": 6956253184
+        }
+      ],
+      "measurements": [
+        {
+          "elapsed_seconds": 0.14687527809292078,
+          "measurement_contract": "sum of synchronized pretokenized model.generate calls; decode and scoring excluded",
+          "examples": 1500,
+          "correct": 1403,
+          "accuracy": 0.9353333333333333,
+          "quality_summary": {
+            "correct": 1403,
+            "n": 1500,
+            "accuracy": 0.9353333333333333,
+            "by_carry": {
+              "carry": {
+                "correct": 684,
+                "n": 721,
+                "accuracy": 0.9486823855755895
+              },
+              "no_carry": {
+                "correct": 719,
+                "n": 779,
+                "accuracy": 0.9229781771501926
+              }
+            },
+            "by_carry_class": {
+              "leading": {
+                "correct": 512,
+                "n": 536,
+                "accuracy": 0.9552238805970149
+              },
+              "none": {
+                "correct": 207,
+                "n": 243,
+                "accuracy": 0.8518518518518519
+              },
+              "ones": {
+                "correct": 152,
+                "n": 170,
+                "accuracy": 0.8941176470588236
+              },
+              "ones_and_leading": {
+                "correct": 532,
+                "n": 551,
+                "accuracy": 0.9655172413793104
+              }
+            },
+            "by_result_length": {
+              "2": {
+                "correct": 359,
+                "n": 413,
+                "accuracy": 0.8692493946731235
+              },
+              "3": {
+                "correct": 1044,
+                "n": 1087,
+                "accuracy": 0.9604415823367065
+              }
+            },
+            "by_prompt_format": {
+              "historical_spaced": {
+                "correct": 1403,
+                "n": 1500,
+                "accuracy": 0.9353333333333333
+              }
+            },
+            "by_source_position": {
+              "hundreds": {
+                "correct": 478,
+                "n": 500,
+                "accuracy": 0.956
+              },
+              "ones": {
+                "correct": 468,
+                "n": 500,
+                "accuracy": 0.936
+              },
+              "tens": {
+                "correct": 457,
+                "n": 500,
+                "accuracy": 0.914
+              }
+            }
+          },
+          "generated_tokens": 12000,
+          "generated_token_slots": 12000,
+          "examples_per_second": 10212.746620646558,
+          "generated_tokens_per_second": 81701.97296517246,
+          "generated_token_slots_per_second": 81701.97296517246,
+          "correct_examples_per_second": 9552.32233917808,
+          "prediction_sha256": "1190d73a30d8d3b509704046710c5597923fe95aa4b7e59e13b4706c4187d53f",
+          "peak_allocated_bytes": 6049684480,
+          "peak_reserved_bytes": 6956253184
+        },
+        {
+          "elapsed_seconds": 0.14642542484216392,
+          "measurement_contract": "sum of synchronized pretokenized model.generate calls; decode and scoring excluded",
+          "examples": 1500,
+          "correct": 1403,
+          "accuracy": 0.9353333333333333,
+          "quality_summary": {
+            "correct": 1403,
+            "n": 1500,
+            "accuracy": 0.9353333333333333,
+            "by_carry": {
+              "carry": {
+                "correct": 684,
+                "n": 721,
+                "accuracy": 0.9486823855755895
+              },
+              "no_carry": {
+                "correct": 719,
+                "n": 779,
+                "accuracy": 0.9229781771501926
+              }
+            },
+            "by_carry_class": {
+              "leading": {
+                "correct": 512,
+                "n": 536,
+                "accuracy": 0.9552238805970149
+              },
+              "none": {
+                "correct": 207,
+                "n": 243,
+                "accuracy": 0.8518518518518519
+              },
+              "ones": {
+                "correct": 152,
+                "n": 170,
+                "accuracy": 0.8941176470588236
+              },
+              "ones_and_leading": {
+                "correct": 532,
+                "n": 551,
+                "accuracy": 0.9655172413793104
+              }
+            },
+            "by_result_length": {
+              "2": {
+                "correct": 359,
+                "n": 413,
+                "accuracy": 0.8692493946731235
+              },
+              "3": {
+                "correct": 1044,
+                "n": 1087,
+                "accuracy": 0.9604415823367065
+              }
+            },
+            "by_prompt_format": {
+              "historical_spaced": {
+                "correct": 1403,
+                "n": 1500,
+                "accuracy": 0.9353333333333333
+              }
+            },
+            "by_source_position": {
+              "hundreds": {
+                "correct": 478,
+                "n": 500,
+                "accuracy": 0.956
+              },
+              "ones": {
+                "correct": 468,
+                "n": 500,
+                "accuracy": 0.936
+              },
+              "tens": {
+                "correct": 457,
+                "n": 500,
+                "accuracy": 0.914
+              }
+            }
+          },
+          "generated_tokens": 12000,
+          "generated_token_slots": 12000,
+          "examples_per_second": 10244.122573773593,
+          "generated_tokens_per_second": 81952.98059018874,
+          "generated_token_slots_per_second": 81952.98059018874,
+          "correct_examples_per_second": 9581.6693140029,
+          "prediction_sha256": "1190d73a30d8d3b509704046710c5597923fe95aa4b7e59e13b4706c4187d53f",
+          "peak_allocated_bytes": 6049684480,
+          "peak_reserved_bytes": 6956253184
+        },
+        {
+          "elapsed_seconds": 0.14637085609138012,
+          "measurement_contract": "sum of synchronized pretokenized model.generate calls; decode and scoring excluded",
+          "examples": 1500,
+          "correct": 1403,
+          "accuracy": 0.9353333333333333,
+          "quality_summary": {
+            "correct": 1403,
+            "n": 1500,
+            "accuracy": 0.9353333333333333,
+            "by_carry": {
+              "carry": {
+                "correct": 684,
+                "n": 721,
+                "accuracy": 0.9486823855755895
+              },
+              "no_carry": {
+                "correct": 719,
+                "n": 779,
+                "accuracy": 0.9229781771501926
+              }
+            },
+            "by_carry_class": {
+              "leading": {
+                "correct": 512,
+                "n": 536,
+                "accuracy": 0.9552238805970149
+              },
+              "none": {
+                "correct": 207,
+                "n": 243,
+                "accuracy": 0.8518518518518519
+              },
+              "ones": {
+                "correct": 152,
+                "n": 170,
+                "accuracy": 0.8941176470588236
+              },
+              "ones_and_leading": {
+                "correct": 532,
+                "n": 551,
+                "accuracy": 0.9655172413793104
+              }
+            },
+            "by_result_length": {
+              "2": {
+                "correct": 359,
+                "n": 413,
+                "accuracy": 0.8692493946731235
+              },
+              "3": {
+                "correct": 1044,
+                "n": 1087,
+                "accuracy": 0.9604415823367065
+              }
+            },
+            "by_prompt_format": {
+              "historical_spaced": {
+                "correct": 1403,
+                "n": 1500,
+                "accuracy": 0.9353333333333333
+              }
+            },
+            "by_source_position": {
+              "hundreds": {
+                "correct": 478,
+                "n": 500,
+                "accuracy": 0.956
+              },
+              "ones": {
+                "correct": 468,
+                "n": 500,
+                "accuracy": 0.936
+              },
+              "tens": {
+                "correct": 457,
+                "n": 500,
+                "accuracy": 0.914
+              }
+            }
+          },
+          "generated_tokens": 12000,
+          "generated_token_slots": 12000,
+          "examples_per_second": 10247.941701342115,
+          "generated_tokens_per_second": 81983.53361073692,
+          "generated_token_slots_per_second": 81983.53361073692,
+          "correct_examples_per_second": 9585.241471321993,
+          "prediction_sha256": "1190d73a30d8d3b509704046710c5597923fe95aa4b7e59e13b4706c4187d53f",
+          "peak_allocated_bytes": 6049684480,
+          "peak_reserved_bytes": 6956253184
+        },
+        {
+          "elapsed_seconds": 0.14639139594510198,
+          "measurement_contract": "sum of synchronized pretokenized model.generate calls; decode and scoring excluded",
+          "examples": 1500,
+          "correct": 1403,
+          "accuracy": 0.9353333333333333,
+          "quality_summary": {
+            "correct": 1403,
+            "n": 1500,
+            "accuracy": 0.9353333333333333,
+            "by_carry": {
+              "carry": {
+                "correct": 684,
+                "n": 721,
+                "accuracy": 0.9486823855755895
+              },
+              "no_carry": {
+                "correct": 719,
+                "n": 779,
+                "accuracy": 0.9229781771501926
+              }
+            },
+            "by_carry_class": {
+              "leading": {
+                "correct": 512,
+                "n": 536,
+                "accuracy": 0.9552238805970149
+              },
+              "none": {
+                "correct": 207,
+                "n": 243,
+                "accuracy": 0.8518518518518519
+              },
+              "ones": {
+                "correct": 152,
+                "n": 170,
+                "accuracy": 0.8941176470588236
+              },
+              "ones_and_leading": {
+                "correct": 532,
+                "n": 551,
+                "accuracy": 0.9655172413793104
+              }
+            },
+            "by_result_length": {
+              "2": {
+                "correct": 359,
+                "n": 413,
+                "accuracy": 0.8692493946731235
+              },
+              "3": {
+                "correct": 1044,
+                "n": 1087,
+                "accuracy": 0.9604415823367065
+              }
+            },
+            "by_prompt_format": {
+              "historical_spaced": {
+                "correct": 1403,
+                "n": 1500,
+                "accuracy": 0.9353333333333333
+              }
+            },
+            "by_source_position": {
+              "hundreds": {
+                "correct": 478,
+                "n": 500,
+                "accuracy": 0.956
+              },
+              "ones": {
+                "correct": 468,
+                "n": 500,
+                "accuracy": 0.936
+              },
+              "tens": {
+                "correct": 457,
+                "n": 500,
+                "accuracy": 0.914
+              }
+            }
+          },
+          "generated_tokens": 12000,
+          "generated_token_slots": 12000,
+          "examples_per_second": 10246.503835256224,
+          "generated_tokens_per_second": 81972.0306820498,
+          "generated_token_slots_per_second": 81972.0306820498,
+          "correct_examples_per_second": 9583.896587242989,
+          "prediction_sha256": "1190d73a30d8d3b509704046710c5597923fe95aa4b7e59e13b4706c4187d53f",
+          "peak_allocated_bytes": 6049684480,
+          "peak_reserved_bytes": 6956253184
+        },
+        {
+          "elapsed_seconds": 0.14641930512152612,
+          "measurement_contract": "sum of synchronized pretokenized model.generate calls; decode and scoring excluded",
+          "examples": 1500,
+          "correct": 1403,
+          "accuracy": 0.9353333333333333,
+          "quality_summary": {
+            "correct": 1403,
+            "n": 1500,
+            "accuracy": 0.9353333333333333,
+            "by_carry": {
+              "carry": {
+                "correct": 684,
+                "n": 721,
+                "accuracy": 0.9486823855755895
+              },
+              "no_carry": {
+                "correct": 719,
+                "n": 779,
+                "accuracy": 0.9229781771501926
+              }
+            },
+            "by_carry_class": {
+              "leading": {
+                "correct": 512,
+                "n": 536,
+                "accuracy": 0.9552238805970149
+              },
+              "none": {
+                "correct": 207,
+                "n": 243,
+                "accuracy": 0.8518518518518519
+              },
+              "ones": {
+                "correct": 152,
+                "n": 170,
+                "accuracy": 0.8941176470588236
+              },
+              "ones_and_leading": {
+                "correct": 532,
+                "n": 551,
+                "accuracy": 0.9655172413793104
+              }
+            },
+            "by_result_length": {
+              "2": {
+                "correct": 359,
+                "n": 413,
+                "accuracy": 0.8692493946731235
+              },
+              "3": {
+                "correct": 1044,
+                "n": 1087,
+                "accuracy": 0.9604415823367065
+              }
+            },
+            "by_prompt_format": {
+              "historical_spaced": {
+                "correct": 1403,
+                "n": 1500,
+                "accuracy": 0.9353333333333333
+              }
+            },
+            "by_source_position": {
+              "hundreds": {
+                "correct": 478,
+                "n": 500,
+                "accuracy": 0.956
+              },
+              "ones": {
+                "correct": 468,
+                "n": 500,
+                "accuracy": 0.936
+              },
+              "tens": {
+                "correct": 457,
+                "n": 500,
+                "accuracy": 0.914
+              }
+            }
+          },
+          "generated_tokens": 12000,
+          "generated_token_slots": 12000,
+          "examples_per_second": 10244.550735676688,
+          "generated_tokens_per_second": 81956.40588541351,
+          "generated_token_slots_per_second": 81956.40588541351,
+          "correct_examples_per_second": 9582.06978810293,
+          "prediction_sha256": "1190d73a30d8d3b509704046710c5597923fe95aa4b7e59e13b4706c4187d53f",
+          "peak_allocated_bytes": 6049684480,
+          "peak_reserved_bytes": 6956253184
+        }
+      ],
+      "summary": {
+        "elapsed_seconds": {
+          "mean": 0.14649645201861858,
+          "median": 0.14641930512152612,
+          "p50": 0.14641930512152612,
+          "p95": 0.1467853074427694,
+          "min": 0.14637085609138012,
+          "max": 0.14687527809292078,
+          "stdev": 0.00021290656026702563
+        },
+        "examples_per_second": {
+          "mean": 10239.173093339035,
+          "median": 10244.550735676688,
+          "p50": 10244.550735676688,
+          "p95": 10247.654128124937,
+          "min": 10212.746620646558,
+          "max": 10247.941701342115,
+          "stdev": 14.85263542286481
+        },
+        "generated_tokens_per_second": {
+          "mean": 81913.38474671228,
+          "median": 81956.40588541351,
+          "p50": 81956.40588541351,
+          "p95": 81981.2330249995,
+          "min": 81701.97296517246,
+          "max": 81983.53361073692,
+          "stdev": 118.82108338291847
+        },
+        "generated_token_slots_per_second": {
+          "mean": 81913.38474671228,
+          "median": 81956.40588541351,
+          "p50": 81956.40588541351,
+          "p95": 81981.2330249995,
+          "min": 81701.97296517246,
+          "max": 81983.53361073692,
+          "stdev": 118.82108338291847
+        },
+        "correct_examples_per_second": {
+          "mean": 9577.039899969779,
+          "median": 9582.06978810293,
+          "p50": 9582.06978810293,
+          "p95": 9584.972494506192,
+          "min": 9552.32233917808,
+          "max": 9585.241471321993,
+          "stdev": 13.892164998853682
+        },
+        "accuracy": {
+          "mean": 0.9353333333333333,
+          "median": 0.9353333333333333,
+          "p50": 0.9353333333333333,
+          "p95": 0.9353333333333333,
+          "min": 0.9353333333333333,
+          "max": 0.9353333333333333,
+          "stdev": 0.0
+        },
+        "peak_allocated_bytes": {
+          "mean": 6049684480.0,
+          "median": 6049684480.0,
+          "p50": 6049684480.0,
+          "p95": 6049684480.0,
+          "min": 6049684480.0,
+          "max": 6049684480.0,
+          "stdev": 0.0
+        },
+        "peak_reserved_bytes": {
+          "mean": 6956253184.0,
+          "median": 6956253184.0,
+          "p50": 6956253184.0,
+          "p95": 6956253184.0,
+          "min": 6956253184.0,
+          "max": 6956253184.0,
+          "stdev": 0.0
+        }
+      },
+      "batch_latency_measurements": [
+        {
+          "repeat": 0,
+          "batch_index": 0,
+          "examples": 1500,
+          "generated_token_slots": 12000,
+          "elapsed_seconds": 0.14632291602902114,
+          "elapsed_milliseconds": 146.32291602902114,
+          "per_example_milliseconds": 0.0975486106860141
+        }
+      ],
+      "batch_latency_summary": {
+        "batch_milliseconds": {
+          "mean": 146.32291602902114,
+          "median": 146.32291602902114,
+          "p50": 146.32291602902114,
+          "p95": 146.32291602902114,
+          "min": 146.32291602902114,
+          "max": 146.32291602902114,
+          "stdev": 0.0
+        },
+        "per_example_milliseconds": {
+          "mean": 0.0975486106860141,
+          "median": 0.0975486106860141,
+          "p50": 0.0975486106860141,
+          "p95": 0.0975486106860141,
+          "min": 0.0975486106860141,
+          "max": 0.0975486106860141,
+          "stdev": 0.0
+        }
+      },
+      "ttft": {
+        "status": "pass",
+        "measurement_contract": "pretokenized synchronized model.generate(max_new_tokens=1), including first-token selection",
+        "measurements": [
+          {
+            "batch_index": 0,
+            "examples": 1500,
+            "elapsed_milliseconds": 63.91590996645391,
+            "per_example_milliseconds": 0.04261060664430261
+          }
+        ],
+        "summary": {
+          "batch_milliseconds": {
+            "mean": 63.91590996645391,
+            "median": 63.91590996645391,
+            "p50": 63.91590996645391,
+            "p95": 63.91590996645391,
+            "min": 63.91590996645391,
+            "max": 63.91590996645391,
+            "stdev": 0.0
+          },
+          "per_example_milliseconds": {
+            "mean": 0.04261060664430261,
+            "median": 0.04261060664430261,
+            "p50": 0.04261060664430261,
+            "p95": 0.04261060664430261,
+            "min": 0.04261060664430261,
+            "max": 0.04261060664430261,
+            "stdev": 0.0
+          }
+        }
+      },
+      "generation_compile_observation": {
+        "compiled_call_present": false,
+        "observed_model_type": "Qwen2ForCausalLM"
+      }
+    },
+    {
+      "status": "pass",
+      "created_at": "2026-07-16T09:41:43.838183+00:00",
+      "candidate": {
+        "name": "physical_sdpa_packed16_dynamic_triton",
+        "role": "optimized_physical",
+        "model_kind": "physical",
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "packed_gate_up",
+        "activation_implementation": "triton",
+        "hybrid_activation_threshold_rows": 2048,
+        "width_alignment": 16,
+        "outer_compile_mode": "none",
+        "cache_implementation": "dynamic",
+        "generation_disable_compile": false,
+        "generation_compile_dynamic": false
+      },
+      "batch_size": 1500,
+      "contract": {
+        "run_id": "ac755214-4c4a-4668-9525-6ce817504fb9",
+        "workload_sha256": "87d21090dccffaad66aa095ef161cb7f39fb8448f19cfb61bd8369e2b9130e0d",
+        "records_source": "/root/issue22_run/dense/records.jsonl",
+        "records_source_sha256": "398e2484bac06983be459de24493e7913e91bc8f2357fd318fc87e788570b01d",
+        "examples": 1500,
+        "min_value": null,
+        "max_value": null,
+        "num_records": null,
+        "seed": null,
+        "prompt_formats": null,
+        "record_limit": null,
+        "prompt_contract": "generation_prompt_if_present_else_prompt_exact",
+        "quality_metric": "strict_first_line_integer_v1",
+        "scorer": {
+          "name": "strict_first_line_integer_v1",
+          "description": "Take the first non-empty generated line, allow one terminal punctuation mark, require the rest of that line to be empty, parse it as a base-10 integer, and compare numeric equality with the gold sum."
+        },
+        "isolation": "standalone_model_no_counterfactual_donor",
+        "generation_mode": "fixed_cap_greedy_unguided",
+        "max_new_tokens": 8,
+        "generated_tokens_contract": "non_stop_token_ids_after_eos_and_pad_trimming",
+        "generated_token_slots_contract": "returned_generation_suffix_slots_including_terminal_and_padding",
+        "throughput_timing_contract": "synchronized_pretokenized_generate_only_decode_scoring_excluded",
+        "warmup": 1,
+        "repeats": 5,
+        "latency_repeats": 1,
+        "batch_size": 1500,
+        "generation_compile": {
+          "mode": "not_applicable",
+          "disable_compile": null,
+          "compile_config": null
+        }
+      },
+      "load_receipt": {
+        "status": "pass",
+        "format": "qwen_physical_mlp_substrate_v1",
+        "model_type": "qwen2",
+        "bundle": "/root/issue22_run/physical_candidates/round3/bundle",
+        "device": "cuda:0",
+        "attention_implementation": "sdpa",
+        "canonical_checkpoint_load": {
+          "strict": true,
+          "status": "pass"
+        },
+        "dense_mlp_allocated": false,
+        "donor_model_loaded": false,
+        "layers": 28,
+        "kept_total": 250237,
+        "kept_per_layer": [
+          8798,
+          8904,
+          8918,
+          8931,
+          8928,
+          8922,
+          8940,
+          8943,
+          8940,
+          8936,
+          8922,
+          8917,
+          8922,
+          8938,
+          8951,
+          8943,
+          8943,
+          8950,
+          8956,
+          8959,
+          8958,
+          8960,
+          8960,
+          8960,
+          8959,
+          8960,
+          8959,
+          8960
+        ],
+        "checkpoint": "model.safetensors",
+        "checkpoint_receipt": {
+          "checkpoint_sha256": "7d8315ae8da2734e322eb95d692d4975e13d58730bff30ffbe26926d2de41e02",
+          "serialized_tensor_bytes": 3548250112,
+          "tensor_count": 339
+        },
+        "parameter_dtype": "torch.bfloat16",
+        "parameter_accounting": {
+          "canonical_physical_parameters": 1540751360,
+          "runtime_parameters": 1541281280,
+          "runtime_added_parameters": 529920,
+          "runtime_added_parameter_bytes": 1059840
+        },
+        "mlp_runtime": {
+          "requested_implementation": "packed_gate_up",
+          "active_implementation": "packed_gate_up",
+          "requested_activation_implementation": "triton",
+          "active_activation_implementation": "triton",
+          "requested_hybrid_activation_threshold_rows": 2048,
+          "active_hybrid_activation_threshold_rows": null,
+          "activation_dispatch": {
+            "mode": "triton_only",
+            "flattened_rows": "product_of_all_dimensions_except_last"
+          },
+          "requested_width_alignment": 16,
+          "active_width_alignment": 16,
+          "fallback_allowed": false,
+          "fallback_used": false,
+          "validation": {
+            "status": "pass",
+            "method": "exact_active_tensors_and_zero_padding",
+            "layers": 28
+          },
+          "active_channels": 250237,
+          "runtime_channels": 250352,
+          "padding_channels": 115,
+          "aligned_per_layer": [
+            8800,
+            8912,
+            8928,
+            8944,
+            8928,
+            8928,
+            8944,
+            8944,
+            8944,
+            8944,
+            8928,
+            8928,
+            8928,
+            8944,
+            8960,
+            8944,
+            8944,
+            8960,
+            8960,
+            8960,
+            8960,
+            8960,
+            8960,
+            8960,
+            8960,
+            8960,
+            8960,
+            8960
+          ],
+          "activation_runtime_probe": {
+            "status": "pass",
+            "layers": 28,
+            "unique_widths": [
+              8800,
+              8912,
+              8928,
+              8944,
+              8960
+            ],
+            "activation_implementations": [
+              "triton"
+            ],
+            "hybrid_activation_threshold_rows": null,
+            "dtype": "torch.bfloat16",
+            "device": "cuda:0",
+            "probe": "zero_input_jit_launch_per_unique_width"
+          }
+        },
+        "tokenizer_restored": true,
+        "timings_seconds": {
+          "config_and_meta_construction": 0.035752583062276244,
+          "strict_checkpoint_load": 1.6283726540859789,
+          "runtime_repack": 3.3914889560546726,
+          "device_move": 0.24588462989777327,
+          "activation_runtime_probe": 0.2532662460580468,
+          "generation_and_tokenizer_restore": 0.1736354681197554,
+          "loader_total": 5.729793953942135
+        }
+      },
+      "setup_summary": {
+        "load_seconds": 5.729941952042282,
+        "outer_compile_wrap_seconds": 0.0,
+        "after_load_allocated_bytes": 3117915648,
+        "after_load_reserved_bytes": 3256877056
+      },
+      "encoded_batch_count": 1,
+      "quality_gate": {
+        "status": "pass",
+        "pass": true,
+        "correct": 1395,
+        "examples": 1500,
+        "accuracy": 0.93,
+        "floor_accuracy": 0.924,
+        "floor_correct": 1386
+      },
+      "quality_stability": {
+        "correct_values": [
+          1395,
+          1395,
+          1395,
+          1395,
+          1395
+        ],
+        "prediction_sha256_values": [
+          "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+          "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+          "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+          "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+          "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416"
+        ],
+        "all_repeats_identical": true
+      },
+      "warmup_measurements": [
+        {
+          "elapsed_seconds": 0.149198001017794,
+          "measurement_contract": "sum of synchronized pretokenized model.generate calls; decode and scoring excluded",
+          "examples": 1500,
+          "correct": 1395,
+          "accuracy": 0.93,
+          "quality_summary": {
+            "correct": 1395,
+            "n": 1500,
+            "accuracy": 0.93,
+            "by_carry": {
+              "carry": {
+                "correct": 690,
+                "n": 721,
+                "accuracy": 0.957004160887656
+              },
+              "no_carry": {
+                "correct": 705,
+                "n": 779,
+                "accuracy": 0.9050064184852374
+              }
+            },
+            "by_carry_class": {
+              "leading": {
+                "correct": 508,
+                "n": 536,
+                "accuracy": 0.9477611940298507
+              },
+              "none": {
+                "correct": 197,
+                "n": 243,
+                "accuracy": 0.8106995884773662
+              },
+              "ones": {
+                "correct": 155,
+                "n": 170,
+                "accuracy": 0.9117647058823529
+              },
+              "ones_and_leading": {
+                "correct": 535,
+                "n": 551,
+                "accuracy": 0.9709618874773139
+              }
+            },
+            "by_result_length": {
+              "2": {
+                "correct": 352,
+                "n": 413,
+                "accuracy": 0.8523002421307506
+              },
+              "3": {
+                "correct": 1043,
+                "n": 1087,
+                "accuracy": 0.9595216191352346
+              }
+            },
+            "by_prompt_format": {
+              "historical_spaced": {
+                "correct": 1395,
+                "n": 1500,
+                "accuracy": 0.93
+              }
+            },
+            "by_source_position": {
+              "hundreds": {
+                "correct": 480,
+                "n": 500,
+                "accuracy": 0.96
+              },
+              "ones": {
+                "correct": 466,
+                "n": 500,
+                "accuracy": 0.932
+              },
+              "tens": {
+                "correct": 449,
+                "n": 500,
+                "accuracy": 0.898
+              }
+            }
+          },
+          "generated_tokens": 12000,
+          "generated_token_slots": 12000,
+          "examples_per_second": 10053.75400318603,
+          "generated_tokens_per_second": 80430.03202548824,
+          "generated_token_slots_per_second": 80430.03202548824,
+          "correct_examples_per_second": 9349.991222963008,
+          "prediction_sha256": "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+          "peak_allocated_bytes": 6046274560,
+          "peak_reserved_bytes": 7738490880
+        }
+      ],
+      "measurements": [
+        {
+          "elapsed_seconds": 0.14783580298535526,
+          "measurement_contract": "sum of synchronized pretokenized model.generate calls; decode and scoring excluded",
+          "examples": 1500,
+          "correct": 1395,
+          "accuracy": 0.93,
+          "quality_summary": {
+            "correct": 1395,
+            "n": 1500,
+            "accuracy": 0.93,
+            "by_carry": {
+              "carry": {
+                "correct": 690,
+                "n": 721,
+                "accuracy": 0.957004160887656
+              },
+              "no_carry": {
+                "correct": 705,
+                "n": 779,
+                "accuracy": 0.9050064184852374
+              }
+            },
+            "by_carry_class": {
+              "leading": {
+                "correct": 508,
+                "n": 536,
+                "accuracy": 0.9477611940298507
+              },
+              "none": {
+                "correct": 197,
+                "n": 243,
+                "accuracy": 0.8106995884773662
+              },
+              "ones": {
+                "correct": 155,
+                "n": 170,
+                "accuracy": 0.9117647058823529
+              },
+              "ones_and_leading": {
+                "correct": 535,
+                "n": 551,
+                "accuracy": 0.9709618874773139
+              }
+            },
+            "by_result_length": {
+              "2": {
+                "correct": 352,
+                "n": 413,
+                "accuracy": 0.8523002421307506
+              },
+              "3": {
+                "correct": 1043,
+                "n": 1087,
+                "accuracy": 0.9595216191352346
+              }
+            },
+            "by_prompt_format": {
+              "historical_spaced": {
+                "correct": 1395,
+                "n": 1500,
+                "accuracy": 0.93
+              }
+            },
+            "by_source_position": {
+              "hundreds": {
+                "correct": 480,
+                "n": 500,
+                "accuracy": 0.96
+              },
+              "ones": {
+                "correct": 466,
+                "n": 500,
+                "accuracy": 0.932
+              },
+              "tens": {
+                "correct": 449,
+                "n": 500,
+                "accuracy": 0.898
+              }
+            }
+          },
+          "generated_tokens": 12000,
+          "generated_token_slots": 12000,
+          "examples_per_second": 10146.391940987334,
+          "generated_tokens_per_second": 81171.13552789867,
+          "generated_token_slots_per_second": 81171.13552789867,
+          "correct_examples_per_second": 9436.144505118222,
+          "prediction_sha256": "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+          "peak_allocated_bytes": 6046274560,
+          "peak_reserved_bytes": 7738490880
+        },
+        {
+          "elapsed_seconds": 0.14702767599374056,
+          "measurement_contract": "sum of synchronized pretokenized model.generate calls; decode and scoring excluded",
+          "examples": 1500,
+          "correct": 1395,
+          "accuracy": 0.93,
+          "quality_summary": {
+            "correct": 1395,
+            "n": 1500,
+            "accuracy": 0.93,
+            "by_carry": {
+              "carry": {
+                "correct": 690,
+                "n": 721,
+                "accuracy": 0.957004160887656
+              },
+              "no_carry": {
+                "correct": 705,
+                "n": 779,
+                "accuracy": 0.9050064184852374
+              }
+            },
+            "by_carry_class": {
+              "leading": {
+                "correct": 508,
+                "n": 536,
+                "accuracy": 0.9477611940298507
+              },
+              "none": {
+                "correct": 197,
+                "n": 243,
+                "accuracy": 0.8106995884773662
+              },
+              "ones": {
+                "correct": 155,
+                "n": 170,
+                "accuracy": 0.9117647058823529
+              },
+              "ones_and_leading": {
+                "correct": 535,
+                "n": 551,
+                "accuracy": 0.9709618874773139
+              }
+            },
+            "by_result_length": {
+              "2": {
+                "correct": 352,
+                "n": 413,
+                "accuracy": 0.8523002421307506
+              },
+              "3": {
+                "correct": 1043,
+                "n": 1087,
+                "accuracy": 0.9595216191352346
+              }
+            },
+            "by_prompt_format": {
+              "historical_spaced": {
+                "correct": 1395,
+                "n": 1500,
+                "accuracy": 0.93
+              }
+            },
+            "by_source_position": {
+              "hundreds": {
+                "correct": 480,
+                "n": 500,
+                "accuracy": 0.96
+              },
+              "ones": {
+                "correct": 466,
+                "n": 500,
+                "accuracy": 0.932
+              },
+              "tens": {
+                "correct": 449,
+                "n": 500,
+                "accuracy": 0.898
+              }
+            }
+          },
+          "generated_tokens": 12000,
+          "generated_token_slots": 12000,
+          "examples_per_second": 10202.160850749351,
+          "generated_tokens_per_second": 81617.28680599481,
+          "generated_token_slots_per_second": 81617.28680599481,
+          "correct_examples_per_second": 9488.009591196897,
+          "prediction_sha256": "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+          "peak_allocated_bytes": 6046274560,
+          "peak_reserved_bytes": 7738490880
+        },
+        {
+          "elapsed_seconds": 0.14692970691248775,
+          "measurement_contract": "sum of synchronized pretokenized model.generate calls; decode and scoring excluded",
+          "examples": 1500,
+          "correct": 1395,
+          "accuracy": 0.93,
+          "quality_summary": {
+            "correct": 1395,
+            "n": 1500,
+            "accuracy": 0.93,
+            "by_carry": {
+              "carry": {
+                "correct": 690,
+                "n": 721,
+                "accuracy": 0.957004160887656
+              },
+              "no_carry": {
+                "correct": 705,
+                "n": 779,
+                "accuracy": 0.9050064184852374
+              }
+            },
+            "by_carry_class": {
+              "leading": {
+                "correct": 508,
+                "n": 536,
+                "accuracy": 0.9477611940298507
+              },
+              "none": {
+                "correct": 197,
+                "n": 243,
+                "accuracy": 0.8106995884773662
+              },
+              "ones": {
+                "correct": 155,
+                "n": 170,
+                "accuracy": 0.9117647058823529
+              },
+              "ones_and_leading": {
+                "correct": 535,
+                "n": 551,
+                "accuracy": 0.9709618874773139
+              }
+            },
+            "by_result_length": {
+              "2": {
+                "correct": 352,
+                "n": 413,
+                "accuracy": 0.8523002421307506
+              },
+              "3": {
+                "correct": 1043,
+                "n": 1087,
+                "accuracy": 0.9595216191352346
+              }
+            },
+            "by_prompt_format": {
+              "historical_spaced": {
+                "correct": 1395,
+                "n": 1500,
+                "accuracy": 0.93
+              }
+            },
+            "by_source_position": {
+              "hundreds": {
+                "correct": 480,
+                "n": 500,
+                "accuracy": 0.96
+              },
+              "ones": {
+                "correct": 466,
+                "n": 500,
+                "accuracy": 0.932
+              },
+              "tens": {
+                "correct": 449,
+                "n": 500,
+                "accuracy": 0.898
+              }
+            }
+          },
+          "generated_tokens": 12000,
+          "generated_token_slots": 12000,
+          "examples_per_second": 10208.963398350814,
+          "generated_tokens_per_second": 81671.70718680651,
+          "generated_token_slots_per_second": 81671.70718680651,
+          "correct_examples_per_second": 9494.335960466256,
+          "prediction_sha256": "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+          "peak_allocated_bytes": 6046274560,
+          "peak_reserved_bytes": 7738490880
+        },
+        {
+          "elapsed_seconds": 0.14671344892121851,
+          "measurement_contract": "sum of synchronized pretokenized model.generate calls; decode and scoring excluded",
+          "examples": 1500,
+          "correct": 1395,
+          "accuracy": 0.93,
+          "quality_summary": {
+            "correct": 1395,
+            "n": 1500,
+            "accuracy": 0.93,
+            "by_carry": {
+              "carry": {
+                "correct": 690,
+                "n": 721,
+                "accuracy": 0.957004160887656
+              },
+              "no_carry": {
+                "correct": 705,
+                "n": 779,
+                "accuracy": 0.9050064184852374
+              }
+            },
+            "by_carry_class": {
+              "leading": {
+                "correct": 508,
+                "n": 536,
+                "accuracy": 0.9477611940298507
+              },
+              "none": {
+                "correct": 197,
+                "n": 243,
+                "accuracy": 0.8106995884773662
+              },
+              "ones": {
+                "correct": 155,
+                "n": 170,
+                "accuracy": 0.9117647058823529
+              },
+              "ones_and_leading": {
+                "correct": 535,
+                "n": 551,
+                "accuracy": 0.9709618874773139
+              }
+            },
+            "by_result_length": {
+              "2": {
+                "correct": 352,
+                "n": 413,
+                "accuracy": 0.8523002421307506
+              },
+              "3": {
+                "correct": 1043,
+                "n": 1087,
+                "accuracy": 0.9595216191352346
+              }
+            },
+            "by_prompt_format": {
+              "historical_spaced": {
+                "correct": 1395,
+                "n": 1500,
+                "accuracy": 0.93
+              }
+            },
+            "by_source_position": {
+              "hundreds": {
+                "correct": 480,
+                "n": 500,
+                "accuracy": 0.96
+              },
+              "ones": {
+                "correct": 466,
+                "n": 500,
+                "accuracy": 0.932
+              },
+              "tens": {
+                "correct": 449,
+                "n": 500,
+                "accuracy": 0.898
+              }
+            }
+          },
+          "generated_tokens": 12000,
+          "generated_token_slots": 12000,
+          "examples_per_second": 10224.011575145118,
+          "generated_tokens_per_second": 81792.09260116094,
+          "generated_token_slots_per_second": 81792.09260116094,
+          "correct_examples_per_second": 9508.330764884959,
+          "prediction_sha256": "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+          "peak_allocated_bytes": 6046274560,
+          "peak_reserved_bytes": 7738490880
+        },
+        {
+          "elapsed_seconds": 0.14659246196970344,
+          "measurement_contract": "sum of synchronized pretokenized model.generate calls; decode and scoring excluded",
+          "examples": 1500,
+          "correct": 1395,
+          "accuracy": 0.93,
+          "quality_summary": {
+            "correct": 1395,
+            "n": 1500,
+            "accuracy": 0.93,
+            "by_carry": {
+              "carry": {
+                "correct": 690,
+                "n": 721,
+                "accuracy": 0.957004160887656
+              },
+              "no_carry": {
+                "correct": 705,
+                "n": 779,
+                "accuracy": 0.9050064184852374
+              }
+            },
+            "by_carry_class": {
+              "leading": {
+                "correct": 508,
+                "n": 536,
+                "accuracy": 0.9477611940298507
+              },
+              "none": {
+                "correct": 197,
+                "n": 243,
+                "accuracy": 0.8106995884773662
+              },
+              "ones": {
+                "correct": 155,
+                "n": 170,
+                "accuracy": 0.9117647058823529
+              },
+              "ones_and_leading": {
+                "correct": 535,
+                "n": 551,
+                "accuracy": 0.9709618874773139
+              }
+            },
+            "by_result_length": {
+              "2": {
+                "correct": 352,
+                "n": 413,
+                "accuracy": 0.8523002421307506
+              },
+              "3": {
+                "correct": 1043,
+                "n": 1087,
+                "accuracy": 0.9595216191352346
+              }
+            },
+            "by_prompt_format": {
+              "historical_spaced": {
+                "correct": 1395,
+                "n": 1500,
+                "accuracy": 0.93
+              }
+            },
+            "by_source_position": {
+              "hundreds": {
+                "correct": 480,
+                "n": 500,
+                "accuracy": 0.96
+              },
+              "ones": {
+                "correct": 466,
+                "n": 500,
+                "accuracy": 0.932
+              },
+              "tens": {
+                "correct": 449,
+                "n": 500,
+                "accuracy": 0.898
+              }
+            }
+          },
+          "generated_tokens": 12000,
+          "generated_token_slots": 12000,
+          "examples_per_second": 10232.449744312284,
+          "generated_tokens_per_second": 81859.59795449827,
+          "generated_token_slots_per_second": 81859.59795449827,
+          "correct_examples_per_second": 9516.178262210424,
+          "prediction_sha256": "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+          "peak_allocated_bytes": 6046274560,
+          "peak_reserved_bytes": 7738490880
+        }
+      ],
+      "summary": {
+        "elapsed_seconds": {
+          "mean": 0.1470198193565011,
+          "median": 0.14692970691248775,
+          "p50": 0.14692970691248775,
+          "p95": 0.14767417758703233,
+          "min": 0.14659246196970344,
+          "max": 0.14783580298535526,
+          "stdev": 0.0004874701122988316
+        },
+        "examples_per_second": {
+          "mean": 10202.79550190898,
+          "median": 10208.963398350814,
+          "p50": 10208.963398350814,
+          "p95": 10230.76211047885,
+          "min": 10146.391940987334,
+          "max": 10232.449744312284,
+          "stdev": 33.724261553547976
+        },
+        "generated_tokens_per_second": {
+          "mean": 81622.36401527184,
+          "median": 81671.70718680651,
+          "p50": 81671.70718680651,
+          "p95": 81846.0968838308,
+          "min": 81171.13552789867,
+          "max": 81859.59795449827,
+          "stdev": 269.7940924283838
+        },
+        "generated_token_slots_per_second": {
+          "mean": 81622.36401527184,
+          "median": 81671.70718680651,
+          "p50": 81671.70718680651,
+          "p95": 81846.0968838308,
+          "min": 81171.13552789867,
+          "max": 81859.59795449827,
+          "stdev": 269.7940924283838
+        },
+        "correct_examples_per_second": {
+          "mean": 9488.599816775351,
+          "median": 9494.335960466256,
+          "p50": 9494.335960466256,
+          "p95": 9514.60876274533,
+          "min": 9436.144505118222,
+          "max": 9516.178262210424,
+          "stdev": 31.36356324479908
+        },
+        "accuracy": {
+          "mean": 0.93,
+          "median": 0.93,
+          "p50": 0.93,
+          "p95": 0.93,
+          "min": 0.93,
+          "max": 0.93,
+          "stdev": 0.0
+        },
+        "peak_allocated_bytes": {
+          "mean": 6046274560.0,
+          "median": 6046274560.0,
+          "p50": 6046274560.0,
+          "p95": 6046274560.0,
+          "min": 6046274560.0,
+          "max": 6046274560.0,
+          "stdev": 0.0
+        },
+        "peak_reserved_bytes": {
+          "mean": 7738490880.0,
+          "median": 7738490880.0,
+          "p50": 7738490880.0,
+          "p95": 7738490880.0,
+          "min": 7738490880.0,
+          "max": 7738490880.0,
+          "stdev": 0.0
+        }
+      },
+      "batch_latency_measurements": [
+        {
+          "repeat": 0,
+          "batch_index": 0,
+          "examples": 1500,
+          "generated_token_slots": 12000,
+          "elapsed_seconds": 0.14650168316438794,
+          "elapsed_milliseconds": 146.50168316438794,
+          "per_example_milliseconds": 0.09766778877625863
+        }
+      ],
+      "batch_latency_summary": {
+        "batch_milliseconds": {
+          "mean": 146.50168316438794,
+          "median": 146.50168316438794,
+          "p50": 146.50168316438794,
+          "p95": 146.50168316438794,
+          "min": 146.50168316438794,
+          "max": 146.50168316438794,
+          "stdev": 0.0
+        },
+        "per_example_milliseconds": {
+          "mean": 0.09766778877625863,
+          "median": 0.09766778877625863,
+          "p50": 0.09766778877625863,
+          "p95": 0.09766778877625863,
+          "min": 0.09766778877625863,
+          "max": 0.09766778877625863,
+          "stdev": 0.0
+        }
+      },
+      "ttft": {
+        "status": "pass",
+        "measurement_contract": "pretokenized synchronized model.generate(max_new_tokens=1), including first-token selection",
+        "measurements": [
+          {
+            "batch_index": 0,
+            "examples": 1500,
+            "elapsed_milliseconds": 64.1728569753468,
+            "per_example_milliseconds": 0.042781904650231205
+          }
+        ],
+        "summary": {
+          "batch_milliseconds": {
+            "mean": 64.1728569753468,
+            "median": 64.1728569753468,
+            "p50": 64.1728569753468,
+            "p95": 64.1728569753468,
+            "min": 64.1728569753468,
+            "max": 64.1728569753468,
+            "stdev": 0.0
+          },
+          "per_example_milliseconds": {
+            "mean": 0.042781904650231205,
+            "median": 0.042781904650231205,
+            "p50": 0.042781904650231205,
+            "p95": 0.042781904650231205,
+            "min": 0.042781904650231205,
+            "max": 0.042781904650231205,
+            "stdev": 0.0
+          }
+        }
+      },
+      "generation_compile_observation": {
+        "compiled_call_present": false,
+        "observed_model_type": "Qwen2ForCausalLM"
+      }
+    }
+  ],
+  "attempt_status_counts": {
+    "pass": 2,
+    "failed": 0,
+    "unsupported": 0
+  },
+  "fastest_quality_passing": {
+    "candidate": "dense_parent_sdpa_outer_reduce_dynamic",
+    "role": "dense_parent",
+    "batch_size": 1500,
+    "median_examples_per_second": 10244.550735676688,
+    "median_correct_examples_per_second": 9582.06978810293,
+    "median_generated_tokens_per_second": 81956.40588541351,
+    "accuracy": 0.9353333333333333
+  }
+}

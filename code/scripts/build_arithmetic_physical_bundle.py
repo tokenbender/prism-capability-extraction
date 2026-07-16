@@ -24,6 +24,8 @@ SUPPORTED_FORMAT = "qwen_physical_mlp_substrate_v1"
 SUPPORTED_MODEL_TYPE = "qwen2"
 CHECKPOINT_NAME = "model.safetensors"
 METADATA_NAME = "substrate_metadata.json"
+TIED_WEIGHT_SOURCE = "model.embed_tokens.weight"
+TIED_WEIGHT_ALIAS = "lm_head.weight"
 
 
 def sha256(path: Path) -> str:
@@ -40,6 +42,123 @@ def tensor_bytes(tensor: torch.Tensor) -> int:
 
 def state_tensor_bytes(state: Mapping[str, torch.Tensor]) -> int:
     return sum(tensor_bytes(tensor) for tensor in state.values())
+
+
+def tensors_share_exact_storage(
+    source: torch.Tensor,
+    alias: torch.Tensor,
+) -> bool:
+    """Return whether two tensors are the same exact view of one storage."""
+
+    return (
+        source.device == alias.device
+        and source.dtype == alias.dtype
+        and source.shape == alias.shape
+        and source.stride() == alias.stride()
+        and source.storage_offset() == alias.storage_offset()
+        and source.untyped_storage().data_ptr()
+        == alias.untyped_storage().data_ptr()
+    )
+
+
+def prove_model_tied_weight_alias(
+    model: torch.nn.Module,
+    state: Mapping[str, torch.Tensor],
+) -> bool:
+    """Prove the config-declared embedding/LM-head parameter alias."""
+
+    tie_word_embeddings = bool(
+        getattr(getattr(model, "config", None), "tie_word_embeddings", False)
+    )
+    if not tie_word_embeddings:
+        return False
+    missing = [
+        key for key in (TIED_WEIGHT_SOURCE, TIED_WEIGHT_ALIAS) if key not in state
+    ]
+    if missing:
+        raise ValueError(f"tied state is missing required tensors: {missing}")
+    get_input = getattr(model, "get_input_embeddings", None)
+    get_output = getattr(model, "get_output_embeddings", None)
+    if not callable(get_input) or not callable(get_output):
+        raise ValueError("model cannot expose its declared tied embeddings")
+    input_embeddings = get_input()
+    output_embeddings = get_output()
+    if input_embeddings is None or output_embeddings is None:
+        raise ValueError("model is missing a declared tied embedding module")
+    source_parameter = getattr(input_embeddings, "weight", None)
+    alias_parameter = getattr(output_embeddings, "weight", None)
+    if not isinstance(source_parameter, torch.Tensor) or not isinstance(
+        alias_parameter, torch.Tensor
+    ):
+        raise ValueError("declared tied embedding modules have no tensor weights")
+    if not tensors_share_exact_storage(source_parameter, alias_parameter):
+        raise ValueError(
+            "config declares tied word embeddings but the model parameters "
+            "are not an actual storage alias"
+        )
+    if not tensors_share_exact_storage(
+        state[TIED_WEIGHT_SOURCE],
+        state[TIED_WEIGHT_ALIAS],
+    ):
+        raise ValueError(
+            "config declares tied word embeddings but state_dict aliases "
+            "do not share exact storage"
+        )
+    return True
+
+
+def prepare_state_for_serialization(
+    state: Mapping[str, torch.Tensor],
+    *,
+    tie_word_embeddings: bool,
+    tied_weight_alias_proven: bool = False,
+) -> tuple[dict[str, torch.Tensor], dict[str, Any]]:
+    """Remove a proven tied-weight alias from the on-disk state.
+
+    ``state_dict()`` exposes both embedding and LM-head keys even when the
+    parameters are tied. Safetensors does not preserve aliases, so serializing
+    both keys silently duplicates the largest tensor in this model. The strict
+    loader reconstructs the omitted alias from this explicit contract.
+    """
+
+    serialized = dict(state)
+    receipt: dict[str, Any] = {
+        "enabled": tie_word_embeddings,
+        "alias_proven": tied_weight_alias_proven,
+        "source": None,
+        "omitted_aliases": [],
+    }
+    if not tie_word_embeddings:
+        if tied_weight_alias_proven:
+            raise ValueError(
+                "a tied-weight alias cannot be proven when tying is disabled"
+            )
+        return serialized, receipt
+    if not tied_weight_alias_proven:
+        raise ValueError(
+            "config declares tied word embeddings but an actual parameter "
+            "alias was not proven"
+        )
+    missing = [
+        key
+        for key in (TIED_WEIGHT_SOURCE, TIED_WEIGHT_ALIAS)
+        if key not in serialized
+    ]
+    if missing:
+        raise ValueError(f"tied state is missing required tensors: {missing}")
+    if not torch.equal(
+        serialized[TIED_WEIGHT_SOURCE],
+        serialized[TIED_WEIGHT_ALIAS],
+    ):
+        raise ValueError("declared tied embedding and LM-head tensors differ")
+    serialized.pop(TIED_WEIGHT_ALIAS)
+    receipt.update(
+        {
+            "source": TIED_WEIGHT_SOURCE,
+            "omitted_aliases": [TIED_WEIGHT_ALIAS],
+        }
+    )
+    return serialized, receipt
 
 
 def canonical_selection_sha256(selected: Sequence[torch.Tensor]) -> str:
@@ -168,7 +287,9 @@ def parameter_accounting(
     model: torch.nn.Module,
     dense_state: Mapping[str, torch.Tensor],
     physical_state: Mapping[str, torch.Tensor],
-) -> dict[str, int | float]:
+    *,
+    tied_weight_alias_proven: bool | None = None,
+) -> dict[str, Any]:
     """Count real model parameters separately from serialized tensor bytes."""
 
     if dense_state.keys() != physical_state.keys():
@@ -187,15 +308,40 @@ def parameter_accounting(
             f"dense={dense_parameters}, dense_mlp={dense_mlp}, "
             f"physical_mlp={physical_mlp}"
         )
-    dense_bytes = state_tensor_bytes(dense_state)
-    physical_bytes = state_tensor_bytes(physical_state)
+    dense_expanded_bytes = state_tensor_bytes(dense_state)
+    physical_expanded_bytes = state_tensor_bytes(physical_state)
+    tie_word_embeddings = bool(
+        getattr(getattr(model, "config", None), "tie_word_embeddings", False)
+    )
+    if tied_weight_alias_proven is None:
+        tied_weight_alias_proven = prove_model_tied_weight_alias(
+            model,
+            dense_state,
+        )
+    dense_serialized, dense_tied = prepare_state_for_serialization(
+        dense_state,
+        tie_word_embeddings=tie_word_embeddings,
+        tied_weight_alias_proven=tied_weight_alias_proven,
+    )
+    physical_serialized, physical_tied = prepare_state_for_serialization(
+        physical_state,
+        tie_word_embeddings=tie_word_embeddings,
+        tied_weight_alias_proven=tied_weight_alias_proven,
+    )
+    if dense_tied != physical_tied:
+        raise ValueError("dense and physical tied-weight contracts differ")
+    dense_bytes = state_tensor_bytes(dense_serialized)
+    physical_bytes = state_tensor_bytes(physical_serialized)
     return {
         "dense_parameters": int(dense_parameters),
         "physical_parameters": int(physical_parameters),
         "physical_parameter_fraction": physical_parameters / dense_parameters,
+        "dense_expanded_state_tensor_bytes": int(dense_expanded_bytes),
+        "physical_expanded_state_tensor_bytes": int(physical_expanded_bytes),
         "dense_serialized_tensor_bytes": int(dense_bytes),
         "physical_serialized_tensor_bytes": int(physical_bytes),
         "physical_serialized_tensor_fraction": physical_bytes / dense_bytes,
+        "tied_weight_serialization": physical_tied,
     }
 
 
@@ -215,6 +361,101 @@ def _write_sha256sums(output: Path) -> None:
     (output / "SHA256SUMS").write_text("\n".join(lines) + "\n")
 
 
+def write_safetensors_checkpoint(
+    state: Mapping[str, torch.Tensor],
+    output: Path,
+    *,
+    max_shard_bytes: int | None = None,
+) -> dict[str, Any]:
+    """Write one safetensors file or a deterministic standard shard set."""
+
+    from safetensors.torch import save_file
+
+    if max_shard_bytes is not None and max_shard_bytes <= 0:
+        raise ValueError("max_shard_bytes must be positive")
+    items = list(state.items())
+    if not items:
+        raise ValueError("cannot serialize an empty state dictionary")
+    total_tensor_bytes = state_tensor_bytes(state)
+    if max_shard_bytes is None or total_tensor_bytes <= max_shard_bytes:
+        checkpoint = output / CHECKPOINT_NAME
+        save_file(dict(items), checkpoint, metadata={"format": "pt"})
+        return {
+            "checkpoint": CHECKPOINT_NAME,
+            "checkpoint_file_bytes": checkpoint.stat().st_size,
+            "checkpoint_sha256": sha256(checkpoint),
+            "sharding": {
+                "enabled": False,
+                "algorithm": "state_dict_insertion_order_greedy_max_bytes_v1",
+                "max_shard_bytes": max_shard_bytes,
+                "oversize_tensor_policy": "single_tensor_may_exceed_limit",
+            },
+            "checkpoint_files": [
+                {
+                    "file": CHECKPOINT_NAME,
+                    "file_bytes": checkpoint.stat().st_size,
+                    "tensor_bytes": total_tensor_bytes,
+                    "sha256": sha256(checkpoint),
+                }
+            ],
+        }
+
+    shards: list[list[tuple[str, torch.Tensor]]] = []
+    current: list[tuple[str, torch.Tensor]] = []
+    current_bytes = 0
+    for name, tensor in items:
+        size = tensor_bytes(tensor)
+        if current and current_bytes + size > max_shard_bytes:
+            shards.append(current)
+            current = []
+            current_bytes = 0
+        current.append((name, tensor))
+        current_bytes += size
+    if current:
+        shards.append(current)
+
+    shard_count = len(shards)
+    weight_map: dict[str, str] = {}
+    files: list[dict[str, Any]] = []
+    for index, shard in enumerate(shards, start=1):
+        filename = f"model-{index:05d}-of-{shard_count:05d}.safetensors"
+        path = output / filename
+        shard_state = dict(shard)
+        save_file(shard_state, path, metadata={"format": "pt"})
+        for name in shard_state:
+            weight_map[name] = filename
+        files.append(
+            {
+                "file": filename,
+                "file_bytes": path.stat().st_size,
+                "tensor_bytes": state_tensor_bytes(shard_state),
+                "sha256": sha256(path),
+            }
+        )
+    index_name = f"{CHECKPOINT_NAME}.index.json"
+    index_path = output / index_name
+    _write_json(
+        index_path,
+        {
+            "metadata": {"total_size": total_tensor_bytes},
+            "weight_map": weight_map,
+        },
+    )
+    return {
+        "checkpoint": index_name,
+        "checkpoint_index_file_bytes": index_path.stat().st_size,
+        "checkpoint_index_sha256": sha256(index_path),
+        "sharding": {
+            "enabled": True,
+            "algorithm": "state_dict_insertion_order_greedy_max_bytes_v1",
+            "max_shard_bytes": max_shard_bytes,
+            "oversize_tensor_policy": "single_tensor_may_exceed_limit",
+            "shard_count": shard_count,
+        },
+        "checkpoint_files": files,
+    }
+
+
 def write_physical_bundle(
     *,
     model: torch.nn.Module,
@@ -227,10 +468,9 @@ def write_physical_bundle(
     overwrite: bool = False,
     tokenizer: Any = None,
     include_scripts: bool = True,
+    max_shard_bytes: int | None = None,
 ) -> dict[str, Any]:
     """Serialize a loaded merged Qwen2 model as a strict jagged bundle."""
-
-    from safetensors.torch import save_file
 
     if getattr(model.config, "model_type", None) != SUPPORTED_MODEL_TYPE:
         raise ValueError(
@@ -259,10 +499,31 @@ def write_physical_bundle(
     staging.mkdir(parents=True)
 
     dense_state = model.state_dict()
+    tied_weight_alias_proven = prove_model_tied_weight_alias(
+        model,
+        dense_state,
+    )
     physical_state, tensor_shapes = build_physical_state_dict(
         dense_state, selected
     )
-    accounting = parameter_accounting(model, dense_state, physical_state)
+    accounting = parameter_accounting(
+        model,
+        dense_state,
+        physical_state,
+        tied_weight_alias_proven=tied_weight_alias_proven,
+    )
+    serialized_state, tied_weight_serialization = prepare_state_for_serialization(
+        physical_state,
+        tie_word_embeddings=bool(
+            getattr(model.config, "tie_word_embeddings", False)
+        ),
+        tied_weight_alias_proven=tied_weight_alias_proven,
+    )
+    if (
+        accounting["tied_weight_serialization"]
+        != tied_weight_serialization
+    ):
+        raise RuntimeError("tied-weight serialization receipt drifted")
 
     model.config.save_pretrained(staging)
     generation_config = getattr(model, "generation_config", None)
@@ -270,10 +531,10 @@ def write_physical_bundle(
         generation_config.save_pretrained(staging)
     if tokenizer is not None:
         tokenizer.save_pretrained(staging)
-    save_file(
-        physical_state,
-        staging / CHECKPOINT_NAME,
-        metadata={"format": "pt"},
+    checkpoint_receipt = write_safetensors_checkpoint(
+        serialized_state,
+        staging,
+        max_shard_bytes=max_shard_bytes,
     )
 
     widths = [int(indices.numel()) for indices in selected]
@@ -311,15 +572,14 @@ def write_physical_bundle(
             "down_proj": "matching_selected_columns",
             "tensor_shapes": tensor_shapes,
             **accounting,
-            "checkpoint": CHECKPOINT_NAME,
-            "checkpoint_file_bytes": (staging / CHECKPOINT_NAME).stat().st_size,
-            "checkpoint_sha256": sha256(staging / CHECKPOINT_NAME),
+            **checkpoint_receipt,
         },
         "loader_contract": {
             "strict": True,
             "dense_mlp_tensors_required": False,
             "runtime_mask_required": False,
             "donor_model_required": False,
+            "tied_weight_serialization": tied_weight_serialization,
             "supported_mlp_implementations": ["separate", "packed_gate_up"],
             "supported_activation_implementations": ["torch", "triton", "hybrid"],
             "supported_width_alignments": [1, 16, 64, 128, 256],
@@ -361,6 +621,11 @@ def main() -> None:
     )
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument(
+        "--max-shard-bytes",
+        type=int,
+        help="write a standard safetensors shard set when the state exceeds this size",
+    )
     args = parser.parse_args()
 
     from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -399,6 +664,7 @@ def main() -> None:
         candidate_id=args.candidate_id,
         overwrite=args.overwrite,
         tokenizer=tokenizer,
+        max_shard_bytes=args.max_shard_bytes,
     )
     print(json.dumps(metadata, indent=2))
 

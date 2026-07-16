@@ -1,0 +1,127 @@
+{
+  "schema_version": "prism_arithmetic_issue22_final_selection_v1",
+  "status": "pass",
+  "scope": "fastest tested quality-valid setup for the frozen 1500-example arithmetic workload, selected physical artifact, one B200, and recorded stack",
+  "source_commit": "65ba0b7832b29efb1183c5f920a5e5bb8d4f12f7",
+  "physical_artifact": {
+    "candidate": "round03_positive",
+    "checkpoint_sha256": "7d8315ae8da2734e322eb95d692d4975e13d58730bff30ffbe26926d2de41e02",
+    "kept_mlp_channels": 250237,
+    "available_mlp_channels": 250880,
+    "kept_fraction": 0.9974370216836734,
+    "physical_parameters": 1540751360,
+    "dense_parameters": 1543714304,
+    "checkpoint_file_bytes": 3548288864,
+    "quality": {
+      "correct": 1386,
+      "examples": 1500,
+      "accuracy": 0.924,
+      "matched_dense_recovery": 0.9800853485064012,
+      "logical_correctness_retention": 0.9913544668587896
+    }
+  },
+  "winner": {
+    "name": "physical_sdpa_packed16_dynamic_triton",
+    "attention": "sdpa",
+    "mlp": "packed_gate_up",
+    "width_alignment": 16,
+    "activation": "triton_silu_mul",
+    "batch_size": 1500,
+    "repeats": 5,
+    "correct": 1395,
+    "accuracy": 0.93,
+    "examples_per_second": {
+      "mean": 10202.79550190898,
+      "median": 10208.963398350814,
+      "p50": 10208.963398350814,
+      "p95": 10230.76211047885,
+      "min": 10146.391940987334,
+      "max": 10232.449744312284,
+      "stdev": 33.724261553547976
+    },
+    "generated_tokens_per_second": {
+      "mean": 81622.36401527184,
+      "median": 81671.70718680651,
+      "p50": 81671.70718680651,
+      "p95": 81846.0968838308,
+      "min": 81171.13552789867,
+      "max": 81859.59795449827,
+      "stdev": 269.7940924283838
+    },
+    "correct_examples_per_second": {
+      "mean": 9488.599816775351,
+      "median": 9494.335960466256,
+      "p50": 9494.335960466256,
+      "p95": 9514.60876274533,
+      "min": 9436.144505118222,
+      "max": 9516.178262210424,
+      "stdev": 31.36356324479908
+    },
+    "batch_latency_milliseconds": {
+      "mean": 146.50168316438794,
+      "median": 146.50168316438794,
+      "p50": 146.50168316438794,
+      "p95": 146.50168316438794,
+      "min": 146.50168316438794,
+      "max": 146.50168316438794,
+      "stdev": 0.0
+    },
+    "ttft_milliseconds": {
+      "mean": 64.1728569753468,
+      "median": 64.1728569753468,
+      "p50": 64.1728569753468,
+      "p95": 64.1728569753468,
+      "min": 64.1728569753468,
+      "max": 64.1728569753468,
+      "stdev": 0.0
+    },
+    "peak_allocated_bytes": 6046274560.0,
+    "quality_stability": {
+      "correct_values": [
+        1395,
+        1395,
+        1395,
+        1395,
+        1395
+      ],
+      "prediction_sha256_values": [
+        "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+        "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+        "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+        "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416",
+        "9a4dd9bed70a3c5460c576a42655cd4eca217fa247a68f5c932e170184986416"
+      ],
+      "all_repeats_identical": true
+    },
+    "profile": {
+      "estimated_achieved_tflops_per_second": 362.50179838409343,
+      "estimated_executed_mfu_percent": 16.11119103929304,
+      "estimated_active_time_mfu_percent": 21.319987406161804,
+      "summed_kernel_active_to_wall_percent": 75.56848290931288,
+      "kernel_launch_count": 8914,
+      "estimate_only": true
+    }
+  },
+  "comparisons": {
+    "canonical_eager_physical": {
+      "batch_size": 512,
+      "examples_per_second": 2966.2862938285707,
+      "winner_speedup": 3.44166489242485,
+      "correct": 1386
+    },
+    "equally_optimized_dense": {
+      "batch_size": 1500,
+      "examples_per_second": 10244.550735676688,
+      "physical_to_dense_ratio": 0.9965262178650801,
+      "physical_slowdown_percent": 0.34737821349198894,
+      "correct": 1403,
+      "estimated_executed_mfu_percent": 16.36539795112888
+    }
+  },
+  "boundaries": {
+    "global_mace_minimality_claimed": false,
+    "dense_speedup_claimed": false,
+    "profiler_mfu": "torch.profiler supported-op estimate, not hardware counters",
+    "serving_engines": "stock vLLM/SGLang cannot express per-layer jagged Qwen MLP widths; engine-native runner not credited"
+  }
+}

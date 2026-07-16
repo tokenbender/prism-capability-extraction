@@ -1,0 +1,53 @@
+{
+  "schema_version": "prism_arithmetic_issue22_local_archive_v1",
+  "status": "pass",
+  "verified_at_utc": "2026-07-16T11:07Z",
+  "scope": "Local preservation of the original Issue #22 evidence tree, the evaluated selected physical bundle, and the exact final ModelScope v1.2 payload",
+  "archives": [
+    {
+      "name": "issue22_evidence",
+      "path": "/Users/tokenbender/Documents/Codex/2026-07-15/check/artifacts/issue22/issue22_evidence.tar.gz",
+      "bytes": 32101054,
+      "sha256": "64b65cda453b71a9c474dfdf499717b41bb0b2ab551f65daa05970520353f449",
+      "matching_pod_sha256_recorded": true,
+      "extracted_path": "/Users/tokenbender/Documents/Codex/2026-07-15/check/artifacts/issue22/evidence/issue22_run"
+    },
+    {
+      "name": "issue22_evaluated_selected_bundle",
+      "path": "/Users/tokenbender/Documents/Codex/2026-07-15/check/artifacts/issue22/issue22_selected_bundle.tar",
+      "bytes": 3564298240,
+      "sha256": "2231dc4f15ff0861d705c7a81d3f43a8c44a5489ad0a3a2a558d40d4206fd89d",
+      "matching_pod_sha256_recorded": true,
+      "extracted_path": "/Users/tokenbender/Documents/Codex/2026-07-15/check/artifacts/issue22/modelscope_stage/bundle"
+    },
+    {
+      "name": "issue22_modelscope_payload_issue22-physical-v1.2",
+      "path": "/Users/tokenbender/Documents/Codex/2026-07-15/check/artifacts/issue22/issue22_modelscope_payload_issue22-physical-v1.2.tar",
+      "bytes": 3098014208,
+      "sha256": "edea57c5c6515c1c03ca69aca338ac7beda786821412d655a9378ea82b6dd52f",
+      "payload_file_count": 44,
+      "modelscope_immutable_tag": "issue22-physical-v1.2",
+      "service_added_gitattributes_included": false
+    }
+  ],
+  "evaluated_physical_checkpoint": {
+    "sha256": "7d8315ae8da2734e322eb95d692d4975e13d58730bff30ffbe26926d2de41e02",
+    "file_bytes": 3548288864,
+    "local_hash_verified": true
+  },
+  "canonical_publication_transport": {
+    "status": "pass",
+    "canonical_unsharded_sha256": "682f4b6812f2f7452e3b646cabf4bea0452cf752375339b544def400f10c90cb",
+    "shard_manifest_sha256": "571a1e50bdddb5dc289367663f24090c4225725cbac4006c0c009bc08cbc5521",
+    "clean_load_receipt": "../provenance/clean_load_receipt.json",
+    "final_payload_archive": "/Users/tokenbender/Documents/Codex/2026-07-15/check/artifacts/issue22/issue22_modelscope_payload_issue22-physical-v1.2.tar",
+    "final_payload_archive_sha256": "edea57c5c6515c1c03ca69aca338ac7beda786821412d655a9378ea82b6dd52f"
+  },
+  "boundaries": [
+    "This receipt proves local preservation; remote ModelScope verification is recorded separately in MODELSCOPE_RECEIPT.json.",
+    "The final payload archive contains the 44 governed payload files and excludes the service-added .gitattributes file.",
+    "This receipt does not prove Hugging Face publication.",
+    "The selected-bundle tar contains the evaluated alias-duplicated checkpoint; tied-weight deduplication and publication sharding are proven separately.",
+    "Local preservation does not by itself authorize Issue #22 closeout."
+  ]
+}

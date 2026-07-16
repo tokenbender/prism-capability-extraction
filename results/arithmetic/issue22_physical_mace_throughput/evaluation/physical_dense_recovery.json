@@ -1,0 +1,9 @@
+{
+  "round": 3,
+  "search_label": "03_positive",
+  "dense_correct": 1406,
+  "physical_correct": 1386,
+  "matched_dense_correct": 1378,
+  "matched_dense_recovery": 0.9800853485064012,
+  "passes_mace90": true
+}

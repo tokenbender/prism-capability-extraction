@@ -1,0 +1,105 @@
+{
+  "status": "pass",
+  "reason": "checkpoint-b tokenizer_config uses newer extra_special_tokens metadata; runtime uses the pinned upstream base tokenizer loaded by training",
+  "base_revision": "4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2",
+  "candidate_weight_sha256": "02f1d903334e09a100f725065bbe32cceff58ee6ae97c54e907ba7da5fea1345",
+  "runtime_weight_sha256": "02f1d903334e09a100f725065bbe32cceff58ee6ae97c54e907ba7da5fea1345",
+  "base_tokenizer_sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+  "runtime_tokenizer_sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+  "prompt_tokenization_checks": [
+    {
+      "prompt": "10 + 10 =",
+      "base_ids": [
+        16,
+        15,
+        488,
+        220,
+        16,
+        15,
+        284
+      ],
+      "runtime_ids": [
+        16,
+        15,
+        488,
+        220,
+        16,
+        15,
+        284
+      ],
+      "identical": true
+    },
+    {
+      "prompt": "19 + 23 = ",
+      "base_ids": [
+        16,
+        24,
+        488,
+        220,
+        17,
+        18,
+        284,
+        220
+      ],
+      "runtime_ids": [
+        16,
+        24,
+        488,
+        220,
+        17,
+        18,
+        284,
+        220
+      ],
+      "identical": true
+    },
+    {
+      "prompt": "94 + 64 = ",
+      "base_ids": [
+        24,
+        19,
+        488,
+        220,
+        21,
+        19,
+        284,
+        220
+      ],
+      "runtime_ids": [
+        24,
+        19,
+        488,
+        220,
+        21,
+        19,
+        284,
+        220
+      ],
+      "identical": true
+    },
+    {
+      "prompt": "99 + 99 = ",
+      "base_ids": [
+        24,
+        24,
+        488,
+        220,
+        24,
+        24,
+        284,
+        220
+      ],
+      "runtime_ids": [
+        24,
+        24,
+        488,
+        220,
+        24,
+        24,
+        284,
+        220
+      ],
+      "identical": true
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "available": 250880,
+  "comparison": {
+    "candidate_accuracy": 0.9253333333333333,
+    "candidate_correct": 1388,
+    "candidate_only_correct": 8,
+    "dense_accuracy": 0.9373333333333334,
+    "dense_correct": 1406,
+    "dense_only_correct": 26,
+    "matched_dense_correct": 1380,
+    "matched_dense_recovery": 0.9815078236130867,
+    "n": 1500,
+    "prediction_disagreements": 536
+  },
+  "kept": 250237,
+  "kept_fraction": 0.9974370216836734,
+  "label": "positive",
+  "mask_path": "/root/issue22_run/search/rounds/03_positive/mask.npz",
+  "mask_sha256": "b4d420a4393fbfe5c7f0fed0c7157e7c9042ea59b9683c539f7092c0c8a52947",
+  "operation": "audited_safety_ceiling",
+  "parent": null,
+  "passes_mace": true,
+  "predictions_path": "/root/issue22_run/search/rounds/03_positive/predictions.jsonl",
+  "recovery_floor": 0.9,
+  "round": 3,
+  "seconds": 0.7354157988447696,
+  "selection_sha256": "c8759dc9a3e931b9b993f113b8f885eaf3547b035376dfbe9cf2bf3b939c8e69",
+  "summary": {
+    "accuracy": 0.9253333333333333,
+    "by_carry": {
+      "carry": {
+        "accuracy": 0.9514563106796117,
+        "correct": 686,
+        "n": 721
+      },
+      "no_carry": {
+        "accuracy": 0.9011553273427471,
+        "correct": 702,
+        "n": 779
+      }
+    },
+    "by_carry_class": {
+      "leading": {
+        "accuracy": 0.9197761194029851,
+        "correct": 493,
+        "n": 536
+      },
+      "none": {
+        "accuracy": 0.8600823045267489,
+        "correct": 209,
+        "n": 243
+      },
+      "ones": {
+        "accuracy": 0.9235294117647059,
+        "correct": 157,
+        "n": 170
+      },
+      "ones_and_leading": {
+        "accuracy": 0.9600725952813067,
+        "correct": 529,
+        "n": 551
+      }
+    },
+    "by_prompt_format": {
+      "historical_spaced": {
+        "accuracy": 0.9253333333333333,
+        "correct": 1388,
+        "n": 1500
+      }
+    },
+    "by_result_length": {
+      "2": {
+        "accuracy": 0.8861985472154964,
+        "correct": 366,
+        "n": 413
+      },
+      "3": {
+        "accuracy": 0.9402023919043239,
+        "correct": 1022,
+        "n": 1087
+      }
+    },
+    "by_source_position": {
+      "hundreds": {
+        "accuracy": 0.952,
+        "correct": 476,
+        "n": 500
+      },
+      "ones": {
+        "accuracy": 0.922,
+        "correct": 461,
+        "n": 500
+      },
+      "tens": {
+        "accuracy": 0.902,
+        "correct": 451,
+        "n": 500
+      }
+    },
+    "correct": 1388,
+    "n": 1500
+  }
+}

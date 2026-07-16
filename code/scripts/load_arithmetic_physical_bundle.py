@@ -47,6 +47,8 @@ DTYPES = {
     "float16": torch.float16,
     "float32": torch.float32,
 }
+TIED_WEIGHT_SOURCE = "model.embed_tokens.weight"
+TIED_WEIGHT_ALIAS = "lm_head.weight"
 
 
 def sha256(path: Path) -> str:
@@ -82,15 +84,92 @@ def read_bundle_metadata(bundle: Path) -> dict[str, Any]:
 def _validate_checkpoint_against_metadata(
     state: dict[str, torch.Tensor],
     metadata: dict[str, Any],
-    checkpoint: Path,
+    checkpoint_files: list[Path],
+    checkpoint_index: Path | None,
+    weight_map: dict[str, str] | None,
+    shard_inventory: dict[str, set[str]],
+    index_total_size: int | None,
 ) -> dict[str, Any]:
     physicalization = metadata.get("physicalization", {})
-    expected_hash = physicalization.get("checkpoint_sha256")
-    actual_hash = sha256(checkpoint)
-    if expected_hash and actual_hash != expected_hash:
-        raise ValueError(
-            f"checkpoint SHA-256 mismatch: {actual_hash} != {expected_hash}"
-        )
+    expected_files = physicalization.get("checkpoint_files")
+    file_receipts = [
+        {
+            "file": path.name,
+            "file_bytes": path.stat().st_size,
+            "sha256": sha256(path),
+        }
+        for path in checkpoint_files
+    ]
+    if expected_files:
+        expected_by_name = {
+            str(item["file"]): item for item in expected_files
+        }
+        if set(expected_by_name) != {item["file"] for item in file_receipts}:
+            raise ValueError("checkpoint shard inventory does not match metadata")
+        for actual in file_receipts:
+            expected = expected_by_name[actual["file"]]
+            if actual["sha256"] != expected.get("sha256"):
+                raise ValueError(
+                    f"checkpoint SHA-256 mismatch for {actual['file']}: "
+                    f"{actual['sha256']} != {expected.get('sha256')}"
+                )
+            if actual["file_bytes"] != int(expected.get("file_bytes", -1)):
+                raise ValueError(
+                    f"checkpoint byte-size mismatch for {actual['file']}"
+                )
+    elif len(checkpoint_files) == 1:
+        expected_hash = physicalization.get("checkpoint_sha256")
+        if expected_hash and file_receipts[0]["sha256"] != expected_hash:
+            raise ValueError(
+                "checkpoint SHA-256 mismatch: "
+                f"{file_receipts[0]['sha256']} != {expected_hash}"
+            )
+    else:
+        raise ValueError("sharded checkpoint is missing an inventory contract")
+
+    index_receipt = None
+    if checkpoint_index is not None:
+        if weight_map is None or index_total_size is None:
+            raise ValueError("sharded checkpoint is missing its parsed index contract")
+        if set(weight_map) != set(state):
+            missing_from_index = sorted(set(state) - set(weight_map))
+            missing_from_state = sorted(set(weight_map) - set(state))
+            raise ValueError(
+                "checkpoint index tensor inventory does not match shard contents: "
+                f"unindexed={missing_from_index}, missing={missing_from_state}"
+            )
+        expected_by_shard: dict[str, set[str]] = {
+            path.name: set() for path in checkpoint_files
+        }
+        for tensor_name, filename in weight_map.items():
+            if filename not in expected_by_shard:
+                raise ValueError(
+                    f"checkpoint index assigns {tensor_name} to unknown shard "
+                    f"{filename}"
+                )
+            expected_by_shard[filename].add(tensor_name)
+        for filename, actual_names in shard_inventory.items():
+            expected_names = expected_by_shard.get(filename)
+            if expected_names != actual_names:
+                raise ValueError(
+                    f"checkpoint index assignments do not match {filename}: "
+                    f"expected={sorted(expected_names or set())}, "
+                    f"actual={sorted(actual_names)}"
+                )
+        index_receipt = {
+            "file": checkpoint_index.name,
+            "file_bytes": checkpoint_index.stat().st_size,
+            "sha256": sha256(checkpoint_index),
+        }
+        expected_index_hash = physicalization.get("checkpoint_index_sha256")
+        if (
+            expected_index_hash
+            and index_receipt["sha256"] != expected_index_hash
+        ):
+            raise ValueError(
+                "checkpoint index SHA-256 mismatch: "
+                f"{index_receipt['sha256']} != {expected_index_hash}"
+            )
     actual_tensor_bytes = sum(
         tensor.numel() * tensor.element_size() for tensor in state.values()
     )
@@ -102,11 +181,146 @@ def _validate_checkpoint_against_metadata(
             "serialized tensor-byte mismatch: "
             f"{actual_tensor_bytes} != {expected_tensor_bytes}"
         )
+    if index_total_size is not None and index_total_size != actual_tensor_bytes:
+        raise ValueError(
+            "checkpoint index total_size mismatch: "
+            f"{index_total_size} != {actual_tensor_bytes}"
+        )
     return {
-        "checkpoint_sha256": actual_hash,
+        "checkpoint_files": file_receipts,
+        "checkpoint_index": index_receipt,
         "serialized_tensor_bytes": actual_tensor_bytes,
         "tensor_count": len(state),
     }
+
+
+def resolve_checkpoint_files(
+    bundle: Path,
+    metadata: dict[str, Any],
+) -> tuple[list[Path], Path | None, dict[str, str] | None, int | None]:
+    """Resolve and validate the checkpoint inventory named by metadata."""
+
+    bundle = bundle.resolve()
+
+    def require_contained_regular_file(path: Path, label: str) -> None:
+        if path.is_symlink():
+            raise ValueError(f"{label} must not be a symlink: {path}")
+        if not path.is_file():
+            raise FileNotFoundError(f"missing {label}: {path}")
+        resolved = path.resolve(strict=True)
+        if resolved.parent != bundle:
+            raise ValueError(f"{label} escapes the bundle root: {path}")
+
+    physicalization = metadata.get("physicalization", {})
+    checkpoint_name = physicalization.get("checkpoint", "model.safetensors")
+    if checkpoint_name not in {
+        "model.safetensors",
+        "model.safetensors.index.json",
+    }:
+        raise ValueError(
+            f"unsupported or unsafe checkpoint contract {checkpoint_name!r}"
+        )
+    checkpoint = bundle / checkpoint_name
+    require_contained_regular_file(checkpoint, "checkpoint contract file")
+    if checkpoint_name.endswith(".index.json"):
+        index = json.loads(checkpoint.read_text())
+        weight_map = index.get("weight_map")
+        if not isinstance(weight_map, dict) or not weight_map:
+            raise ValueError("checkpoint index has no weight_map")
+        if not all(
+            isinstance(name, str)
+            and name
+            and isinstance(filename, str)
+            and filename
+            for name, filename in weight_map.items()
+        ):
+            raise ValueError("checkpoint index weight_map must contain strings")
+        filenames = sorted(set(weight_map.values()))
+        for filename in filenames:
+            path = Path(filename)
+            if path.name != filename or path.suffix != ".safetensors":
+                raise ValueError(
+                    f"checkpoint index contains unsafe shard path {filename!r}"
+                )
+        index_metadata = index.get("metadata")
+        if not isinstance(index_metadata, dict):
+            raise ValueError("checkpoint index has no metadata object")
+        total_size = index_metadata.get("total_size")
+        if (
+            not isinstance(total_size, int)
+            or isinstance(total_size, bool)
+            or total_size <= 0
+        ):
+            raise ValueError("checkpoint index total_size must be a positive integer")
+        files = [bundle / filename for filename in filenames]
+        for path in files:
+            require_contained_regular_file(path, "checkpoint shard")
+        return files, checkpoint, dict(weight_map), total_size
+    return [checkpoint], None, None, None
+
+
+def restore_tied_weight_alias(
+    state: dict[str, torch.Tensor],
+    metadata: dict[str, Any],
+    *,
+    tie_word_embeddings: bool,
+) -> dict[str, Any]:
+    """Reconstruct an explicitly omitted tied alias before strict assignment."""
+
+    receipt: dict[str, Any] = {
+        "enabled": tie_word_embeddings,
+        "source": None,
+        "alias": None,
+        "alias_serialized": None,
+        "alias_reconstructed": False,
+    }
+    if not tie_word_embeddings:
+        return receipt
+    if TIED_WEIGHT_SOURCE not in state:
+        raise ValueError(
+            f"tied checkpoint is missing source tensor {TIED_WEIGHT_SOURCE}"
+        )
+    receipt.update(
+        {
+            "source": TIED_WEIGHT_SOURCE,
+            "alias": TIED_WEIGHT_ALIAS,
+            "alias_serialized": TIED_WEIGHT_ALIAS in state,
+        }
+    )
+    if TIED_WEIGHT_ALIAS in state:
+        if not torch.equal(
+            state[TIED_WEIGHT_SOURCE],
+            state[TIED_WEIGHT_ALIAS],
+        ):
+            raise ValueError(
+                "config requires tied word embeddings but serialized embedding "
+                "and LM-head tensors differ"
+            )
+        return receipt
+
+    contract = metadata.get("loader_contract", {}).get(
+        "tied_weight_serialization", {}
+    )
+    physical_contract = metadata.get("physicalization", {}).get(
+        "tied_weight_serialization", {}
+    )
+    if contract != physical_contract:
+        raise ValueError(
+            "loader and physicalization tied-weight contracts differ"
+        )
+    if (
+        contract.get("enabled") is not True
+        or contract.get("alias_proven") is not True
+        or contract.get("source") != TIED_WEIGHT_SOURCE
+        or TIED_WEIGHT_ALIAS not in (contract.get("omitted_aliases") or [])
+    ):
+        raise ValueError(
+            "tied checkpoint omitted lm_head.weight without an explicit "
+            "proven-alias reconstruction contract"
+        )
+    state[TIED_WEIGHT_ALIAS] = state[TIED_WEIGHT_SOURCE]
+    receipt["alias_reconstructed"] = True
+    return receipt
 
 
 def load_arithmetic_physical_bundle(
@@ -141,12 +355,12 @@ def load_arithmetic_physical_bundle(
         raise ValueError(
             f"unsupported attention implementation {attention_implementation!r}"
         )
-    checkpoint_files = sorted(bundle.glob("*.safetensors"))
-    if len(checkpoint_files) != 1:
-        raise ValueError(
-            f"expected exactly one safetensors checkpoint, found {len(checkpoint_files)}"
-        )
-    checkpoint = checkpoint_files[0]
+    (
+        checkpoint_files,
+        checkpoint_index,
+        weight_map,
+        index_total_size,
+    ) = resolve_checkpoint_files(bundle, metadata)
     dtype_name = str(metadata.get("dtype"))
     if dtype_name not in DTYPES:
         raise ValueError(f"unsupported bundle dtype {dtype_name!r}")
@@ -168,9 +382,25 @@ def load_arithmetic_physical_bundle(
     construction_seconds = time.perf_counter() - construction_started
 
     checkpoint_started = time.perf_counter()
-    state = load_file(checkpoint, device="cpu")
+    state: dict[str, torch.Tensor] = {}
+    shard_inventory: dict[str, set[str]] = {}
+    for checkpoint_file in checkpoint_files:
+        shard = load_file(checkpoint_file, device="cpu")
+        shard_inventory[checkpoint_file.name] = set(shard)
+        duplicates = set(state).intersection(shard)
+        if duplicates:
+            raise ValueError(
+                f"checkpoint shards contain duplicate tensors: {sorted(duplicates)}"
+            )
+        state.update(shard)
     checkpoint_receipt = _validate_checkpoint_against_metadata(
-        state, metadata, checkpoint
+        state,
+        metadata,
+        checkpoint_files,
+        checkpoint_index,
+        weight_map,
+        shard_inventory,
+        index_total_size,
     )
     dtype_mismatches = {
         name: str(tensor.dtype)
@@ -182,18 +412,13 @@ def load_arithmetic_physical_bundle(
             f"checkpoint floating dtypes do not match {expected_dtype}: "
             f"{dtype_mismatches}"
         )
-    tied_weight_keys = ("model.embed_tokens.weight", "lm_head.weight")
-    if bool(getattr(config, "tie_word_embeddings", False)):
-        missing_tied = [key for key in tied_weight_keys if key not in state]
-        if missing_tied:
-            raise ValueError(
-                f"tied-embedding checkpoint is missing tensors: {missing_tied}"
-            )
-        if not torch.equal(state[tied_weight_keys[0]], state[tied_weight_keys[1]]):
-            raise ValueError(
-                "config requires tied word embeddings but serialized embedding "
-                "and LM-head tensors differ"
-            )
+    tied_weight_serialization = restore_tied_weight_alias(
+        state,
+        metadata,
+        tie_word_embeddings=bool(
+            getattr(config, "tie_word_embeddings", False)
+        ),
+    )
     incompatible = model.load_state_dict(state, strict=True, assign=True)
     if incompatible.missing_keys or incompatible.unexpected_keys:
         raise RuntimeError(
@@ -294,8 +519,9 @@ def load_arithmetic_physical_bundle(
         "layers": len(widths),
         "kept_total": sum(widths),
         "kept_per_layer": widths,
-        "checkpoint": checkpoint.name,
+        "checkpoint": metadata.get("physicalization", {}).get("checkpoint"),
         "checkpoint_receipt": checkpoint_receipt,
+        "tied_weight_serialization": tied_weight_serialization,
         "parameter_dtype": str(expected_dtype),
         "parameter_accounting": {
             "canonical_physical_parameters": canonical_parameters,

@@ -1,0 +1,50 @@
+{
+  "status": "pass",
+  "entity": "ahm-rimer",
+  "project": "prism-arithmetic",
+  "group": "issue22-arithmetic-physical-throughput",
+  "runs": [
+    {
+      "name": "issue22-source-reproduction",
+      "job_type": "source-reproduction",
+      "id": "jpjt55ke",
+      "url": "https://wandb.ai/ahm-rimer/prism-arithmetic/runs/jpjt55ke"
+    },
+    {
+      "name": "issue22-mace-search",
+      "job_type": "mace-search",
+      "id": "oxh0ch2f",
+      "url": "https://wandb.ai/ahm-rimer/prism-arithmetic/runs/oxh0ch2f"
+    },
+    {
+      "name": "issue22-physical-eval",
+      "job_type": "physical-eval",
+      "id": "08ys4ujl",
+      "url": "https://wandb.ai/ahm-rimer/prism-arithmetic/runs/08ys4ujl"
+    },
+    {
+      "name": "issue22-kernel-sweep",
+      "job_type": "kernel-sweep",
+      "id": "v897x6wo",
+      "url": "https://wandb.ai/ahm-rimer/prism-arithmetic/runs/v897x6wo"
+    },
+    {
+      "name": "issue22-finalist-benchmark",
+      "job_type": "finalist-benchmark",
+      "id": "v57mmvds",
+      "url": "https://wandb.ai/ahm-rimer/prism-arithmetic/runs/v57mmvds"
+    },
+    {
+      "name": "issue22-winner-verification",
+      "job_type": "winner-verification",
+      "id": "dygxkhdc",
+      "url": "https://wandb.ai/ahm-rimer/prism-arithmetic/runs/dygxkhdc"
+    }
+  ],
+  "artifact": {
+    "name": "issue22-arithmetic-physical-throughput-evidence:v0",
+    "version": "v0",
+    "digest": "1ea5edf20728d1435529ea735e49105d",
+    "id": "QXJ0aWZhY3Q6MzE0OTY0MDExNA=="
+  }
+}

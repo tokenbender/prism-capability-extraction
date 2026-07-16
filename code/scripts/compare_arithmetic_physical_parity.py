@@ -11,6 +11,10 @@ from typing import Any, Mapping, Sequence
 
 
 SCHEMA_VERSION = "prism_arithmetic_physical_parity_v1"
+# A gate rejection is expected search control flow. Keep it distinct from
+# Python/runtime failures so callers never continue after a broken comparison.
+GATE_FAILURE_EXIT_CODE = 3
+ACCEPTANCE_SCHEMA_VERSION = "prism_arithmetic_physical_acceptance_v1"
 
 
 def sha256_file(path: Path) -> str:
@@ -128,6 +132,87 @@ def compare_predictions(
     return summary, differences
 
 
+def compare_dense_recovery(
+    dense_rows: Sequence[Mapping[str, Any]],
+    physical_rows: Sequence[Mapping[str, Any]],
+    *,
+    recovery_floor: float = 0.90,
+) -> dict[str, Any]:
+    if not 0.0 < recovery_floor <= 1.0:
+        raise ValueError("recovery floor must be in (0, 1]")
+    dense = index_predictions(dense_rows)
+    physical = index_predictions(physical_rows)
+    if dense.keys() != physical.keys():
+        raise ValueError("dense and physical prediction ID sets differ")
+
+    dense_correct_ids = {
+        record_id
+        for record_id, row in dense.items()
+        if bool(row["exact_numeric_correct"])
+    }
+    if not dense_correct_ids:
+        raise ValueError("dense parent has zero correct predictions")
+    physical_correct_ids = {
+        record_id
+        for record_id, row in physical.items()
+        if bool(row["exact_numeric_correct"])
+    }
+    matched_ids = dense_correct_ids & physical_correct_ids
+    recovery = len(matched_ids) / len(dense_correct_ids)
+    return {
+        "status": "pass" if recovery >= recovery_floor else "fail",
+        "dense_correct": len(dense_correct_ids),
+        "physical_correct": len(physical_correct_ids),
+        "matched_dense_correct": len(matched_ids),
+        "matched_dense_recovery": recovery,
+        "recovery_floor": recovery_floor,
+        "dense_only_correct": len(dense_correct_ids - physical_correct_ids),
+        "physical_only_correct": len(physical_correct_ids - dense_correct_ids),
+    }
+
+
+def compare_physical_acceptance(
+    logical_rows: Sequence[Mapping[str, Any]],
+    physical_rows: Sequence[Mapping[str, Any]],
+    dense_rows: Sequence[Mapping[str, Any]],
+    *,
+    retention_floor: float = 0.99,
+    recovery_floor: float = 0.90,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    summary, differences = compare_predictions(
+        logical_rows,
+        physical_rows,
+        retention_floor=retention_floor,
+    )
+    parity_status = summary["status"]
+    dense_recovery = compare_dense_recovery(
+        dense_rows,
+        physical_rows,
+        recovery_floor=recovery_floor,
+    )
+    summary["schema_version"] = ACCEPTANCE_SCHEMA_VERSION
+    summary["parity_status"] = parity_status
+    summary["dense_recovery"] = dense_recovery
+    summary["gates"] = {
+        "logical_correctness_retention": {
+            "status": parity_status,
+            "value": summary["logical_correctness_retention"],
+            "floor": retention_floor,
+        },
+        "matched_dense_recovery": {
+            "status": dense_recovery["status"],
+            "value": dense_recovery["matched_dense_recovery"],
+            "floor": recovery_floor,
+        },
+    }
+    summary["status"] = (
+        "pass"
+        if parity_status == "pass" and dense_recovery["status"] == "pass"
+        else "fail"
+    )
+    return summary, differences
+
+
 def write_json(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n")
@@ -144,16 +229,36 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--logical", type=Path, required=True)
     parser.add_argument("--physical", type=Path, required=True)
+    parser.add_argument(
+        "--dense",
+        type=Path,
+        help=(
+            "frozen dense predictions; when supplied, status also requires "
+            "matched-dense recovery to pass"
+        ),
+    )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--differences", type=Path, required=True)
     parser.add_argument("--retention-floor", type=float, default=0.99)
+    parser.add_argument("--recovery-floor", type=float, default=0.90)
     args = parser.parse_args()
 
-    summary, differences = compare_predictions(
-        read_jsonl(args.logical),
-        read_jsonl(args.physical),
-        retention_floor=args.retention_floor,
-    )
+    logical_rows = read_jsonl(args.logical)
+    physical_rows = read_jsonl(args.physical)
+    if args.dense is None:
+        summary, differences = compare_predictions(
+            logical_rows,
+            physical_rows,
+            retention_floor=args.retention_floor,
+        )
+    else:
+        summary, differences = compare_physical_acceptance(
+            logical_rows,
+            physical_rows,
+            read_jsonl(args.dense),
+            retention_floor=args.retention_floor,
+            recovery_floor=args.recovery_floor,
+        )
     summary["inputs"] = {
         "logical": {
             "path": str(args.logical),
@@ -164,12 +269,17 @@ def main() -> None:
             "sha256": sha256_file(args.physical),
         },
     }
+    if args.dense is not None:
+        summary["inputs"]["dense"] = {
+            "path": str(args.dense),
+            "sha256": sha256_file(args.dense),
+        }
     summary["differences_path"] = str(args.differences)
     write_json(args.output, summary)
     write_jsonl(args.differences, differences)
     print(json.dumps(summary, indent=2))
     if summary["status"] != "pass":
-        raise SystemExit(1)
+        raise SystemExit(GATE_FAILURE_EXIT_CODE)
 
 
 if __name__ == "__main__":

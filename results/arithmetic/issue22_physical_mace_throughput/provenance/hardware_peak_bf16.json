@@ -1,0 +1,7 @@
+{
+  "source": "https://www.nvidia.com/en-gb/data-center/hgx/",
+  "source_description": "HGX B200 FP16/BF16 is listed as 36 PFLOPS sparse for eight GPUs; NVIDIA states dense is half the sparse figure",
+  "derivation": "36000 TFLOP/s / 2 dense factor / 8 GPUs = 2250 dense BF16 TFLOP/s per B200",
+  "provided_to_profiler_tflops_per_second": 2250,
+  "estimate_boundary": "used only as denominator for profiler-estimated MFU"
+}

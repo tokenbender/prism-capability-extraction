@@ -1,0 +1,199 @@
+{
+  "schema_version": "prism_arithmetic_issue22_manifest_v1",
+  "generated_at_utc": "2026-07-16T11:07:33Z",
+  "artifact_id": "issue22-arithmetic-physical-mace-throughput",
+  "repository": "tokenbender/prism-capability-extraction",
+  "branch": "issue22-arithmetic-physical-throughput",
+  "issue": 22,
+  "source_commit": "65ba0b7832b29efb1183c5f920a5e5bb8d4f12f7",
+  "status": "core_1500_row_experiment_published_and_executor_teardown_complete_issue_open",
+  "scope": "Bounded standalone arithmetic MACE extraction, physicalization, and quality-gated one-B200 runtime optimization",
+  "source": {
+    "base_repository": "Qwen/Qwen2.5-Math-1.5B",
+    "base_revision": "4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2",
+    "adapter_sha256": "2c5de239e9c5e2ebe2a47b3e676ddae49ad542d24e793ebc00fb3bee0d5461e6",
+    "merge_scale": 0.55,
+    "dense_merged_checkpoint_sha256": "02f1d903334e09a100f725065bbe32cceff58ee6ae97c54e907ba7da5fea1345",
+    "exact_tensor_identity": true
+  },
+  "contract": {
+    "task": "two_digit_addition",
+    "examples": 1500,
+    "dtype": "bfloat16",
+    "generation": "unguided_greedy_global_eight_token_cap",
+    "scorer": "strict_first_line_integer_v1",
+    "isolation": "zero_complement_no_counterfactual_donor",
+    "hardware": "one NVIDIA B200, TP1"
+  },
+  "result": {
+    "dense_correct": 1406,
+    "historical_seed_zero_isolated_correct": 0,
+    "logical_winner": {
+      "round": 19,
+      "kept_mlp_channels": 242724,
+      "matched_dense_correct": 1270,
+      "matched_dense_recovery": 0.903271692745377,
+      "global_minimality_claimed": false
+    },
+    "physical_winner": {
+      "round": 3,
+      "kept_mlp_channels": 250237,
+      "available_mlp_channels": 250880,
+      "correct": 1386,
+      "matched_dense_correct": 1378,
+      "matched_dense_recovery": 0.9800853485064012,
+      "retained_logical_correct": 1376,
+      "logical_correct": 1388,
+      "logical_correctness_retention": 0.9913544668587896,
+      "canonical_parameters": 1540751360,
+      "dense_parameters": 1543714304
+    },
+    "runtime_winner": {
+      "name": "physical_sdpa_packed16_dynamic_triton",
+      "batch_size": 1500,
+      "repeats": 5,
+      "correct": 1395,
+      "median_examples_per_second": 10208.963398350814,
+      "median_generated_tokens_per_second": 81671.70718680651,
+      "estimated_executed_mfu_percent": 16.11119103929304,
+      "physical_to_dense_throughput_ratio": 0.9965262178650801,
+      "dense_speedup_claimed": false
+    }
+  },
+  "serialization": {
+    "evaluated_checkpoint": {
+      "sha256": "7d8315ae8da2734e322eb95d692d4975e13d58730bff30ffbe26926d2de41e02",
+      "file_bytes": 3548288864,
+      "tensor_count": 339,
+      "contains_proven_duplicate_tied_alias": true
+    },
+    "canonical_unsharded": {
+      "sha256": "682f4b6812f2f7452e3b646cabf4bea0452cf752375339b544def400f10c90cb",
+      "file_bytes": 3081541256,
+      "tensor_count": 338
+    },
+    "published_shards": {
+      "count": 12,
+      "payload_and_index_bytes": 3081568517,
+      "index_sha256": "9af6cd176de17c96c1f75d2c66c19d320d0d849c6d5dc61443c9973f1db30095",
+      "shard_manifest_sha256": "571a1e50bdddb5dc289367663f24090c4225725cbac4006c0c009bc08cbc5521",
+      "clean_load_status": "pass"
+    }
+  },
+  "files": {
+    "top_level": [
+      "README.md",
+      "CLAIM_LEDGER.md",
+      "SERVING_RUNTIME_AUDIT.md",
+      "negative_results.json",
+      "MANIFEST.json",
+      "SHA256SUMS",
+      "selection.json",
+      "physical_selection.json"
+    ],
+    "search": [
+      "search/manifest.json",
+      "search/logical_winner_round19_mask.npz",
+      "search/logical_winner_round19_predictions.jsonl",
+      "search/logical_winner_round19_receipt.json",
+      "search/physical_parent_round03_mask.npz",
+      "search/physical_parent_round03_predictions.jsonl",
+      "search/physical_parent_round03_receipt.json"
+    ],
+    "evaluation": [
+      "evaluation/records.jsonl",
+      "evaluation/dense_manifest.json",
+      "evaluation/dense_predictions.jsonl",
+      "evaluation/physical_manifest.json",
+      "evaluation/physical_predictions.jsonl",
+      "evaluation/physical_dense_recovery.json",
+      "evaluation/logical_vs_physical.json",
+      "evaluation/logical_vs_physical_differences.jsonl"
+    ],
+    "model": [
+      "model/evaluated_substrate_metadata.json",
+      "model/evaluated_source_bundle_SHA256SUMS",
+      "model/published_substrate_metadata.json"
+    ],
+    "benchmarks": [
+      "benchmarks/saturation_gate.json",
+      "benchmarks/diversity_sweep.json",
+      "benchmarks/finalist_benchmark.json",
+      "benchmarks/finalist_comparison.json",
+      "benchmarks/max_batch_benchmark.json"
+    ],
+    "profiling": [
+      "profiling/canonical_eager_physical_b512.json",
+      "profiling/physical_sdpa_packed16_triton_b1500.json",
+      "profiling/dense_sdpa_outer_reduce_b1500.json"
+    ],
+    "utilization": [
+      "utilization/saturation_gate.csv",
+      "utilization/saturation_gate_summary.json",
+      "utilization/diversity_sweep.csv",
+      "utilization/diversity_sweep_summary.json",
+      "utilization/finalist_benchmark.csv",
+      "utilization/finalist_benchmark_summary.json",
+      "utilization/max_batch_benchmark.csv",
+      "utilization/max_batch_benchmark_summary.json"
+    ],
+    "provenance": [
+      "provenance/base_revision_receipt.json",
+      "provenance/original_checkpoint_provenance.json",
+      "provenance/merge_provenance.json",
+      "provenance/tokenizer_overlay.json",
+      "provenance/tied_weight_dedup_receipt.json",
+      "provenance/sharding_receipt.json",
+      "provenance/clean_load_receipt.json",
+      "provenance/git_commit_final.txt",
+      "provenance/gpu_identity.csv",
+      "provenance/hardware_peak_bf16.json",
+      "provenance/nvidia_smi_q.txt",
+      "provenance/python_version.txt",
+      "provenance/requirements.txt"
+    ],
+    "publication": [
+      "publication/WANDB_RECEIPT.json",
+      "publication/MODELSCOPE_RECEIPT.json",
+      "publication/HF_BLOCKER.json",
+      "publication/LOCAL_ARCHIVE_RECEIPT.json",
+      "publication/LIUM_TEARDOWN_RECEIPT.json"
+    ]
+  },
+  "late_bound_files": [],
+  "publication": {
+    "wandb": {
+      "status": "pass",
+      "artifact": "issue22-arithmetic-physical-throughput-evidence:v0",
+      "digest": "1ea5edf20728d1435529ea735e49105d"
+    },
+    "modelscope": {
+      "status": "pass_private_immutable_tag_fresh_download_checksum_clean_load",
+      "repository": "tokenbender/prism-arithmetic-mace-physical-v1",
+      "immutable_tag": "issue22-physical-v1.2",
+      "payload_files": 44,
+      "sha256sums_entries_verified": 43,
+      "sha256sums_sha256": "4e3f7bb656ba6d7593555be866799a9cd36c1b513a809aea7748a6145b49bbc3",
+      "receipt": "publication/MODELSCOPE_RECEIPT.json"
+    },
+    "hugging_face": {
+      "status": "blocked_missing_write_auth",
+      "receipt": "publication/HF_BLOCKER.json"
+    },
+    "local_archive": {
+      "status": "pass_original_evidence_evaluated_bundle_and_exact_modelscope_v1_2_payload",
+      "receipt": "publication/LOCAL_ARCHIVE_RECEIPT.json"
+    },
+    "lium_teardown": {
+      "status": "pass_task_owned_pod_removed_post_inventory_no_active_pods",
+      "receipt": "publication/LIUM_TEARDOWN_RECEIPT.json"
+    }
+  },
+  "residuals": [
+    "Historical 91.33% counterfactual-patch replay is not complete.",
+    "Independent search, calibration, and final-confirmation roles are not complete.",
+    "The declared exhaustive 8100-pair audit is not complete.",
+    "Hugging Face write authentication and publication are incomplete.",
+    "Camera-ready manuscript and issue #18 integration are incomplete."
+  ]
+}

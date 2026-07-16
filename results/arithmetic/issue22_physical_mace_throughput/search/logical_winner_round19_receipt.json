@@ -1,0 +1,107 @@
+{
+  "available": 250880,
+  "bounded_minimality": true,
+  "comparison": {
+    "candidate_accuracy": 0.848,
+    "candidate_correct": 1272,
+    "candidate_only_correct": 2,
+    "dense_accuracy": 0.9373333333333334,
+    "dense_correct": 1406,
+    "dense_only_correct": 136,
+    "matched_dense_correct": 1270,
+    "matched_dense_recovery": 0.903271692745377,
+    "n": 1500,
+    "prediction_disagreements": 1435
+  },
+  "global_minimality_claimed": false,
+  "kept": 242724,
+  "kept_fraction": 0.9674904336734694,
+  "label": "drop_shell_layer_12",
+  "mask_path": "/root/issue22_run/search/rounds/19_drop_shell_layer_12/mask.npz",
+  "mask_sha256": "c11badf7b296694176fabd1c8ad4091d378f18b54840db970bd9088b5ba2b1f9",
+  "operation": "drop accepted upper shell at layer 12",
+  "parent": "drop_shell_layer_08",
+  "passes_mace": true,
+  "predictions_path": "/root/issue22_run/search/rounds/19_drop_shell_layer_12/predictions.jsonl",
+  "recovery_floor": 0.9,
+  "round": 19,
+  "seconds": 0.7150972569361329,
+  "selection_rule": "fewest channels among actually evaluated candidates meeting the frozen matched-dense recovery floor",
+  "selection_sha256": "dd596789dc230852164ca61efc855db65b8937b176d778241830ce114d273a7d",
+  "summary": {
+    "accuracy": 0.848,
+    "by_carry": {
+      "carry": {
+        "accuracy": 0.8862690707350902,
+        "correct": 639,
+        "n": 721
+      },
+      "no_carry": {
+        "accuracy": 0.8125802310654685,
+        "correct": 633,
+        "n": 779
+      }
+    },
+    "by_carry_class": {
+      "leading": {
+        "accuracy": 0.8432835820895522,
+        "correct": 452,
+        "n": 536
+      },
+      "none": {
+        "accuracy": 0.7448559670781894,
+        "correct": 181,
+        "n": 243
+      },
+      "ones": {
+        "accuracy": 0.8294117647058824,
+        "correct": 141,
+        "n": 170
+      },
+      "ones_and_leading": {
+        "accuracy": 0.9038112522686026,
+        "correct": 498,
+        "n": 551
+      }
+    },
+    "by_prompt_format": {
+      "historical_spaced": {
+        "accuracy": 0.848,
+        "correct": 1272,
+        "n": 1500
+      }
+    },
+    "by_result_length": {
+      "2": {
+        "accuracy": 0.7796610169491526,
+        "correct": 322,
+        "n": 413
+      },
+      "3": {
+        "accuracy": 0.8739650413983441,
+        "correct": 950,
+        "n": 1087
+      }
+    },
+    "by_source_position": {
+      "hundreds": {
+        "accuracy": 0.884,
+        "correct": 442,
+        "n": 500
+      },
+      "ones": {
+        "accuracy": 0.836,
+        "correct": 418,
+        "n": 500
+      },
+      "tens": {
+        "accuracy": 0.824,
+        "correct": 412,
+        "n": 500
+      }
+    },
+    "correct": 1272,
+    "n": 1500
+  },
+  "tested_candidates": 20
+}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -18,6 +19,7 @@ from build_arithmetic_physical_bundle import (  # noqa: E402
     build_physical_state_dict,
     load_mask_indices,
     parameter_accounting,
+    prepare_state_for_serialization,
     write_physical_bundle,
 )
 from load_arithmetic_physical_bundle import (  # noqa: E402
@@ -25,6 +27,8 @@ from load_arithmetic_physical_bundle import (  # noqa: E402
     PhysicalQwenMLP,
     configure_mlp_runtime,
     load_arithmetic_physical_bundle,
+    resolve_checkpoint_files,
+    restore_tied_weight_alias,
 )
 
 
@@ -316,6 +320,27 @@ def test_tiny_tied_qwen2_bundle_restores_parameter_alias(
         candidate_id="tiny-tied",
         include_scripts=False,
     )
+    checkpoint = pytest.importorskip("safetensors.torch").load_file(
+        output / "model.safetensors"
+    )
+    assert "model.embed_tokens.weight" in checkpoint
+    assert "lm_head.weight" not in checkpoint
+    assert metadata["physicalization"]["tied_weight_serialization"] == {
+        "enabled": True,
+        "alias_proven": True,
+        "source": "model.embed_tokens.weight",
+        "omitted_aliases": ["lm_head.weight"],
+    }
+    assert metadata["loader_contract"]["tied_weight_serialization"] == {
+        "enabled": True,
+        "alias_proven": True,
+        "source": "model.embed_tokens.weight",
+        "omitted_aliases": ["lm_head.weight"],
+    }
+    assert (
+        metadata["physicalization"]["physical_serialized_tensor_bytes"]
+        == sum(tensor.numel() * tensor.element_size() for tensor in checkpoint.values())
+    )
 
     loaded, _, receipt = load_arithmetic_physical_bundle(
         output,
@@ -323,6 +348,13 @@ def test_tiny_tied_qwen2_bundle_restores_parameter_alias(
         restore_tokenizer=False,
     )
     assert loaded.model.embed_tokens.weight is loaded.lm_head.weight
+    assert receipt["tied_weight_serialization"] == {
+        "enabled": True,
+        "source": "model.embed_tokens.weight",
+        "alias": "lm_head.weight",
+        "alias_serialized": False,
+        "alias_reconstructed": True,
+    }
     assert (
         sum(parameter.numel() for parameter in loaded.parameters())
         == metadata["physicalization"]["physical_parameters"]
@@ -359,3 +391,242 @@ def test_parameter_accounting_separates_parameters_and_tensor_bytes() -> None:
     assert receipt["dense_parameters"] == 75
     assert receipt["physical_parameters"] == 27
     assert receipt["physical_serialized_tensor_bytes"] == 27 * 4
+
+
+def test_tied_serialization_rejects_unequal_aliases() -> None:
+    state = {
+        "model.embed_tokens.weight": torch.ones(2, 3),
+        "lm_head.weight": torch.zeros(2, 3),
+    }
+    with pytest.raises(ValueError, match="tensors differ"):
+        prepare_state_for_serialization(
+            state,
+            tie_word_embeddings=True,
+            tied_weight_alias_proven=True,
+        )
+
+
+def test_checkpoint_contract_rejects_bundle_escape(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="unsafe"):
+        resolve_checkpoint_files(
+            tmp_path,
+            {"physicalization": {"checkpoint": "../outside.safetensors"}},
+        )
+
+
+def test_checkpoint_contract_rejects_symlinked_payload(tmp_path: Path) -> None:
+    outside = tmp_path / "outside.safetensors"
+    outside.write_bytes(b"not a checkpoint")
+    bundle = tmp_path / "bundle"
+    bundle.mkdir()
+    (bundle / "model.safetensors").symlink_to(outside)
+    with pytest.raises(ValueError, match="symlink"):
+        resolve_checkpoint_files(bundle, {"physicalization": {}})
+
+
+def test_tied_restore_requires_proven_alias_contract() -> None:
+    contract = {
+        "enabled": True,
+        "alias_proven": False,
+        "source": "model.embed_tokens.weight",
+        "omitted_aliases": ["lm_head.weight"],
+    }
+    metadata = {
+        "physicalization": {"tied_weight_serialization": contract},
+        "loader_contract": {"tied_weight_serialization": contract},
+    }
+    with pytest.raises(ValueError, match="proven-alias"):
+        restore_tied_weight_alias(
+            {"model.embed_tokens.weight": torch.ones(2, 3)},
+            metadata,
+            tie_word_embeddings=True,
+        )
+
+
+def test_tied_restore_rejects_cross_contract_drift() -> None:
+    physical_contract = {
+        "enabled": True,
+        "alias_proven": True,
+        "source": "model.embed_tokens.weight",
+        "omitted_aliases": ["lm_head.weight"],
+    }
+    loader_contract = dict(physical_contract, alias_proven=False)
+    metadata = {
+        "physicalization": {
+            "tied_weight_serialization": physical_contract,
+        },
+        "loader_contract": {
+            "tied_weight_serialization": loader_contract,
+        },
+    }
+    with pytest.raises(ValueError, match="contracts differ"):
+        restore_tied_weight_alias(
+            {"model.embed_tokens.weight": torch.ones(2, 3)},
+            metadata,
+            tie_word_embeddings=True,
+        )
+
+
+def test_tied_export_rejects_equal_but_independent_parameters(
+    tmp_path: Path,
+) -> None:
+    transformers = pytest.importorskip("transformers")
+    config = transformers.Qwen2Config(
+        vocab_size=32,
+        hidden_size=8,
+        intermediate_size=6,
+        num_hidden_layers=2,
+        num_attention_heads=2,
+        num_key_value_heads=2,
+        head_dim=4,
+        max_position_embeddings=32,
+        tie_word_embeddings=True,
+    )
+    model = transformers.Qwen2ForCausalLM(config).eval()
+    model.lm_head.weight = nn.Parameter(
+        model.model.embed_tokens.weight.detach().clone()
+    )
+    selected_lists = [[0, 3], [1, 4, 5]]
+    mask = tmp_path / "mask.npz"
+    _write_mask(mask, selected_lists)
+
+    with pytest.raises(ValueError, match="not an actual storage alias"):
+        write_physical_bundle(
+            model=model,
+            selected=[torch.tensor(values) for values in selected_lists],
+            output=tmp_path / "invalid-independent-tie",
+            source_model="tiny-qwen2-invalid-tie-test",
+            source_revision="test",
+            mask_path=mask,
+            candidate_id="invalid-independent-tie",
+            include_scripts=False,
+        )
+
+
+def test_sharded_checkpoint_strict_loads(tmp_path: Path) -> None:
+    transformers = pytest.importorskip("transformers")
+    pytest.importorskip("accelerate")
+    safetensors = pytest.importorskip("safetensors.torch")
+    config = transformers.Qwen2Config(
+        vocab_size=32,
+        hidden_size=8,
+        intermediate_size=6,
+        num_hidden_layers=2,
+        num_attention_heads=2,
+        num_key_value_heads=2,
+        head_dim=4,
+        max_position_embeddings=32,
+        tie_word_embeddings=True,
+    )
+    model = transformers.Qwen2ForCausalLM(config).eval()
+    selected_lists = [[0, 3], [1, 4, 5]]
+    selected = [torch.tensor(values) for values in selected_lists]
+    mask = tmp_path / "mask.npz"
+    _write_mask(mask, selected_lists)
+    output = tmp_path / "physical-sharded"
+    metadata = write_physical_bundle(
+        model=model,
+        selected=selected,
+        output=output,
+        source_model="tiny-qwen2-sharded-test",
+        source_revision="test",
+        mask_path=mask,
+        candidate_id="tiny-sharded",
+        include_scripts=False,
+        max_shard_bytes=256,
+    )
+    assert metadata["physicalization"]["checkpoint"] == (
+        "model.safetensors.index.json"
+    )
+    shard_paths = sorted(output.glob("model-*.safetensors"))
+    assert len(shard_paths) > 1
+    index = json.loads((output / "model.safetensors.index.json").read_text())
+    assert set(index["weight_map"]) == {
+        name for path in shard_paths for name in safetensors.load_file(path)
+    }
+    loaded, _, receipt = load_arithmetic_physical_bundle(
+        output,
+        device="cpu",
+        restore_tokenizer=False,
+    )
+    assert loaded.model.embed_tokens.weight is loaded.lm_head.weight
+    assert len(receipt["checkpoint_receipt"]["checkpoint_files"]) == len(
+        shard_paths
+    )
+    assert metadata["physicalization"]["sharding"] == {
+        "enabled": True,
+        "algorithm": "state_dict_insertion_order_greedy_max_bytes_v1",
+        "max_shard_bytes": 256,
+        "oversize_tensor_policy": "single_tensor_may_exceed_limit",
+        "shard_count": len(shard_paths),
+    }
+
+
+def test_sharded_checkpoint_rejects_index_assignment_drift(
+    tmp_path: Path,
+) -> None:
+    transformers = pytest.importorskip("transformers")
+    pytest.importorskip("accelerate")
+    config = transformers.Qwen2Config(
+        vocab_size=32,
+        hidden_size=8,
+        intermediate_size=6,
+        num_hidden_layers=2,
+        num_attention_heads=2,
+        num_key_value_heads=2,
+        head_dim=4,
+        max_position_embeddings=32,
+        tie_word_embeddings=True,
+    )
+    model = transformers.Qwen2ForCausalLM(config).eval()
+    selected_lists = [[0, 3], [1, 4, 5]]
+    mask = tmp_path / "mask.npz"
+    _write_mask(mask, selected_lists)
+    output = tmp_path / "physical-sharded-index-drift"
+    write_physical_bundle(
+        model=model,
+        selected=[torch.tensor(values) for values in selected_lists],
+        output=output,
+        source_model="tiny-qwen2-sharded-index-drift-test",
+        source_revision="test",
+        mask_path=mask,
+        candidate_id="tiny-sharded-index-drift",
+        include_scripts=False,
+        max_shard_bytes=256,
+    )
+    index_path = output / "model.safetensors.index.json"
+    index = json.loads(index_path.read_text())
+    shard_counts = {
+        shard: sum(
+            filename == shard for filename in index["weight_map"].values()
+        )
+        for shard in set(index["weight_map"].values())
+    }
+    original_shard = next(
+        shard for shard, count in shard_counts.items() if count > 1
+    )
+    tensor_name = next(
+        name
+        for name, shard in index["weight_map"].items()
+        if shard == original_shard
+    )
+    replacement_shard = next(
+        shard
+        for shard in sorted(set(index["weight_map"].values()))
+        if shard != original_shard
+    )
+    index["weight_map"][tensor_name] = replacement_shard
+    index_path.write_text(json.dumps(index, indent=2) + "\n")
+    metadata_path = output / "substrate_metadata.json"
+    metadata = json.loads(metadata_path.read_text())
+    metadata["physicalization"]["checkpoint_index_sha256"] = hashlib.sha256(
+        index_path.read_bytes()
+    ).hexdigest()
+    metadata_path.write_text(json.dumps(metadata, indent=2) + "\n")
+
+    with pytest.raises(ValueError, match="index assignments do not match"):
+        load_arithmetic_physical_bundle(
+            output,
+            device="cpu",
+            restore_tokenizer=False,
+        )

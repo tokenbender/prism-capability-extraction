@@ -1,0 +1,320 @@
+{
+  "artifacts": {
+    "predictions": {
+      "canonical_content_sha256": "5bb0c4c40e2393161c270b2cb8114314e5c2c421664a165734e44f44b6757c72",
+      "path": "predictions.jsonl",
+      "rows": 1500,
+      "sha256": "01307e1a37fb713eb5ac2d25e5bbe0fc926d311b4a769250aa20dd0c918f2ed7"
+    },
+    "records": {
+      "canonical_content_sha256": "87d21090dccffaad66aa095ef161cb7f39fb8448f19cfb61bd8369e2b9130e0d",
+      "path": "records.jsonl",
+      "rows": 1500,
+      "sha256": "398e2484bac06983be459de24493e7913e91bc8f2357fd318fc87e788570b01d"
+    }
+  },
+  "contract": {
+    "dataset": {
+      "kind": "historical_position_pair_targets",
+      "num_records": 1500,
+      "prompt_preservation": "prompt is the exact source string; generation_prompt appends the single ASCII space used by the historical full-answer evaluator",
+      "records_per_source": 500,
+      "selection": "final_n_target_records_per_source_in_canonical_order",
+      "source_positions": [
+        "hundreds",
+        "tens",
+        "ones"
+      ],
+      "sources": {
+        "hundreds": {
+          "first_source_index": 2659,
+          "last_source_index": 3158,
+          "path": "/root/issue22_inputs/hf_dataset/circuit-shotting/artifacts/pod_logs/steed-medium/full/qwen25_math_1p5b_2digit_rank32_validate_v1/fresh_pairs_seed123/hundreds_pairs.json",
+          "selected": 500,
+          "selection": "final_n_targets",
+          "sha256": "c3e515cf1d4c1968990b2dfd0dc8b741238a9198eee67ddce19b6cadcdf2d195",
+          "total_pairs": 3159
+        },
+        "ones": {
+          "first_source_index": 3500,
+          "last_source_index": 3999,
+          "path": "/root/issue22_inputs/hf_dataset/circuit-shotting/artifacts/pod_logs/steed-medium/full/qwen25_math_1p5b_2digit_rank32_validate_v1/fresh_pairs_seed123/ones_pairs.json",
+          "selected": 500,
+          "selection": "final_n_targets",
+          "sha256": "6d6884a7e55ccb27f077521120792fa4ad3b2958db75cd626feaeb2e06b3e41d",
+          "total_pairs": 4000
+        },
+        "tens": {
+          "first_source_index": 3500,
+          "last_source_index": 3999,
+          "path": "/root/issue22_inputs/hf_dataset/circuit-shotting/artifacts/pod_logs/steed-medium/full/qwen25_math_1p5b_2digit_rank32_validate_v1/fresh_pairs_seed123/tens_pairs.json",
+          "selected": 500,
+          "selection": "final_n_targets",
+          "sha256": "542e02e9ca5032846c3e886bcb9ea7395ac7db6640a29419311497cc0cbadc9c",
+          "total_pairs": 4000
+        }
+      }
+    },
+    "generation": {
+      "algorithm": "unguided_greedy",
+      "batch_size": 512,
+      "do_sample": false,
+      "gold_answer_length_used": false,
+      "max_new_tokens": 8,
+      "num_beams": 1,
+      "stopping": "model_eos_or_fixed_global_token_cap"
+    },
+    "isolation": {
+      "bundle": "/root/issue22_run/physical_candidates/round3/bundle",
+      "checkpoint_receipt": {
+        "checkpoint_sha256": "7d8315ae8da2734e322eb95d692d4975e13d58730bff30ffbe26926d2de41e02",
+        "serialized_tensor_bytes": 3548250112,
+        "tensor_count": 339
+      },
+      "dense_mlp_allocated": false,
+      "donor_activations": false,
+      "format": "qwen_physical_mlp_substrate_v1",
+      "kept_per_layer": [
+        8798,
+        8904,
+        8918,
+        8931,
+        8928,
+        8922,
+        8940,
+        8943,
+        8940,
+        8936,
+        8922,
+        8917,
+        8922,
+        8938,
+        8951,
+        8943,
+        8943,
+        8950,
+        8956,
+        8959,
+        8958,
+        8960,
+        8960,
+        8960,
+        8959,
+        8960,
+        8959,
+        8960
+      ],
+      "kept_total": 250237,
+      "layers": 28,
+      "loader_receipt": {
+        "attention_implementation": "eager",
+        "bundle": "/root/issue22_run/physical_candidates/round3/bundle",
+        "canonical_checkpoint_load": {
+          "status": "pass",
+          "strict": true
+        },
+        "checkpoint": "model.safetensors",
+        "checkpoint_receipt": {
+          "checkpoint_sha256": "7d8315ae8da2734e322eb95d692d4975e13d58730bff30ffbe26926d2de41e02",
+          "serialized_tensor_bytes": 3548250112,
+          "tensor_count": 339
+        },
+        "dense_mlp_allocated": false,
+        "device": "cuda:0",
+        "donor_model_loaded": false,
+        "format": "qwen_physical_mlp_substrate_v1",
+        "kept_per_layer": [
+          8798,
+          8904,
+          8918,
+          8931,
+          8928,
+          8922,
+          8940,
+          8943,
+          8940,
+          8936,
+          8922,
+          8917,
+          8922,
+          8938,
+          8951,
+          8943,
+          8943,
+          8950,
+          8956,
+          8959,
+          8958,
+          8960,
+          8960,
+          8960,
+          8959,
+          8960,
+          8959,
+          8960
+        ],
+        "kept_total": 250237,
+        "layers": 28,
+        "mlp_runtime": {
+          "activation_dispatch": {
+            "flattened_rows": "product_of_all_dimensions_except_last",
+            "mode": "torch_only"
+          },
+          "activation_runtime_probe": {
+            "layers": 0,
+            "status": "not_requested",
+            "unique_widths": []
+          },
+          "active_activation_implementation": "torch",
+          "active_hybrid_activation_threshold_rows": null,
+          "active_implementation": "separate",
+          "active_width_alignment": 1,
+          "fallback_allowed": false,
+          "fallback_used": false,
+          "requested_activation_implementation": "torch",
+          "requested_hybrid_activation_threshold_rows": 2048,
+          "requested_implementation": "separate",
+          "requested_width_alignment": 1,
+          "validation": {
+            "reason": "canonical strictly loaded modules remain active",
+            "status": "not_required"
+          }
+        },
+        "model_type": "qwen2",
+        "parameter_accounting": {
+          "canonical_physical_parameters": 1540751360,
+          "runtime_added_parameter_bytes": 0,
+          "runtime_added_parameters": 0,
+          "runtime_parameters": 1540751360
+        },
+        "parameter_dtype": "torch.bfloat16",
+        "status": "pass",
+        "timings_seconds": {
+          "activation_runtime_probe": 2.198992297053337e-05,
+          "config_and_meta_construction": 0.1328818870242685,
+          "device_move": 0.373049644054845,
+          "generation_and_tokenizer_restore": 0.16944299405440688,
+          "loader_total": 2.5131579560693353,
+          "runtime_repack": 7.429160177707672e-06,
+          "strict_checkpoint_load": 1.6497222860343754
+        },
+        "tokenizer_restored": true
+      },
+      "mode": "physical_bundle"
+    },
+    "mode": "physical",
+    "scorer": {
+      "description": "Take the first non-empty generated line, allow one terminal punctuation mark, require the rest of that line to be empty, parse it as a base-10 integer, and compare numeric equality with the gold sum.",
+      "name": "strict_first_line_integer_v1"
+    }
+  },
+  "created_at_utc": "2026-07-16T09:30:30.088088+00:00",
+  "model": {
+    "config_sha256": "26542e48a738d743ed176a76ba823fcc39ac0dc3f68aa36db28cef448552acc7",
+    "parameter_bytes": 3081502720,
+    "parameter_count": 1540751360,
+    "parameter_dtypes": [
+      "torch.bfloat16"
+    ],
+    "requested": "/root/issue22_run/physical_candidates/round3/bundle",
+    "resolved_commit": null,
+    "resolved_name_or_path": "/root/issue22_run/physical_candidates/round3/bundle",
+    "tokenizer_name_or_path": "/root/issue22_run/physical_candidates/round3/bundle"
+  },
+  "runtime": {
+    "attention_implementation": "eager",
+    "device": "cuda:0",
+    "dtype": "torch.bfloat16",
+    "generation_seconds": 0.8719612348359078
+  },
+  "schema_version": "prism_arithmetic_standalone_eval_v1",
+  "software": {
+    "packages": {
+      "numpy": "2.4.4",
+      "torch": "2.12.0+cu130",
+      "transformers": "4.57.6"
+    },
+    "platform": "Linux-6.8.0-106-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3"
+  },
+  "source": {
+    "script": "evaluate_arithmetic_standalone.py",
+    "script_sha256": "779239cda5e8e3e2a51d20cf76aae162aa5cfef53d1f66112466251b625b36dd"
+  },
+  "status": "pass",
+  "summary": {
+    "accuracy": 0.924,
+    "by_carry": {
+      "carry": {
+        "accuracy": 0.9472954230235784,
+        "correct": 683,
+        "n": 721
+      },
+      "no_carry": {
+        "accuracy": 0.9024390243902439,
+        "correct": 703,
+        "n": 779
+      }
+    },
+    "by_carry_class": {
+      "leading": {
+        "accuracy": 0.9253731343283582,
+        "correct": 496,
+        "n": 536
+      },
+      "none": {
+        "accuracy": 0.8518518518518519,
+        "correct": 207,
+        "n": 243
+      },
+      "ones": {
+        "accuracy": 0.9235294117647059,
+        "correct": 157,
+        "n": 170
+      },
+      "ones_and_leading": {
+        "accuracy": 0.9546279491833031,
+        "correct": 526,
+        "n": 551
+      }
+    },
+    "by_prompt_format": {
+      "historical_spaced": {
+        "accuracy": 0.924,
+        "correct": 1386,
+        "n": 1500
+      }
+    },
+    "by_result_length": {
+      "2": {
+        "accuracy": 0.8813559322033898,
+        "correct": 364,
+        "n": 413
+      },
+      "3": {
+        "accuracy": 0.9402023919043239,
+        "correct": 1022,
+        "n": 1087
+      }
+    },
+    "by_source_position": {
+      "hundreds": {
+        "accuracy": 0.95,
+        "correct": 475,
+        "n": 500
+      },
+      "ones": {
+        "accuracy": 0.912,
+        "correct": 456,
+        "n": 500
+      },
+      "tens": {
+        "accuracy": 0.91,
+        "correct": 455,
+        "n": 500
+      }
+    },
+    "correct": 1386,
+    "n": 1500
+  }
+}

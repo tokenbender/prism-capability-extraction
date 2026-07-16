@@ -1,0 +1,42 @@
+{
+  "schema": "prism_issue22_clean_load_v1",
+  "status": "pass",
+  "verified_at": "2026-07-16T10:16:04Z",
+  "environment": {
+    "device": "cpu",
+    "source_checkout_required": false,
+    "tokenizer_restore_requested": true,
+    "tokenizer_restored": true
+  },
+  "artifact": {
+    "checkpoint": "model.safetensors.index.json",
+    "checkpoint_index_sha256": "9af6cd176de17c96c1f75d2c66c19d320d0d849c6d5dc61443c9973f1db30095",
+    "checkpoint_shard_manifest_sha256": "571a1e50bdddb5dc289367663f24090c4225725cbac4006c0c009bc08cbc5521",
+    "checkpoint_shards": 12,
+    "serialized_tensor_bytes": 3081502720,
+    "serialized_tensor_count": 338
+  },
+  "loader": {
+    "strict_state_assignment": true,
+    "dense_mlp_allocated": false,
+    "donor_model_loaded": false,
+    "layers": 28,
+    "kept_mlp_channels": 250237,
+    "canonical_physical_parameters": 1540751360,
+    "runtime_added_parameters": 0,
+    "tied_weight_source": "model.embed_tokens.weight",
+    "tied_weight_alias": "lm_head.weight",
+    "alias_serialized": false,
+    "alias_reconstructed": true
+  },
+  "timings_seconds": {
+    "strict_checkpoint_load": 1.7688962079701014,
+    "loader_total": 2.3680190420127474
+  },
+  "tokenizer_boundary": {
+    "transformers_warning": "incorrect regex pattern warning emitted by Transformers 4.57.6",
+    "action": "preserved the frozen tokenizer rather than changing tokenization semantics",
+    "overlay_sample_identity_receipt": "tokenizer_overlay.json"
+  },
+  "full_loader_stdout_sha256": "22419161f75a39adfec1d129abf9e43336f16a5547dc88d7c494e8879d6a3186"
+}

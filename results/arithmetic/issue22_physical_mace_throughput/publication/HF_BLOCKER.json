@@ -1,0 +1,47 @@
+{
+  "schema_version": "prism_arithmetic_issue22_hf_blocker_v1",
+  "status": "blocked",
+  "checked_at_utc": "2026-07-16T10:30:19Z",
+  "account_expected": "TokenBender",
+  "credential_check": {
+    "authenticated": false,
+    "error_type": "LocalTokenNotFoundError",
+    "secret_recorded": false
+  },
+  "proposed_destinations": [
+    {
+      "repo_type": "model",
+      "repository": "TokenBender/circuit-discovery",
+      "path": "arithmetic/issue22_physical_mace_v1/",
+      "contents": "Physical sharded model, strict loader, tokenizer, metadata, license, provenance, and checksums"
+    },
+    {
+      "repo_type": "dataset",
+      "repository": "TokenBender/circuit-discovery",
+      "path": "arithmetic/issue22_physical_mace_throughput_v1_bundle/",
+      "contents": "Search, evaluation, benchmark, profiler, utilization, environment, and publication receipts"
+    }
+  ],
+  "license_boundary": {
+    "base_repository": "Qwen/Qwen2.5-Math-1.5B",
+    "base_revision": "4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2",
+    "base_license": "apache-2.0",
+    "base_license_receipt": "../provenance/base_revision_receipt.json",
+    "required_before_publication": [
+      "Retain the Apache-2.0 license and attribution.",
+      "Publish the exact adapter and merge provenance.",
+      "Verify remote inventory, fresh-download checksums, and independent clean load."
+    ]
+  },
+  "upload_attempted": false,
+  "scientific_result_blocked": false,
+  "public_release_blocked": true,
+  "resolution": [
+    "Obtain explicit Hugging Face write authentication for account TokenBender without storing the token in the repository.",
+    "Upload only the curated physical artifact and evidence bundle.",
+    "Verify remote file inventory.",
+    "Perform a fresh download.",
+    "Verify SHA-256 checksums and strict clean load.",
+    "Replace this blocker with a publication receipt or link a dedicated follow-up issue before closing issue #22."
+  ]
+}

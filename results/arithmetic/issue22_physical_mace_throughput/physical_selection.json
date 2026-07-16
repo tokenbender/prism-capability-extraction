@@ -1,0 +1,111 @@
+{
+  "schema_version": "prism_arithmetic_physical_selection_v1",
+  "selection_rule": "fewest channels among bounded logical-search candidates whose physical form passes MACE-90 and retains at least 99% of logical-zero correct rows",
+  "global_minimality_claimed": false,
+  "tested_candidates": [
+    {
+      "round": 19,
+      "search_label": "19_drop_shell_layer_12",
+      "kept": 242724,
+      "kept_fraction": 0.9674904336734694,
+      "physical_correct": 1264,
+      "matched_dense_correct": 1263,
+      "matched_dense_recovery": 0.8982930298719772,
+      "passes_mace90": false,
+      "logical_correctness_retention": 0.9819182389937107,
+      "passes_parity99": false,
+      "bundle": "/root/issue22_run/physical_candidates/round19/bundle"
+    },
+    {
+      "round": 14,
+      "search_label": "14_drop_shell_layer_08",
+      "kept": 244585,
+      "kept_fraction": 0.9749083227040817,
+      "physical_correct": 1274,
+      "matched_dense_correct": 1272,
+      "matched_dense_recovery": 0.9046941678520626,
+      "passes_mace90": true,
+      "logical_correctness_retention": 0.9827586206896551,
+      "passes_parity99": false,
+      "bundle": "/root/issue22_run/physical_candidates/round14/bundle"
+    },
+    {
+      "round": 13,
+      "search_label": "13_drop_shell_layer_07",
+      "kept": 245464,
+      "kept_fraction": 0.9784119897959184,
+      "physical_correct": 1284,
+      "matched_dense_correct": 1283,
+      "matched_dense_recovery": 0.9125177809388336,
+      "passes_mace90": true,
+      "logical_correctness_retention": 0.9828660436137072,
+      "passes_parity99": false,
+      "bundle": "/root/issue22_run/physical_candidates/round13/bundle"
+    },
+    {
+      "round": 12,
+      "search_label": "12_drop_shell_layer_19",
+      "kept": 246311,
+      "kept_fraction": 0.981788105867347,
+      "physical_correct": 1271,
+      "matched_dense_correct": 1270,
+      "matched_dense_recovery": 0.903271692745377,
+      "passes_mace90": true,
+      "logical_correctness_retention": 0.9881889763779528,
+      "passes_parity99": false,
+      "bundle": "/root/issue22_run/physical_candidates/round12/bundle"
+    },
+    {
+      "round": 11,
+      "search_label": "11_drop_shell_layer_06",
+      "kept": 246912,
+      "kept_fraction": 0.9841836734693877,
+      "physical_correct": 1288,
+      "matched_dense_correct": 1288,
+      "matched_dense_recovery": 0.9160739687055477,
+      "passes_mace90": true,
+      "logical_correctness_retention": 0.9859594383775351,
+      "passes_parity99": false,
+      "bundle": "/root/issue22_run/physical_candidates/round11/bundle"
+    },
+    {
+      "round": 7,
+      "search_label": "07_ranked_prefix_19",
+      "kept": 247458,
+      "kept_fraction": 0.986360012755102,
+      "physical_correct": 1301,
+      "matched_dense_correct": 1299,
+      "matched_dense_recovery": 0.9238975817923186,
+      "passes_mace90": true,
+      "logical_correctness_retention": 0.9877017678708686,
+      "passes_parity99": false,
+      "bundle": "/root/issue22_run/physical_candidates/round7/bundle"
+    },
+    {
+      "round": 3,
+      "search_label": "03_positive",
+      "kept": 250237,
+      "kept_fraction": 0.9974370216836734,
+      "physical_correct": 1386,
+      "matched_dense_correct": 1378,
+      "matched_dense_recovery": 0.9800853485064012,
+      "passes_mace90": true,
+      "logical_correctness_retention": 0.9913544668587896,
+      "passes_parity99": true,
+      "bundle": "/root/issue22_run/physical_candidates/round3/bundle"
+    }
+  ],
+  "selected": {
+    "round": 3,
+    "search_label": "03_positive",
+    "kept": 250237,
+    "kept_fraction": 0.9974370216836734,
+    "physical_correct": 1386,
+    "matched_dense_correct": 1378,
+    "matched_dense_recovery": 0.9800853485064012,
+    "passes_mace90": true,
+    "logical_correctness_retention": 0.9913544668587896,
+    "passes_parity99": true,
+    "bundle": "/root/issue22_run/physical_candidates/round3/bundle"
+  }
+}

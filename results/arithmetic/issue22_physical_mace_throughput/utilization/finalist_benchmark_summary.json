@@ -1,0 +1,16 @@
+{
+  "samples": 170,
+  "sample_period_ms": 200,
+  "gpu_utilization_percent": {
+    "mean": 51.023529411764706,
+    "median": 82.0,
+    "p95": 94.0,
+    "max": 99.0,
+    "at_or_above_90": 31,
+    "at_or_above_90_fraction": 0.18235294117647058
+  },
+  "power_watts": {
+    "mean": 409.17617647058825,
+    "max": 653.67
+  }
+}

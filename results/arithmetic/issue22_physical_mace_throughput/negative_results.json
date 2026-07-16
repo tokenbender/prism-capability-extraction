@@ -1,0 +1,178 @@
+{
+  "schema_version": "prism_arithmetic_issue22_negative_results_v1",
+  "status": "complete_for_bounded_1500_row_run",
+  "scope": "Frozen 1500-example historical-spaced two-digit-addition manifest on one NVIDIA B200",
+  "results": [
+    {
+      "id": "historical_seed_not_standalone",
+      "result": "fail",
+      "candidate": "historical_topk12661",
+      "kept_mlp_channels": 12661,
+      "available_mlp_channels": 250880,
+      "standalone_correct": 0,
+      "examples": 1500,
+      "matched_dense_recovery": 0.0,
+      "consequence": "The historical 91.33% result is counterfactual-patch provenance, not a standalone physical-model result."
+    },
+    {
+      "id": "logical_search_not_globally_minimal",
+      "result": "bounded_positive_only",
+      "round_budget": 20,
+      "smallest_passing_round": 19,
+      "kept_mlp_channels": 242724,
+      "available_mlp_channels": 250880,
+      "kept_fraction": 0.9674904336734694,
+      "candidate_correct": 1272,
+      "matched_dense_correct": 1270,
+      "dense_correct": 1406,
+      "matched_dense_recovery": 0.903271692745377,
+      "consequence": "A logical MACE-90 was found, but global minimality is not claimed."
+    },
+    {
+      "id": "compressed_physical_frontier_misses_parity",
+      "result": "bounded_negative",
+      "selection_rule": "Physical MACE-90 and at least 99% retention of logical-correct rows",
+      "tested_candidates": [
+        {
+          "round": 19,
+          "kept": 242724,
+          "matched_dense_recovery": 0.8982930298719772,
+          "logical_correctness_retention": 0.9819182389937107,
+          "passes_mace90": false,
+          "passes_parity99": false
+        },
+        {
+          "round": 14,
+          "kept": 244585,
+          "matched_dense_recovery": 0.9046941678520626,
+          "logical_correctness_retention": 0.9827586206896551,
+          "passes_mace90": true,
+          "passes_parity99": false
+        },
+        {
+          "round": 13,
+          "kept": 245464,
+          "matched_dense_recovery": 0.9125177809388336,
+          "logical_correctness_retention": 0.9828660436137072,
+          "passes_mace90": true,
+          "passes_parity99": false
+        },
+        {
+          "round": 12,
+          "kept": 246311,
+          "matched_dense_recovery": 0.903271692745377,
+          "logical_correctness_retention": 0.9881889763779528,
+          "passes_mace90": true,
+          "passes_parity99": false
+        },
+        {
+          "round": 11,
+          "kept": 246912,
+          "matched_dense_recovery": 0.9160739687055477,
+          "logical_correctness_retention": 0.9859594383775351,
+          "passes_mace90": true,
+          "passes_parity99": false
+        },
+        {
+          "round": 7,
+          "kept": 247458,
+          "matched_dense_recovery": 0.9238975817923186,
+          "logical_correctness_retention": 0.9877017678708686,
+          "passes_mace90": true,
+          "passes_parity99": false
+        }
+      ],
+      "first_passing_candidate": {
+        "round": 3,
+        "kept": 250237,
+        "matched_dense_recovery": 0.9800853485064012,
+        "logical_correctness_retention": 0.9913544668587896
+      },
+      "consequence": "The run found a positive physical MACE but no highly compressed parity-valid physical arithmetic substrate."
+    },
+    {
+      "id": "total_parameter_reduction_is_negligible",
+      "result": "negative_for_compression_headline",
+      "physical_parameters": 1540751360,
+      "dense_parameters": 1543714304,
+      "removed_parameters": 2962944,
+      "removed_fraction": 0.0019193603326227437,
+      "removed_percent": 0.19193603326227437,
+      "consequence": "MLP-channel retention and total-model accounting must remain separate; no material arithmetic compression claim is authorized."
+    },
+    {
+      "id": "cheap_gate_fast_packed_candidate_misses_quality",
+      "result": "quality_fail",
+      "candidate": "physical_sdpa_packed64_dynamic_torch",
+      "batch_size": 1024,
+      "examples_per_second": 8321.862138125462,
+      "correct": 952,
+      "examples": 1024,
+      "floor_correct": 953,
+      "consequence": "Raw throughput cannot select a winner without full quality gating."
+    },
+    {
+      "id": "diversity_sweep_fastest_physical_misses_quality",
+      "result": "quality_fail",
+      "candidate": "physical_sdpa_packed16_dynamic_triton",
+      "batch_size": 1024,
+      "examples_per_second": 9063.46717082147,
+      "correct": 952,
+      "examples": 1024,
+      "floor_correct": 953,
+      "consequence": "The candidate advanced only after a distinct full-manifest batch-1500 configuration passed the frozen floor."
+    },
+    {
+      "id": "canonical_eager_does_not_saturate_quality_at_batch1024",
+      "result": "quality_fail",
+      "candidate": "canonical_eager_physical",
+      "batch_size": 1024,
+      "examples_per_second": 3656.621776605593,
+      "correct": 949,
+      "examples": 1024,
+      "floor_correct": 953,
+      "consequence": "Batch size is part of the numerical and quality contract, not only a throughput knob."
+    },
+    {
+      "id": "no_dense_speedup",
+      "result": "negative",
+      "physical_median_examples_per_second": 10208.963398350814,
+      "dense_median_examples_per_second": 10244.550735676688,
+      "physical_to_dense_ratio": 0.9965262178650801,
+      "physical_slowdown_percent": 0.34737821349198894,
+      "consequence": "The optimized physical setup reaches dense-runtime parity but does not beat equally optimized dense execution."
+    },
+    {
+      "id": "stock_serving_engine_not_credited",
+      "result": "not_integrated",
+      "engines": [
+        "vLLM",
+        "SGLang"
+      ],
+      "reason": "No audited stock engine path preserved the non-uniform per-layer Qwen MLP widths without reconstructing dense parameters.",
+      "consequence": "The accepted result is a custom Transformers runtime, not an engine-native serving result."
+    }
+  ],
+  "not_executed_or_unresolved": [
+    {
+      "gate": "historical_counterfactual_patch_reproduction",
+      "status": "pending",
+      "impact": "The historical 91.33% number remains provenance rather than a freshly reproduced Issue #22 result."
+    },
+    {
+      "gate": "independent_search_calibration_final_roles",
+      "status": "pending",
+      "impact": "The bounded MACE selection and confirmation use the named 1500-row manifest; no independent final split is claimed."
+    },
+    {
+      "gate": "exhaustive_8100_pair_domain_audit",
+      "status": "pending",
+      "impact": "No complete-domain arithmetic claim is authorized."
+    },
+    {
+      "gate": "hugging_face_publication",
+      "status": "blocked_missing_write_auth",
+      "impact": "The scientific result is preserved locally, on W&B, and at a verified private immutable ModelScope tag, but no Hugging Face remote verification is claimed."
+    }
+  ]
+}

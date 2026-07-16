@@ -1,0 +1,484 @@
+{
+  "format": "qwen_physical_mlp_substrate_v1",
+  "task": "two_digit_addition",
+  "model_type": "qwen2",
+  "dtype": "bfloat16",
+  "source_model": {
+    "repo_or_path": "/root/issue22_inputs/checkpoint-b-base-tokenizer",
+    "revision": null
+  },
+  "source_mask": {
+    "candidate_id": "issue22-physical-mace90-round3",
+    "file": "mask.npz",
+    "sha256": "b4d420a4393fbfe5c7f0fed0c7157e7c9042ea59b9683c539f7092c0c8a52947",
+    "canonical_selection_sha256": "3c39e0e3bc7dd6a9863420b6501be97e8d39a45c531401d96771b5a2d49d05e3"
+  },
+  "isolation": {
+    "operator": "zero_complement_no_donor_activations",
+    "dense_width": 8960,
+    "dense_total_channels": 250880,
+    "kept_total": 250237,
+    "kept_fraction": 0.9974370216836734,
+    "kept_per_layer": {
+      "0": 8798,
+      "1": 8904,
+      "2": 8918,
+      "3": 8931,
+      "4": 8928,
+      "5": 8922,
+      "6": 8940,
+      "7": 8943,
+      "8": 8940,
+      "9": 8936,
+      "10": 8922,
+      "11": 8917,
+      "12": 8922,
+      "13": 8938,
+      "14": 8951,
+      "15": 8943,
+      "16": 8943,
+      "17": 8950,
+      "18": 8956,
+      "19": 8959,
+      "20": 8958,
+      "21": 8960,
+      "22": 8960,
+      "23": 8960,
+      "24": 8959,
+      "25": 8960,
+      "26": 8959,
+      "27": 8960
+    },
+    "attention_pruned": false
+  },
+  "physicalization": {
+    "gate_proj": "selected_rows",
+    "up_proj": "selected_rows",
+    "down_proj": "matching_selected_columns",
+    "tensor_shapes": {
+      "0": {
+        "gate_proj.weight": [
+          8798,
+          1536
+        ],
+        "up_proj.weight": [
+          8798,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8798
+        ]
+      },
+      "1": {
+        "gate_proj.weight": [
+          8904,
+          1536
+        ],
+        "up_proj.weight": [
+          8904,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8904
+        ]
+      },
+      "2": {
+        "gate_proj.weight": [
+          8918,
+          1536
+        ],
+        "up_proj.weight": [
+          8918,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8918
+        ]
+      },
+      "3": {
+        "gate_proj.weight": [
+          8931,
+          1536
+        ],
+        "up_proj.weight": [
+          8931,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8931
+        ]
+      },
+      "4": {
+        "gate_proj.weight": [
+          8928,
+          1536
+        ],
+        "up_proj.weight": [
+          8928,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8928
+        ]
+      },
+      "5": {
+        "gate_proj.weight": [
+          8922,
+          1536
+        ],
+        "up_proj.weight": [
+          8922,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8922
+        ]
+      },
+      "6": {
+        "gate_proj.weight": [
+          8940,
+          1536
+        ],
+        "up_proj.weight": [
+          8940,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8940
+        ]
+      },
+      "7": {
+        "gate_proj.weight": [
+          8943,
+          1536
+        ],
+        "up_proj.weight": [
+          8943,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8943
+        ]
+      },
+      "8": {
+        "gate_proj.weight": [
+          8940,
+          1536
+        ],
+        "up_proj.weight": [
+          8940,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8940
+        ]
+      },
+      "9": {
+        "gate_proj.weight": [
+          8936,
+          1536
+        ],
+        "up_proj.weight": [
+          8936,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8936
+        ]
+      },
+      "10": {
+        "gate_proj.weight": [
+          8922,
+          1536
+        ],
+        "up_proj.weight": [
+          8922,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8922
+        ]
+      },
+      "11": {
+        "gate_proj.weight": [
+          8917,
+          1536
+        ],
+        "up_proj.weight": [
+          8917,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8917
+        ]
+      },
+      "12": {
+        "gate_proj.weight": [
+          8922,
+          1536
+        ],
+        "up_proj.weight": [
+          8922,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8922
+        ]
+      },
+      "13": {
+        "gate_proj.weight": [
+          8938,
+          1536
+        ],
+        "up_proj.weight": [
+          8938,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8938
+        ]
+      },
+      "14": {
+        "gate_proj.weight": [
+          8951,
+          1536
+        ],
+        "up_proj.weight": [
+          8951,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8951
+        ]
+      },
+      "15": {
+        "gate_proj.weight": [
+          8943,
+          1536
+        ],
+        "up_proj.weight": [
+          8943,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8943
+        ]
+      },
+      "16": {
+        "gate_proj.weight": [
+          8943,
+          1536
+        ],
+        "up_proj.weight": [
+          8943,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8943
+        ]
+      },
+      "17": {
+        "gate_proj.weight": [
+          8950,
+          1536
+        ],
+        "up_proj.weight": [
+          8950,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8950
+        ]
+      },
+      "18": {
+        "gate_proj.weight": [
+          8956,
+          1536
+        ],
+        "up_proj.weight": [
+          8956,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8956
+        ]
+      },
+      "19": {
+        "gate_proj.weight": [
+          8959,
+          1536
+        ],
+        "up_proj.weight": [
+          8959,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8959
+        ]
+      },
+      "20": {
+        "gate_proj.weight": [
+          8958,
+          1536
+        ],
+        "up_proj.weight": [
+          8958,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8958
+        ]
+      },
+      "21": {
+        "gate_proj.weight": [
+          8960,
+          1536
+        ],
+        "up_proj.weight": [
+          8960,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8960
+        ]
+      },
+      "22": {
+        "gate_proj.weight": [
+          8960,
+          1536
+        ],
+        "up_proj.weight": [
+          8960,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8960
+        ]
+      },
+      "23": {
+        "gate_proj.weight": [
+          8960,
+          1536
+        ],
+        "up_proj.weight": [
+          8960,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8960
+        ]
+      },
+      "24": {
+        "gate_proj.weight": [
+          8959,
+          1536
+        ],
+        "up_proj.weight": [
+          8959,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8959
+        ]
+      },
+      "25": {
+        "gate_proj.weight": [
+          8960,
+          1536
+        ],
+        "up_proj.weight": [
+          8960,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8960
+        ]
+      },
+      "26": {
+        "gate_proj.weight": [
+          8959,
+          1536
+        ],
+        "up_proj.weight": [
+          8959,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8959
+        ]
+      },
+      "27": {
+        "gate_proj.weight": [
+          8960,
+          1536
+        ],
+        "up_proj.weight": [
+          8960,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8960
+        ]
+      }
+    },
+    "dense_parameters": 1543714304,
+    "physical_parameters": 1540751360,
+    "physical_parameter_fraction": 0.9980806396673773,
+    "dense_serialized_tensor_bytes": 3554176000,
+    "physical_serialized_tensor_bytes": 3548250112,
+    "physical_serialized_tensor_fraction": 0.9983326970864695,
+    "checkpoint": "model.safetensors",
+    "checkpoint_file_bytes": 3548288864,
+    "checkpoint_sha256": "7d8315ae8da2734e322eb95d692d4975e13d58730bff30ffbe26926d2de41e02"
+  },
+  "loader_contract": {
+    "strict": true,
+    "dense_mlp_tensors_required": false,
+    "runtime_mask_required": false,
+    "donor_model_required": false,
+    "supported_mlp_implementations": [
+      "separate",
+      "packed_gate_up"
+    ],
+    "supported_activation_implementations": [
+      "torch",
+      "triton",
+      "hybrid"
+    ],
+    "supported_width_alignments": [
+      1,
+      16,
+      64,
+      128,
+      256
+    ]
+  }
+}

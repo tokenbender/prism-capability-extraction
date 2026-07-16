@@ -1,0 +1,51 @@
+{
+  "schema_version": "prism_arithmetic_issue22_lium_teardown_v1",
+  "status": "pass",
+  "status_scope": "Removal and post-removal inventory verification for the single task-owned Lium pod",
+  "updated_at_utc": "2026-07-16T11:12:25Z",
+  "task_owned_resource": {
+    "huid": "lunar-raven-1f",
+    "name": "prism-arithmetic-mace-throughput-v1",
+    "hardware": "1x NVIDIA B200",
+    "tensor_parallelism": 1,
+    "listed_price_usd_per_hour": 6.99,
+    "owned_by_issue": 22,
+    "displayed_uptime_at_removal": "49m",
+    "displayed_spend_usd_at_removal": 5.69
+  },
+  "authority_boundary": {
+    "only_task_owned_resource_may_be_removed": true,
+    "unrelated_pods_authorized_for_mutation": false
+  },
+  "preservation_preconditions": {
+    "original_evidence_local_archive": "pass",
+    "evaluated_bundle_local_archive": "pass",
+    "wandb_publication": "pass",
+    "canonical_sharded_clean_load": "pass",
+    "modelscope_final_payload_verification": "pass",
+    "hugging_face_publication": "blocked_missing_write_auth"
+  },
+  "teardown_actions": {
+    "pod_removed": true,
+    "pod_removal_timestamp_captured": false,
+    "pod_removal_timestamp_utc": null,
+    "pod_credentials_destroyed_with_pod_storage": true,
+    "external_token_revocation_claimed": false,
+    "local_publication_stage_secret_scan": "pass",
+    "local_publication_stage_secret_scan_verified_at_utc": "2026-07-16T11:12:25Z",
+    "post_removal_lium_ps_verified": true,
+    "post_removal_lium_ps_result": "No active pods",
+    "post_removal_lium_ps_verified_at_utc": "2026-07-16T11:08:55Z",
+    "unrelated_pod_modified": false
+  },
+  "evidence_boundaries": [
+    "The exact pod-removal timestamp was not captured; this receipt does not invent one.",
+    "Deletion destroyed credentials stored on the task pod, but this receipt does not claim external token revocation.",
+    "The final local publication-stage and curated-result scan found no token, private-key, credential-file, or secret-assignment pattern; it does not prove external token revocation.",
+    "No unrelated pod was modified."
+  ],
+  "remaining_closeout_requirements": [
+    "Keep the Hugging Face publication blocker and remaining scientific validation work explicit."
+  ],
+  "issue_closeout_authorized": false
+}

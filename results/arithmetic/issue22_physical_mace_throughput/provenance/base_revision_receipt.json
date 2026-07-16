@@ -1,0 +1,19 @@
+{
+  "schema": "prism_hf_base_revision_binding_v1",
+  "status": "pass",
+  "repository": "Qwen/Qwen2.5-Math-1.5B",
+  "revision": "4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2",
+  "official_api": "https://huggingface.co/api/models/Qwen/Qwen2.5-Math-1.5B/revision/4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2?blobs=true",
+  "official_model_file": {
+    "path": "model.safetensors",
+    "bytes": 3087467144,
+    "lfs_sha256": "f7aa8d665ab44d3b461bed742fe93cdcedc15d2e31e50dc372c126e6f720857b"
+  },
+  "local_merge_source": {
+    "path": "/root/issue22_inputs/qwen25_math_1p5b_base/model.safetensors",
+    "bytes": 3087467144,
+    "sha256": "f7aa8d665ab44d3b461bed742fe93cdcedc15d2e31e50dc372c126e6f720857b"
+  },
+  "model_file_exact_match": true,
+  "license": "apache-2.0"
+}

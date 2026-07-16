@@ -1,0 +1,26 @@
+{
+  "schema_version": "prism_arithmetic_physical_parity_v1",
+  "status": "pass",
+  "rows": 1500,
+  "logical_correct": 1388,
+  "physical_correct": 1386,
+  "retained_logical_correct": 1376,
+  "logical_correctness_retention": 0.9913544668587896,
+  "retention_floor": 0.99,
+  "identical_prediction_rows": 1291,
+  "identical_prediction_fraction": 0.8606666666666667,
+  "logical_only_correct": 12,
+  "physical_only_correct": 10,
+  "difference_rows": 209,
+  "inputs": {
+    "logical": {
+      "path": "/root/issue22_run/search/rounds/03_positive/predictions.jsonl",
+      "sha256": "79254aaeb1a929a19341228660aa57aac2d581b1baa6b488fdc5680c9371a3bb"
+    },
+    "physical": {
+      "path": "/root/issue22_run/physical_candidates/round3/eval/predictions.jsonl",
+      "sha256": "01307e1a37fb713eb5ac2d25e5bbe0fc926d311b4a769250aa20dd0c918f2ed7"
+    }
+  },
+  "differences_path": "/root/issue22_run/physical_candidates/round3/parity_differences.jsonl"
+}

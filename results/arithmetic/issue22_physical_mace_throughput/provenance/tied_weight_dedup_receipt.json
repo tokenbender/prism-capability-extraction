@@ -1,0 +1,56 @@
+{
+  "schema": "prism_tied_weight_dedup_v1",
+  "status": "pass",
+  "operation": "omit one proven tied safetensors alias and reconstruct it before strict state assignment",
+  "source": {
+    "checkpoint": "model.safetensors.before_tied_alias_dedup",
+    "sha256": "7d8315ae8da2734e322eb95d692d4975e13d58730bff30ffbe26926d2de41e02",
+    "file_bytes": 3548288864,
+    "tensor_count": 339,
+    "tensor_bytes": 3548250112
+  },
+  "proof": {
+    "source_key": "model.embed_tokens.weight",
+    "omitted_alias": "lm_head.weight",
+    "dtype": "torch.bfloat16",
+    "shape": [
+      151936,
+      1536
+    ],
+    "tensor_bytes": 466747392,
+    "torch_equal": true,
+    "config_tie_word_embeddings": true,
+    "runtime_exact_storage_alias": {
+      "verified_at": "2026-07-16T10:57:02Z",
+      "verification_stage": "strict clean load of final prepublication payload",
+      "method": "compare device, dtype, shape, stride, storage offset, and untyped-storage data pointer after strict assignment and config-declared model.tie_weights()",
+      "same_parameter_object": true,
+      "exact_storage_alias": true,
+      "source_stride": [
+        1536,
+        1
+      ],
+      "alias_stride": [
+        1536,
+        1
+      ],
+      "source_storage_offset": 0,
+      "alias_storage_offset": 0
+    },
+    "claim_boundary": "Safetensors does not preserve source storage-alias identity. The proof establishes semantics-preserving omission from the config-declared tie, exact equality of the two evaluated checkpoint tensors, and exact parameter/storage alias reconstruction under the strict clean loader."
+  },
+  "canonical_unsharded": {
+    "checkpoint": "model.safetensors",
+    "sha256": "682f4b6812f2f7452e3b646cabf4bea0452cf752375339b544def400f10c90cb",
+    "file_bytes": 3081541256,
+    "tensor_count": 338,
+    "tensor_bytes": 3081502720,
+    "loader_reconstructs_alias": true,
+    "expanded_state_matches_evaluated_checkpoint": true
+  },
+  "published_transport_receipts": {
+    "bundle": "evidence/SHARDING_RECEIPT.json",
+    "curated_result": "provenance/sharding_receipt.json"
+  },
+  "semantic_change": false
+}

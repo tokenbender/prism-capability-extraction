@@ -1,0 +1,577 @@
+{
+  "format": "qwen_physical_mlp_substrate_v1",
+  "task": "two_digit_addition",
+  "model_type": "qwen2",
+  "dtype": "bfloat16",
+  "source_model": {
+    "repo_or_path": "/root/issue22_inputs/checkpoint-b-base-tokenizer",
+    "revision": null
+  },
+  "source_mask": {
+    "candidate_id": "issue22-physical-mace90-round3",
+    "file": "mask.npz",
+    "sha256": "b4d420a4393fbfe5c7f0fed0c7157e7c9042ea59b9683c539f7092c0c8a52947",
+    "canonical_selection_sha256": "3c39e0e3bc7dd6a9863420b6501be97e8d39a45c531401d96771b5a2d49d05e3"
+  },
+  "isolation": {
+    "operator": "zero_complement_no_donor_activations",
+    "dense_width": 8960,
+    "dense_total_channels": 250880,
+    "kept_total": 250237,
+    "kept_fraction": 0.9974370216836734,
+    "kept_per_layer": {
+      "0": 8798,
+      "1": 8904,
+      "2": 8918,
+      "3": 8931,
+      "4": 8928,
+      "5": 8922,
+      "6": 8940,
+      "7": 8943,
+      "8": 8940,
+      "9": 8936,
+      "10": 8922,
+      "11": 8917,
+      "12": 8922,
+      "13": 8938,
+      "14": 8951,
+      "15": 8943,
+      "16": 8943,
+      "17": 8950,
+      "18": 8956,
+      "19": 8959,
+      "20": 8958,
+      "21": 8960,
+      "22": 8960,
+      "23": 8960,
+      "24": 8959,
+      "25": 8960,
+      "26": 8959,
+      "27": 8960
+    },
+    "attention_pruned": false
+  },
+  "physicalization": {
+    "gate_proj": "selected_rows",
+    "up_proj": "selected_rows",
+    "down_proj": "matching_selected_columns",
+    "tensor_shapes": {
+      "0": {
+        "gate_proj.weight": [
+          8798,
+          1536
+        ],
+        "up_proj.weight": [
+          8798,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8798
+        ]
+      },
+      "1": {
+        "gate_proj.weight": [
+          8904,
+          1536
+        ],
+        "up_proj.weight": [
+          8904,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8904
+        ]
+      },
+      "2": {
+        "gate_proj.weight": [
+          8918,
+          1536
+        ],
+        "up_proj.weight": [
+          8918,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8918
+        ]
+      },
+      "3": {
+        "gate_proj.weight": [
+          8931,
+          1536
+        ],
+        "up_proj.weight": [
+          8931,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8931
+        ]
+      },
+      "4": {
+        "gate_proj.weight": [
+          8928,
+          1536
+        ],
+        "up_proj.weight": [
+          8928,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8928
+        ]
+      },
+      "5": {
+        "gate_proj.weight": [
+          8922,
+          1536
+        ],
+        "up_proj.weight": [
+          8922,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8922
+        ]
+      },
+      "6": {
+        "gate_proj.weight": [
+          8940,
+          1536
+        ],
+        "up_proj.weight": [
+          8940,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8940
+        ]
+      },
+      "7": {
+        "gate_proj.weight": [
+          8943,
+          1536
+        ],
+        "up_proj.weight": [
+          8943,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8943
+        ]
+      },
+      "8": {
+        "gate_proj.weight": [
+          8940,
+          1536
+        ],
+        "up_proj.weight": [
+          8940,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8940
+        ]
+      },
+      "9": {
+        "gate_proj.weight": [
+          8936,
+          1536
+        ],
+        "up_proj.weight": [
+          8936,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8936
+        ]
+      },
+      "10": {
+        "gate_proj.weight": [
+          8922,
+          1536
+        ],
+        "up_proj.weight": [
+          8922,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8922
+        ]
+      },
+      "11": {
+        "gate_proj.weight": [
+          8917,
+          1536
+        ],
+        "up_proj.weight": [
+          8917,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8917
+        ]
+      },
+      "12": {
+        "gate_proj.weight": [
+          8922,
+          1536
+        ],
+        "up_proj.weight": [
+          8922,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8922
+        ]
+      },
+      "13": {
+        "gate_proj.weight": [
+          8938,
+          1536
+        ],
+        "up_proj.weight": [
+          8938,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8938
+        ]
+      },
+      "14": {
+        "gate_proj.weight": [
+          8951,
+          1536
+        ],
+        "up_proj.weight": [
+          8951,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8951
+        ]
+      },
+      "15": {
+        "gate_proj.weight": [
+          8943,
+          1536
+        ],
+        "up_proj.weight": [
+          8943,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8943
+        ]
+      },
+      "16": {
+        "gate_proj.weight": [
+          8943,
+          1536
+        ],
+        "up_proj.weight": [
+          8943,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8943
+        ]
+      },
+      "17": {
+        "gate_proj.weight": [
+          8950,
+          1536
+        ],
+        "up_proj.weight": [
+          8950,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8950
+        ]
+      },
+      "18": {
+        "gate_proj.weight": [
+          8956,
+          1536
+        ],
+        "up_proj.weight": [
+          8956,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8956
+        ]
+      },
+      "19": {
+        "gate_proj.weight": [
+          8959,
+          1536
+        ],
+        "up_proj.weight": [
+          8959,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8959
+        ]
+      },
+      "20": {
+        "gate_proj.weight": [
+          8958,
+          1536
+        ],
+        "up_proj.weight": [
+          8958,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8958
+        ]
+      },
+      "21": {
+        "gate_proj.weight": [
+          8960,
+          1536
+        ],
+        "up_proj.weight": [
+          8960,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8960
+        ]
+      },
+      "22": {
+        "gate_proj.weight": [
+          8960,
+          1536
+        ],
+        "up_proj.weight": [
+          8960,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8960
+        ]
+      },
+      "23": {
+        "gate_proj.weight": [
+          8960,
+          1536
+        ],
+        "up_proj.weight": [
+          8960,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8960
+        ]
+      },
+      "24": {
+        "gate_proj.weight": [
+          8959,
+          1536
+        ],
+        "up_proj.weight": [
+          8959,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8959
+        ]
+      },
+      "25": {
+        "gate_proj.weight": [
+          8960,
+          1536
+        ],
+        "up_proj.weight": [
+          8960,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8960
+        ]
+      },
+      "26": {
+        "gate_proj.weight": [
+          8959,
+          1536
+        ],
+        "up_proj.weight": [
+          8959,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8959
+        ]
+      },
+      "27": {
+        "gate_proj.weight": [
+          8960,
+          1536
+        ],
+        "up_proj.weight": [
+          8960,
+          1536
+        ],
+        "down_proj.weight": [
+          1536,
+          8960
+        ]
+      }
+    },
+    "dense_parameters": 1543714304,
+    "physical_parameters": 1540751360,
+    "physical_parameter_fraction": 0.9980806396673773,
+    "dense_expanded_state_tensor_bytes": 3554176000,
+    "physical_expanded_state_tensor_bytes": 3548250112,
+    "dense_serialized_tensor_bytes": 3087428608,
+    "physical_serialized_tensor_bytes": 3081502720,
+    "physical_serialized_tensor_fraction": 0.9980806396673773,
+    "tied_weight_serialization": {
+      "enabled": true,
+      "alias_proven": true,
+      "source": "model.embed_tokens.weight",
+      "omitted_aliases": [
+        "lm_head.weight"
+      ]
+    },
+    "checkpoint": "model.safetensors.index.json",
+    "checkpoint_index_file_bytes": 27693,
+    "checkpoint_index_sha256": "9af6cd176de17c96c1f75d2c66c19d320d0d849c6d5dc61443c9973f1db30095",
+    "checkpoint_shard_manifest_sha256": "571a1e50bdddb5dc289367663f24090c4225725cbac4006c0c009bc08cbc5521",
+    "checkpoint_files": [
+      {
+        "file": "model-00001-of-00012.safetensors",
+        "file_bytes": 466747528,
+        "tensor_bytes": 466747392,
+        "sha256": "6cfc5fa778541b9593bc120a051ec450c844b1fc3d9969de1cfbea51a3beb2d0"
+      },
+      {
+        "file": "model-00002-of-00012.safetensors",
+        "file_bytes": 268203920,
+        "tensor_bytes": 268200448,
+        "sha256": "4ecc95da933eeece176fb58722feeeedbcf65cc19df01a736d2ca3f903092b20"
+      },
+      {
+        "file": "model-00003-of-00012.safetensors",
+        "file_bytes": 251593752,
+        "tensor_bytes": 251590144,
+        "sha256": "f5166102c67eea4bb23ece5c0122a36590e4a9ccbfc3590b795e7143788126bb"
+      },
+      {
+        "file": "model-00004-of-00012.safetensors",
+        "file_bytes": 252906360,
+        "tensor_bytes": 252902400,
+        "sha256": "580b67ec701097bbaf2d1d07176de51200af6dea1abceaa9fcfd327a832035cd"
+      },
+      {
+        "file": "model-00005-of-00012.safetensors",
+        "file_bytes": 253032312,
+        "tensor_bytes": 253028352,
+        "sha256": "9960ab85781218409cb2f88c58c12354c72809b57f4eb1c2e3c74f31971bcc5c"
+      },
+      {
+        "file": "model-00006-of-00012.safetensors",
+        "file_bytes": 241835888,
+        "tensor_bytes": 241832960,
+        "sha256": "bafbdcf325a61751972ee2a5bba7e5baa3f76bd2cca4ca0be96fb038b0fd5963"
+      },
+      {
+        "file": "model-00007-of-00012.safetensors",
+        "file_bytes": 253259640,
+        "tensor_bytes": 253255680,
+        "sha256": "605bde5ddb189606d9a62293fc978f2687bf57e07e47dc72fab8eaaff330a395"
+      },
+      {
+        "file": "model-00008-of-00012.safetensors",
+        "file_bytes": 253256568,
+        "tensor_bytes": 253252608,
+        "sha256": "e93b73e3d99b1954d239c1218f31c4887f32864842a744e95e46b6b7518096f3"
+      },
+      {
+        "file": "model-00009-of-00012.safetensors",
+        "file_bytes": 242057088,
+        "tensor_bytes": 242054144,
+        "sha256": "5f81d27cca517bdf311ae8079fd0ea80985321a1f4845d1168a878cd90678571"
+      },
+      {
+        "file": "model-00010-of-00012.safetensors",
+        "file_bytes": 252470096,
+        "tensor_bytes": 252466176,
+        "sha256": "9785fc6d3742d1638fc02ffc2b0607726366055aa508aeb7446c8cc2826f6d39"
+      },
+      {
+        "file": "model-00011-of-00012.safetensors",
+        "file_bytes": 252801872,
+        "tensor_bytes": 252797952,
+        "sha256": "8ad8b2df5a4dd2bbfbffd76399702b06c0c89032dd63d868cc28c76e1d060afb"
+      },
+      {
+        "file": "model-00012-of-00012.safetensors",
+        "file_bytes": 93375800,
+        "tensor_bytes": 93374464,
+        "sha256": "829ad4c8ecf853dcf02731682dade6ff4e596602eb23ca3870bfa1f260eb15fc"
+      }
+    ]
+  },
+  "loader_contract": {
+    "strict": true,
+    "dense_mlp_tensors_required": false,
+    "runtime_mask_required": false,
+    "donor_model_required": false,
+    "tied_weight_serialization": {
+      "enabled": true,
+      "alias_proven": true,
+      "source": "model.embed_tokens.weight",
+      "omitted_aliases": [
+        "lm_head.weight"
+      ]
+    },
+    "supported_mlp_implementations": [
+      "separate",
+      "packed_gate_up"
+    ],
+    "supported_activation_implementations": [
+      "torch",
+      "triton",
+      "hybrid"
+    ],
+    "supported_width_alignments": [
+      1,
+      16,
+      64,
+      128,
+      256
+    ]
+  }
+}

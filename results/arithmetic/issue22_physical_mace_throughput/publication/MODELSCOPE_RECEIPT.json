@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "status": "verified",
+  "verified_at_utc": "2026-07-16T11:03Z",
+  "repository": {
+    "repo_id": "tokenbender/prism-arithmetic-mace-physical-v1",
+    "repo_type": "model",
+    "url": "https://modelscope.ai/models/tokenbender/prism-arithmetic-mace-physical-v1",
+    "visibility": "private",
+    "license": "apache-2.0",
+    "default_revision": "master",
+    "verified_immutable_tag": "issue22-physical-v1.2",
+    "immutable_tag_created_at_utc": "2026-07-16T11:00:52Z"
+  },
+  "upload": {
+    "status": "pass",
+    "payload_files_committed": 44,
+    "failed_files_in_final_commit": 0,
+    "service_metadata_files": 1
+  },
+  "recovered_transport_incident": {
+    "status": "recovered",
+    "sequence": [
+      "An earlier publication-hardening commit failed.",
+      "A subsequent sync retry deleted 45 remote files.",
+      "The complete local payload and its hashes remained intact.",
+      "All 44 payload files were immediately restored.",
+      "The final issue22-physical-v1.2 immutable tag was downloaded and verified independently."
+    ],
+    "remote_files_deleted_by_failed_sync_retry": 45,
+    "local_payload_lost": false,
+    "restored_payload_files": 44,
+    "final_exact_tag_verification": "pass"
+  },
+  "remote_inventory": {
+    "status": "pass",
+    "remote_blob_count_including_service_metadata": 45,
+    "payload_file_count": 44,
+    "payload_total_bytes": 3097879636,
+    "payload_listing_format": "sha256  bytes  relative_path\\n, sorted by relative path",
+    "payload_listing_sha256": "30050388ceb28c2e3cf987ede7ac495956e90bbbc1167717b3972f56461e674b",
+    "stage_payload_exact_match": true,
+    "service_added_transport_metadata": ".gitattributes",
+    "excluded_local_upload_cache": ".ms_upload_cache",
+    "sha256sums_entry_count": 43,
+    "sha256sums_manifest_separately_bound": true,
+    "sha256sums_sha256": "4e3f7bb656ba6d7593555be866799a9cd36c1b513a809aea7748a6145b49bbc3",
+    "loader_sha256": "eb24d69f317ad17cfa916f1c715eb695977b4e051de8657e2a0f8b86362ebecb",
+    "substrate_metadata_sha256": "09b12b3318a78b1d7b7b1a47bac955970abffb079a6c33c85a715f75afa380eb",
+    "checkpoint_index_sha256": "9af6cd176de17c96c1f75d2c66c19d320d0d849c6d5dc61443c9973f1db30095",
+    "checkpoint_shard_manifest_sha256": "571a1e50bdddb5dc289367663f24090c4225725cbac4006c0c009bc08cbc5521"
+  },
+  "fresh_download": {
+    "status": "pass",
+    "source_revision": "issue22-physical-v1.2",
+    "immutable_tag_requested_directly": true,
+    "local_path": "/Users/tokenbender/Documents/Codex/2026-07-15/check/artifacts/issue22/modelscope_verify_final_v1_2",
+    "files_governed_by_sha256sums": 43,
+    "sha256sums_manifest_sha256_verified_separately": true,
+    "sha256_verification": "pass"
+  },
+  "independent_clean_load": {
+    "status": "pass",
+    "device": "cpu",
+    "strict_checkpoint_load": true,
+    "checkpoint": "model.safetensors.index.json",
+    "checkpoint_tensor_count": 338,
+    "checkpoint_serialized_tensor_bytes": 3081502720,
+    "canonical_physical_parameters": 1540751360,
+    "dense_mlp_allocated": false,
+    "donor_model_loaded": false,
+    "tied_alias_serialized": false,
+    "tied_alias_reconstructed": true,
+    "tokenizer_restored": true,
+    "loader_total_seconds": 2.713742458
+  },
+  "tokenizer_warning": {
+    "observed": true,
+    "message_class": "transformers incorrect regex pattern warning",
+    "disposition": "The frozen tokenizer overlay was restored unchanged; its sample-identity receipt remains authoritative for this experiment."
+  }
+}
