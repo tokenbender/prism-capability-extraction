@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import collections
 import json
 import time
 from pathlib import Path
@@ -141,6 +142,27 @@ def main() -> None:
 
     raw_events = list(prof.events())
     cuda_events = [event for event in raw_events if _is_cuda_event(event)]
+    kernel_totals: dict[str, dict[str, float | int]] = collections.defaultdict(
+        lambda: {"count": 0, "device_time_total_us": 0.0}
+    )
+    for event in cuda_events:
+        name = str(getattr(event, "name", getattr(event, "key", "unknown")))
+        lowered = name.lower()
+        if "memcpy" in lowered or "memset" in lowered or name == "[memory]":
+            continue
+        item = kernel_totals[name]
+        item["count"] = int(item["count"]) + 1
+        item["device_time_total_us"] = float(item["device_time_total_us"]) + _number(
+            event,
+            "self_device_time_total",
+            "device_time_total",
+            "self_cuda_time_total",
+            "cuda_time_total",
+        )
+    top_kernels = [
+        {"name": name, **values} for name, values in kernel_totals.items()
+    ]
+    top_kernels.sort(key=lambda row: row["device_time_total_us"], reverse=True)
     report = {
         "status": "pass",
         "candidate": {
@@ -164,7 +186,9 @@ def main() -> None:
         },
         "load_seconds": load_seconds,
         "profile_elapsed_seconds": profile_elapsed_seconds,
-        "kernel_launch_count": len(cuda_events),
+        "cuda_device_event_count": len(cuda_events),
+        "kernel_launch_count": sum(int(row["count"]) for row in top_kernels),
+        "top_cuda_kernels_by_device_time": top_kernels[: args.top_k],
         "top_cuda_operators_by_self_device_time": averaged[: args.top_k],
         "load_receipt": load_receipt,
     }
