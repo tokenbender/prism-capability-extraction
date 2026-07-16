@@ -208,6 +208,14 @@ def main() -> None:
     parser.add_argument("--width-alignment", type=int, default=1)
     parser.add_argument("--compile-mode", choices=COMPILE_MODES, default="none")
     add_generation_compile_arguments(parser)
+    parser.add_argument(
+        "--instrument-compiled-decode",
+        action="store_true",
+        help=(
+            "wrap an existing Transformers compiled decode callable with CUDA "
+            "events; keep disabled for primary end-to-end measurements"
+        ),
+    )
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--max-new-tokens", type=int, default=128)
     parser.add_argument("--decode-steps", type=int, default=32)
@@ -561,7 +569,12 @@ def main() -> None:
     compile_observation_after_warmup = observe_generation_compile_state(model)
     dynamo_stats_after_warmup = observe_dynamo_stats()
     compiled_call = getattr(model, "_compiled_call", None)
-    if callable(compiled_call):
+    if args.instrument_compiled_decode:
+        if not callable(compiled_call):
+            raise RuntimeError(
+                "compiled decode instrumentation was requested, but warmup did "
+                "not create model._compiled_call"
+            )
         compiled_decode_timer = CompiledDecodeCudaTimer(compiled_call)
         model._compiled_call = compiled_decode_timer
     try:
@@ -590,6 +603,9 @@ def main() -> None:
             "compile_mode": args.compile_mode,
             "cache_implementation": args.cache_implementation,
             "generation_compile": generation_compile_receipt,
+            "compiled_decode_instrumentation_requested": (
+                args.instrument_compiled_decode
+            ),
         },
         "contract": {
             "pairs": str(args.pairs),
@@ -600,6 +616,7 @@ def main() -> None:
             "warmup": args.warmup,
             "repeats": args.repeats,
             "phase_repeats": args.phase_repeats,
+            "instrument_compiled_decode": args.instrument_compiled_decode,
             "enable_thinking": args.enable_thinking,
             "bfcl_canonicalization_prompt": args.bfcl_canonicalization_prompt,
             "tokenizer_fix_mistral_regex": False,
