@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import statistics
 from pathlib import Path
 from typing import Any, Union
 
@@ -80,10 +81,11 @@ METRIC_SPECS: dict[str, dict[str, Any]] = {
             ("prefill_tokens_per_second",),
         ),
     },
-    "decode_tokens_per_second": {
-        "unit": "tokens/second",
+    "decode_slots_per_second": {
+        "unit": "slots/second",
         "higher_is_better": True,
         "paths": (
+            ("compiled_decode_summary", "input_slots_per_second"),
             ("phase_summary", "decode_tokens_per_second"),
             ("summary", "decode_tokens_per_second"),
             ("decode_tokens_per_second",),
@@ -125,7 +127,7 @@ METRIC_SPECS: dict[str, dict[str, Any]] = {
             ("repack_seconds",),
         ),
     },
-    "compile_seconds": {
+    "outer_compile_wrap_seconds": {
         "unit": "seconds",
         "higher_is_better": False,
         "paths": (
@@ -134,6 +136,21 @@ METRIC_SPECS: dict[str, dict[str, Any]] = {
             ("compile_wrap_seconds",),
             ("compile_seconds",),
         ),
+    },
+    "generation_first_warmup_seconds": {
+        "unit": "seconds",
+        "higher_is_better": False,
+        "paths": (),
+    },
+    "generation_steady_warmup_seconds": {
+        "unit": "seconds",
+        "higher_is_better": False,
+        "paths": (),
+    },
+    "generation_first_use_overhead_seconds": {
+        "unit": "seconds",
+        "higher_is_better": False,
+        "paths": (),
     },
 }
 
@@ -195,6 +212,55 @@ def _metric_stats(
             "p95": None,
         }
     return {"median": None, "p95": None}
+
+
+def _generation_warmup_stats(
+    report: dict[str, Any],
+) -> dict[str, dict[str, Number | None]]:
+    """Separate first-use setup from later uninstrumented warmup runtime."""
+
+    raw = report.get("warmup_measurements")
+    empty = {"median": None, "p95": None}
+    if raw is None:
+        return {
+            "generation_first_warmup_seconds": dict(empty),
+            "generation_steady_warmup_seconds": dict(empty),
+            "generation_first_use_overhead_seconds": dict(empty),
+        }
+    if not isinstance(raw, list):
+        raise ValueError("warmup_measurements must be a list or null")
+    elapsed: list[float] = []
+    for index, row in enumerate(raw):
+        if not isinstance(row, dict):
+            raise ValueError(f"warmup_measurements[{index}] must be an object")
+        value = _as_number(
+            row.get("elapsed_seconds"),
+            location=f"warmup_measurements[{index}].elapsed_seconds",
+        )
+        if value is None or float(value) <= 0.0:
+            raise ValueError(
+                f"warmup_measurements[{index}].elapsed_seconds must be positive"
+            )
+        elapsed.append(float(value))
+    if not elapsed:
+        return {
+            "generation_first_warmup_seconds": dict(empty),
+            "generation_steady_warmup_seconds": dict(empty),
+            "generation_first_use_overhead_seconds": dict(empty),
+        }
+    steady = statistics.median(elapsed[1:]) if len(elapsed) > 1 else None
+    overhead = max(0.0, elapsed[0] - steady) if steady is not None else None
+    return {
+        "generation_first_warmup_seconds": {
+            "median": elapsed[0],
+            "p95": None,
+        },
+        "generation_steady_warmup_seconds": {"median": steady, "p95": None},
+        "generation_first_use_overhead_seconds": {
+            "median": overhead,
+            "p95": None,
+        },
+    }
 
 
 def _contract_value(
@@ -272,6 +338,8 @@ def _report_summary(
             "higher_is_better": spec["higher_is_better"],
             **_metric_stats(report, metric=metric, paths=spec["paths"]),
         }
+    for metric, stats in _generation_warmup_stats(report).items():
+        metrics[metric].update(stats)
     return {
         "label": label,
         "role": role,

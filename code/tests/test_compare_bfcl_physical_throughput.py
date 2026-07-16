@@ -59,6 +59,11 @@ def benchmark_report(
             "elapsed_milliseconds": stats(*latency),
         },
         "load_seconds": load_seconds,
+        "warmup_measurements": [
+            {"elapsed_seconds": 10.0},
+            {"elapsed_seconds": 8.0},
+            {"elapsed_seconds": 8.2},
+        ],
         "load_receipt": {
             "timings_seconds": {"runtime_repack": repack_seconds},
         },
@@ -96,12 +101,19 @@ def test_comparison_extracts_metrics_and_selects_fastest() -> None:
     }
     assert packed["metrics"]["load_seconds"]["median"] == 3.0
     assert packed["metrics"]["load_seconds"]["p95"] is None
-    assert packed["metrics"]["compile_seconds"] == {
+    assert packed["metrics"]["outer_compile_wrap_seconds"] == {
         "unit": "seconds",
         "higher_is_better": False,
         "median": None,
         "p95": None,
     }
+    assert packed["metrics"]["generation_first_warmup_seconds"]["median"] == 10.0
+    assert packed["metrics"]["generation_steady_warmup_seconds"][
+        "median"
+    ] == pytest.approx(8.1)
+    assert packed["metrics"]["generation_first_use_overhead_seconds"][
+        "median"
+    ] == pytest.approx(1.9)
     comparison = packed["vs_baseline"]
     assert comparison["accepted_tokens_per_second"] == {
         "median_improvement_percent": pytest.approx(30.0),
@@ -123,7 +135,7 @@ def test_comparison_extracts_metrics_and_selects_fastest() -> None:
         "median_improvement_percent": pytest.approx(50.0),
         "p95_improvement_percent": None,
     }
-    assert comparison["compile_seconds"] == {
+    assert comparison["outer_compile_wrap_seconds"] == {
         "median_improvement_percent": None,
         "p95_improvement_percent": None,
     }
@@ -165,6 +177,7 @@ def test_optional_contract_and_metrics_remain_null_when_absent() -> None:
     candidate["summary"].pop(  # type: ignore[union-attr]
         "accepted_generated_tokens_per_second"
     )
+    candidate.pop("warmup_measurements")
 
     result = compare_reports(
         baseline_report=baseline,
@@ -176,6 +189,7 @@ def test_optional_contract_and_metrics_remain_null_when_absent() -> None:
     assert partial["contract"]["status"] is None
     assert partial["contract"]["model_hash"] is None
     assert partial["metrics"]["accepted_tokens_per_second"]["median"] is None
+    assert partial["metrics"]["generation_first_warmup_seconds"]["median"] is None
     assert result["validated_contract"]["model_hash"] == "model-sha256"
     assert result["fastest_by_accepted_tokens_per_second"]["label"] == "baseline"
 
@@ -206,3 +220,24 @@ def test_candidate_parser_and_improvement_direction() -> None:
         20.0
     )
     assert percent_improvement(0.0, 1.0, higher_is_better=True) is None
+
+
+def test_compiled_decode_slots_take_precedence_over_manual_control() -> None:
+    baseline = benchmark_report()
+    candidate = benchmark_report()
+    candidate["compiled_decode_summary"] = {
+        "input_slots_per_second": stats(900.0, 950.0)
+    }
+
+    result = compare_reports(
+        baseline_report=baseline,
+        baseline_source=Path("baseline.json"),
+        candidates=[("static", Path("static.json"), candidate)],
+    )
+
+    assert result["candidates"][0]["metrics"]["decode_slots_per_second"] == {
+        "unit": "slots/second",
+        "higher_is_better": True,
+        "median": 900.0,
+        "p95": 950.0,
+    }
