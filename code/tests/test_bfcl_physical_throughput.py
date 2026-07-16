@@ -42,3 +42,13 @@ def test_summary_records_tail_and_dispersion() -> None:
     assert result["p95"] == pytest.approx(8.8)
     assert result["max"] == 10.0
     assert result["stdev"] > 0
+
+
+def test_summary_supports_batch_latency_receipts() -> None:
+    latencies_ms = [10.0, 12.0, 11.0, 17.0]
+
+    result = summarize(latencies_ms)
+
+    assert result["median"] == pytest.approx(11.5)
+    assert result["p95"] == pytest.approx(16.25)
+    assert result["min"] == 10.0

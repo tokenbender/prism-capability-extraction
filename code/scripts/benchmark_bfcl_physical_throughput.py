@@ -322,10 +322,51 @@ def main() -> None:
             ),
         }
 
+    def run_batch_latency_once() -> list[dict[str, float | int]]:
+        """Measure synchronized end-to-end latency for each encoded batch.
+
+        These timings intentionally run outside the steady-state throughput
+        measurements.  Synchronizing every batch gives an honest latency
+        distribution without inserting synchronization into the primary
+        whole-workload throughput path.
+        """
+
+        measurements: list[dict[str, float | int]] = []
+        with torch.inference_mode():
+            for encoded, stats in zip(encoded_batches, encoded_batch_stats):
+                torch.cuda.synchronize()
+                started = time.perf_counter()
+                output = model.generate(**encoded, **generation_kwargs)
+                torch.cuda.synchronize()
+                elapsed = time.perf_counter() - started
+                prompt_width = int(encoded["input_ids"].shape[-1])
+                batch = int(output.sequences.shape[0])
+                generated_slots = int(
+                    (output.sequences.shape[-1] - prompt_width) * batch
+                )
+                accepted_tokens = accepted_generation_tokens(
+                    output.sequences,
+                    prompt_width=prompt_width,
+                    eos_token_ids=eos_token_ids,
+                )
+                measurements.append(
+                    {
+                        "elapsed_seconds": elapsed,
+                        "elapsed_milliseconds": 1000.0 * elapsed,
+                        "examples": stats["examples"],
+                        "useful_prompt_tokens": stats["useful_prompt_tokens"],
+                        "padded_prompt_tokens": stats["padded_prompt_tokens"],
+                        "generated_slots": generated_slots,
+                        "accepted_generated_tokens": accepted_tokens,
+                    }
+                )
+        return measurements
+
     warmup_measurements = [run_generation_once() for _ in range(args.warmup)]
     generation_measurements = [run_generation_once() for _ in range(args.repeats)]
     run_phase_once()
     phase_measurements = [run_phase_once() for _ in range(args.repeats)]
+    batch_latency_measurements = run_batch_latency_once()
 
     report = {
         "status": "pass",
@@ -362,6 +403,7 @@ def main() -> None:
         "warmup_measurements": warmup_measurements,
         "generation_measurements": generation_measurements,
         "phase_measurements": phase_measurements,
+        "batch_latency_measurements": batch_latency_measurements,
         "summary": {
             key: summarize([float(row[key]) for row in generation_measurements])
             for key in (
@@ -384,6 +426,15 @@ def main() -> None:
                 "decode_tokens_per_second",
                 "decode_milliseconds_per_step",
             )
+        },
+        "batch_latency_summary": {
+            "batches": len(batch_latency_measurements),
+            "elapsed_milliseconds": summarize(
+                [
+                    float(row["elapsed_milliseconds"])
+                    for row in batch_latency_measurements
+                ]
+            ),
         },
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
