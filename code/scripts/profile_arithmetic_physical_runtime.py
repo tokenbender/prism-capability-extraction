@@ -17,10 +17,11 @@ import json
 import math
 import time
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Callable, Iterable, Mapping, Sequence
 
 import torch
 
+from benchmark_arithmetic_physical_throughput import COMPILE_MODES
 from evaluate_arithmetic_standalone import (
     _special_token_ids,
     _trim_generated_ids,
@@ -395,6 +396,46 @@ def resolve_generation_token_settings(
     return stop_ids, int(pad_token_id), eos_value
 
 
+def validate_outer_compile_settings(
+    *,
+    outer_compile_mode: str,
+    cache_implementation: str,
+    generation_disable_compile: bool,
+) -> None:
+    """Apply the same outer/Transformers compile ownership rule as the sweep."""
+
+    if outer_compile_mode not in COMPILE_MODES:
+        raise ValueError(
+            f"unsupported outer compile mode {outer_compile_mode!r}"
+        )
+    if (
+        outer_compile_mode != "none"
+        and cache_implementation == "static"
+        and not generation_disable_compile
+    ):
+        raise ValueError(
+            "outer compilation and automatic StaticCache compilation cannot "
+            "both own generation"
+        )
+
+
+def wrap_outer_compile(
+    model: Any,
+    *,
+    mode: str,
+    compile_factory: Callable[..., Any] | None = None,
+) -> tuple[Any, float]:
+    if mode not in COMPILE_MODES:
+        raise ValueError(f"unsupported outer compile mode {mode!r}")
+    if mode == "none":
+        return model, 0.0
+    if compile_factory is None:
+        compile_factory = torch.compile
+    started = time.perf_counter()
+    compiled = compile_factory(model, mode=mode)
+    return compiled, time.perf_counter() - started
+
+
 def load_candidate(
     args: argparse.Namespace,
     *,
@@ -502,6 +543,11 @@ def validate_args(
             "physical MLP/activation controls cannot be used with --dense-model"
         )
     try:
+        validate_outer_compile_settings(
+            outer_compile_mode=args.outer_compile_mode,
+            cache_implementation=args.cache_implementation,
+            generation_disable_compile=args.generation_disable_compile,
+        )
         validate_activation_runtime_settings(
             activation_implementation=args.activation_implementation,
             hybrid_activation_threshold_rows=(
@@ -559,6 +605,12 @@ def parse_args() -> tuple[
         default=1,
     )
     parser.add_argument("--allow-mlp-fallback", action="store_true")
+    parser.add_argument(
+        "--outer-compile-mode",
+        choices=COMPILE_MODES,
+        default="none",
+        help="wrap the loaded model with torch.compile before warmup",
+    )
     add_generation_compile_arguments(parser)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--max-new-tokens", type=int, default=8)
@@ -591,6 +643,10 @@ def main() -> None:
     model, tokenizer, load_receipt, kind, load_seconds = load_candidate(
         args,
         device=device,
+    )
+    model, outer_compile_wrap_seconds = wrap_outer_compile(
+        model,
+        mode=args.outer_compile_mode,
     )
     after_load_memory = {
         "allocated_bytes": int(torch.cuda.memory_allocated(device)),
@@ -717,6 +773,7 @@ def main() -> None:
                 args.allow_mlp_fallback if kind == "physical" else None
             ),
             "cache_implementation": args.cache_implementation,
+            "outer_compile_mode": args.outer_compile_mode,
             "generation_compile": compile_receipt,
             "batch_size_requested": args.batch_size,
             "max_new_tokens": args.max_new_tokens,
@@ -744,6 +801,7 @@ def main() -> None:
         },
         "timing": {
             "load_seconds": load_seconds,
+            "outer_compile_wrap_seconds": outer_compile_wrap_seconds,
             "warmup_seconds": warmup_seconds,
             "synchronized_profiled_generation_seconds": (
                 profiled_generation_seconds

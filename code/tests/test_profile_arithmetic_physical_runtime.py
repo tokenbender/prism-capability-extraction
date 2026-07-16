@@ -20,6 +20,8 @@ from profile_arithmetic_physical_runtime import (  # noqa: E402
     select_profile_records,
     summarize_cuda_kernels,
     summarize_operator_events,
+    validate_outer_compile_settings,
+    wrap_outer_compile,
 )
 
 
@@ -29,6 +31,53 @@ def test_profiler_annotations_are_not_counted_as_cuda_kernel_launches() -> None:
     assert _is_profiler_annotation("## Call CompiledFxGraph abc123 ##")
     assert not _is_profiler_annotation("nvjet_sm100_tst_128x256")
     assert not _is_profiler_annotation("triton_poi_fused_silu_mul")
+
+
+def test_outer_compile_settings_match_generation_compile_ownership_rule() -> None:
+    validate_outer_compile_settings(
+        outer_compile_mode="reduce-overhead",
+        cache_implementation="dynamic",
+        generation_disable_compile=False,
+    )
+    validate_outer_compile_settings(
+        outer_compile_mode="reduce-overhead",
+        cache_implementation="static",
+        generation_disable_compile=True,
+    )
+    with pytest.raises(ValueError, match="both own generation"):
+        validate_outer_compile_settings(
+            outer_compile_mode="reduce-overhead",
+            cache_implementation="static",
+            generation_disable_compile=False,
+        )
+    with pytest.raises(ValueError, match="unsupported outer compile mode"):
+        validate_outer_compile_settings(
+            outer_compile_mode="invented",
+            cache_implementation="dynamic",
+            generation_disable_compile=False,
+        )
+
+
+def test_outer_compile_wrapper_records_wrap_time_and_requested_mode() -> None:
+    model = object()
+    calls = []
+
+    def fake_compile(value: object, *, mode: str) -> tuple[object, str]:
+        calls.append((value, mode))
+        return value, mode
+
+    compiled, seconds = wrap_outer_compile(
+        model,
+        mode="reduce-overhead",
+        compile_factory=fake_compile,
+    )
+    untouched, no_compile_seconds = wrap_outer_compile(model, mode="none")
+
+    assert compiled == (model, "reduce-overhead")
+    assert calls == [(model, "reduce-overhead")]
+    assert seconds >= 0.0
+    assert untouched is model
+    assert no_compile_seconds == 0.0
 
 
 def test_frozen_records_are_read_exactly_and_selected_without_rerandomizing(
