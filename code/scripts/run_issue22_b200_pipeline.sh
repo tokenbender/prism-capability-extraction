@@ -19,7 +19,6 @@ VALIDATE_ROOT="${DATA_ROOT}/qwen25_math_1p5b_2digit_rank32_validate_v1"
 ADAPTER="${MAX_ROOT}/lora_r32_beta005/adapter"
 COMPOSED="${MAX_ROOT}/position_adacs_lora_r32_beta005/composed_union.full.npz"
 TOPK="${VALIDATE_ROOT}/r32_topk500.full.npz"
-FINE="${VALIDATE_ROOT}/compress_fine_seed123_min995.final_mask.full.npz"
 RANKING="${REPO_ROOT}/results/arithmetic/r32_direct_group_rank_merged.json"
 HUNDREDS="${VALIDATE_ROOT}/fresh_pairs_seed123/hundreds_pairs.json"
 TENS="${VALIDATE_ROOT}/fresh_pairs_seed123/tens_pairs.json"
@@ -78,7 +77,6 @@ python "${SCRIPTS}/search_arithmetic_standalone_mace.py" \
   --model "${MERGED_MODEL}" \
   --records-jsonl "${RUN_ROOT}/dense/records.jsonl" \
   --seed-mask "topk12661=${TOPK}:mlp_final" \
-  --seed-mask "fine58619=${FINE}:mlp_final" \
   --ceiling-mask "rel001=${COMPOSED}:mlp_rel_0.001" \
   --safety-mask "positive=${COMPOSED}:mlp_positive" \
   --ranking-json "${RANKING}" \

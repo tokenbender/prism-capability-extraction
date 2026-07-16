@@ -485,7 +485,7 @@ def main() -> None:
     upper_pairs = masks[upper_name]
 
     failing_subsets = []
-    for row in rounds:
+    for row in list(rounds):
         if row["passes_mace"]:
             continue
         pairs = next(
@@ -496,8 +496,34 @@ def main() -> None:
             ),
             None,
         )
-        if pairs is not None and pairs < upper_pairs:
+        if pairs is None:
+            continue
+        if pairs < upper_pairs:
             failing_subsets.append((row, pairs))
+            continue
+        # Historical threshold masks are almost, but not always, nested:
+        # channels can cross a signed/relative boundary differently after
+        # position-wise union. Intersect a strong failing mask with the passing
+        # ceiling to obtain a genuinely nested lower bound, then score that
+        # bound rather than assuming its failure.
+        intersection = pairs & upper_pairs
+        if not intersection or intersection == pairs:
+            continue
+        try:
+            validate_pairs(intersection, widths=widths)
+        except ValueError:
+            continue
+        intersection_row = evaluate(
+            label=f"{row['label']}_intersection_{upper_name}",
+            pairs=intersection,
+            parent=row["label"],
+            operation=(
+                "intersect non-nested failing historical mask with passing "
+                "ceiling to establish a scored ranked-prefix lower bound"
+            ),
+        )
+        if intersection_row is not None and not intersection_row["passes_mace"]:
+            failing_subsets.append((intersection_row, intersection))
 
     if failing_subsets and len(rounds) < args.max_rounds:
         lower_row, lower_pairs = max(
