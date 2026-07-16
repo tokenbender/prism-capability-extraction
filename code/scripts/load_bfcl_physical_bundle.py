@@ -387,6 +387,7 @@ def load_physical_bundle(
     from safetensors.torch import load_file
     from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, GenerationConfig
 
+    loader_started = time.perf_counter()
     bundle = bundle.resolve()
     if attention_implementation not in SUPPORTED_ATTENTION_IMPLEMENTATIONS:
         raise ValueError(
@@ -406,6 +407,7 @@ def load_physical_bundle(
             f"expected exactly one safetensors checkpoint, found {len(checkpoint_files)}"
         )
 
+    construction_started = time.perf_counter()
     config = AutoConfig.from_pretrained(bundle, local_files_only=True)
     if config.model_type != "qwen3":
         raise ValueError(f"unsupported model_type for physical Qwen loader: {config.model_type}")
@@ -423,7 +425,9 @@ def load_physical_bundle(
             attn_implementation=attention_implementation,
         )
         widths = install_physical_mlps(model, metadata)
+    construction_seconds = time.perf_counter() - construction_started
 
+    checkpoint_load_started = time.perf_counter()
     state = load_file(checkpoint_files[0], device="cpu")
     dtype_mismatches = {
         name: str(tensor.dtype)
@@ -444,6 +448,7 @@ def load_physical_bundle(
     if loaded_dtypes != {expected_dtype}:
         raise RuntimeError(f"loaded parameter dtype mismatch: {loaded_dtypes}")
     del state
+    checkpoint_load_seconds = time.perf_counter() - checkpoint_load_started
 
     resolved_attention = getattr(model.config, "_attn_implementation", None)
     if resolved_attention != attention_implementation:
@@ -451,6 +456,8 @@ def load_physical_bundle(
             "attention implementation did not resolve as requested: "
             f"{resolved_attention!r} != {attention_implementation!r}"
         )
+    canonical_parameter_count = sum(parameter.numel() for parameter in model.parameters())
+    repack_started = time.perf_counter()
     mlp_runtime = configure_mlp_runtime(
         model,
         widths,
@@ -458,11 +465,20 @@ def load_physical_bundle(
         width_alignment=width_alignment,
         allow_fallback=allow_mlp_fallback,
     )
+    runtime_repack_seconds = time.perf_counter() - repack_started
+    runtime_parameter_count = sum(parameter.numel() for parameter in model.parameters())
+    runtime_added_parameters = runtime_parameter_count - canonical_parameter_count
 
     requested = torch.device(device)
     if requested.type == "cuda" and not torch.cuda.is_available():
         raise RuntimeError(f"CUDA device requested but unavailable: {device}")
+    device_move_started = time.perf_counter()
     model = model.to(requested)
+    if requested.type == "cuda":
+        torch.cuda.synchronize(requested)
+    device_move_seconds = time.perf_counter() - device_move_started
+
+    restore_started = time.perf_counter()
     model.generation_config = GenerationConfig.from_pretrained(
         bundle,
         local_files_only=True,
@@ -482,6 +498,7 @@ def load_physical_bundle(
     tokenizer.padding_side = "left"
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
+    generation_and_tokenizer_restore_seconds = time.perf_counter() - restore_started
 
     receipt = {
         "format": metadata["format"],
@@ -499,6 +516,21 @@ def load_physical_bundle(
         "parameter_dtype": str(expected_dtype),
         "generation_config_restored": True,
         "tokenizer_fix_mistral_regex": False,
+        "timings_seconds": {
+            "config_and_empty_model_construction": construction_seconds,
+            "strict_checkpoint_load": checkpoint_load_seconds,
+            "runtime_repack": runtime_repack_seconds,
+            "device_move": device_move_seconds,
+            "generation_and_tokenizer_restore": generation_and_tokenizer_restore_seconds,
+            "loader_total": time.perf_counter() - loader_started,
+        },
+        "parameter_accounting": {
+            "canonical_physical_parameters": canonical_parameter_count,
+            "runtime_parameters": runtime_parameter_count,
+            "runtime_added_parameters": runtime_added_parameters,
+            "runtime_added_parameter_bytes": runtime_added_parameters
+            * torch.empty((), dtype=expected_dtype).element_size(),
+        },
     }
     return model, tokenizer, receipt
 

@@ -172,6 +172,18 @@ def test_separate_runtime_rejects_misleading_alignment() -> None:
         )
 
 
+def test_runtime_selector_rejects_an_unavailable_implementation() -> None:
+    model = DummyModel(layers=1)
+
+    with pytest.raises(ValueError, match="unsupported MLP implementation"):
+        configure_mlp_runtime(
+            model,
+            [3],
+            implementation="flashinfer",
+            width_alignment=1,
+        )
+
+
 def test_install_physical_mlps_uses_every_recorded_width() -> None:
     model = DummyModel()
     metadata = {
