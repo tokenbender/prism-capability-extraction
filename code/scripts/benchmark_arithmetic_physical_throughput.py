@@ -257,6 +257,7 @@ def load_arithmetic_records(
                 )
         else:
             raise ValueError(f"{path} must contain JSON records")
+    if path is not None:
         records = [
             _normalize_record(raw, index)
             for index, raw in enumerate(raw_rows)

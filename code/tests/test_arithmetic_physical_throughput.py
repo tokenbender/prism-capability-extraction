@@ -135,6 +135,42 @@ def test_generated_records_match_standalone_balanced_builder_and_nested_inputs(
     assert loaded[0]["answer"] == 25
 
 
+def test_jsonl_records_are_normalized_and_limited(tmp_path: Path) -> None:
+    path = tmp_path / "records.jsonl"
+    path.write_text(
+        "\n".join(
+            json.dumps(
+                {
+                    "id": f"pair-{index}",
+                    "prompt": f"{index + 10} + 10 =",
+                    "generation_prompt": f"{index + 10} + 10 = ",
+                    "answer": index + 20,
+                }
+            )
+            for index in range(2)
+        )
+        + "\n"
+    )
+
+    loaded = load_arithmetic_records(path, limit=1)
+
+    assert loaded == [
+        {
+            "id": "pair-0",
+            "prompt": "10 + 10 =",
+            "generation_prompt": "10 + 10 = ",
+            "prompt_format": "custom",
+            "answer": 20,
+            "answer_text": "20",
+            "result_length": 2,
+            "carry": "unknown",
+            "carry_class": "unknown",
+            "ones_carry": None,
+            "leading_carry": None,
+        }
+    ]
+
+
 def test_prepare_batches_preserves_prompt_boundary_and_input_order() -> None:
     records = [
         arithmetic_record("two-digit", 25, prompt="12 + 13 ="),
