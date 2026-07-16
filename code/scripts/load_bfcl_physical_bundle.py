@@ -14,7 +14,7 @@ import argparse
 import json
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import torch
 from torch import nn
@@ -32,7 +32,163 @@ from bfcl_direct_qwen3 import (
 SUPPORTED_FORMAT = "qwen_physical_mlp_substrate_v1"
 SUPPORTED_ATTENTION_IMPLEMENTATIONS = ("eager", "sdpa", "flash_attention_2")
 SUPPORTED_MLP_IMPLEMENTATIONS = ("separate", "packed_gate_up")
+SUPPORTED_ACTIVATION_IMPLEMENTATIONS = ("torch", "triton")
 SUPPORTED_WIDTH_ALIGNMENTS = (1, 16, 64, 128, 256)
+
+
+def add_generation_compile_arguments(parser: argparse.ArgumentParser) -> None:
+    """Expose one receipt-safe control surface for Transformers generation."""
+
+    parser.add_argument(
+        "--cache-implementation",
+        choices=("dynamic", "static"),
+        default="dynamic",
+    )
+    generation_compile_group = parser.add_mutually_exclusive_group()
+    generation_compile_group.add_argument(
+        "--generation-disable-compile",
+        action="store_true",
+        help="pass disable_compile=True to Transformers generate",
+    )
+    generation_compile_group.add_argument(
+        "--generation-compile-dynamic",
+        action="store_true",
+        help="use dynamic reduce-overhead compilation inside static-cache generate",
+    )
+
+
+def build_generation_compile_settings(
+    *,
+    cache_implementation: str,
+    disable_compile: bool,
+    compile_dynamic: bool,
+    compile_config_factory: Any = None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Build explicit Transformers generation kwargs and a stable receipt."""
+
+    if disable_compile and compile_dynamic:
+        raise ValueError(
+            "generation compile disable and dynamic modes are mutually exclusive"
+        )
+    if (disable_compile or compile_dynamic) and cache_implementation != "static":
+        raise ValueError(
+            "generation compile controls require --cache-implementation static"
+        )
+
+    if disable_compile:
+        return {"disable_compile": True}, {
+            "mode": "disabled",
+            "disable_compile": True,
+            "compile_config": None,
+        }
+    if compile_dynamic:
+        if compile_config_factory is None:
+            from transformers import CompileConfig
+
+            compile_config_factory = CompileConfig
+        compile_config = compile_config_factory(
+            mode="reduce-overhead",
+            dynamic=True,
+            fullgraph=False,
+        )
+        return {"compile_config": compile_config}, {
+            "mode": "dynamic_reduce_overhead",
+            "disable_compile": False,
+            "compile_config": {
+                "mode": "reduce-overhead",
+                "dynamic": True,
+                "fullgraph": False,
+                "backend": "inductor",
+                "options": None,
+            },
+        }
+    return {}, {
+        "mode": (
+            "transformers_default_auto"
+            if cache_implementation == "static"
+            else "not_applicable"
+        ),
+        "disable_compile": None,
+        "compile_config": (
+            {
+                "source": "transformers_default",
+                "mode": "reduce-overhead",
+                "dynamic": None,
+                "fullgraph": False,
+                "backend": "inductor",
+                "options": None,
+            }
+            if cache_implementation == "static"
+            else None
+        ),
+    }
+
+
+def observe_generation_compile_state(model: nn.Module) -> dict[str, bool | str]:
+    """Record whether Transformers has materialized its compiled forward call."""
+
+    observed_model = getattr(model, "_orig_mod", model)
+    return {
+        "compiled_call_present": getattr(observed_model, "_compiled_call", None)
+        is not None,
+        "observed_model_type": type(observed_model).__name__,
+    }
+
+
+def _is_silu_activation(activation: Any) -> bool:
+    function_name = str(getattr(activation, "__name__", "")).lower()
+    type_name = type(activation).__name__.lower()
+    return function_name == "silu" or type_name in {"silu", "siluactivation"}
+
+
+def _load_triton_silu_and_mul() -> Callable[[torch.Tensor], torch.Tensor]:
+    """Import the optional kernel only when its selector is requested."""
+
+    try:
+        from triton_silu_mul import triton_silu_and_mul
+    except ModuleNotFoundError as exc:
+        missing = exc.name or ""
+        if missing == "triton" or missing.startswith("triton."):
+            raise RuntimeError(
+                "activation implementation 'triton' requires the optional Triton "
+                "package; install a CUDA-compatible Triton build or select "
+                "--activation-implementation torch"
+            ) from exc
+        raise
+    return triton_silu_and_mul
+
+
+def validate_triton_silu_mul_input(
+    gate_up: torch.Tensor,
+    *,
+    expected_width: int,
+) -> None:
+    """Fail before launch unless the optional kernel's narrow contract holds."""
+
+    if expected_width <= 0:
+        raise ValueError("Triton SiLU-and-multiply width must be positive")
+    if gate_up.device.type != "cuda":
+        raise RuntimeError("Triton SiLU-and-multiply requires a CUDA tensor")
+    if gate_up.dtype not in (torch.bfloat16, torch.float16):
+        raise TypeError(
+            "Triton SiLU-and-multiply supports only CUDA BF16/FP16 inputs, "
+            f"got {gate_up.dtype}"
+        )
+    if torch.is_grad_enabled():
+        raise RuntimeError(
+            "Triton SiLU-and-multiply is inference-only; use torch.inference_mode() "
+            "or torch.no_grad()"
+        )
+    if gate_up.ndim == 0 or gate_up.shape[-1] != 2 * expected_width:
+        raise ValueError(
+            "packed gate/up tensor has the wrong final dimension: "
+            f"expected {2 * expected_width}, got "
+            f"{None if gate_up.ndim == 0 else gate_up.shape[-1]}"
+        )
+    if not gate_up.is_contiguous():
+        raise ValueError("Triton SiLU-and-multiply requires contiguous packed input")
+    if gate_up.numel() == 0:
+        raise ValueError("Triton SiLU-and-multiply does not accept empty input")
 
 
 def decoder_layers(model: nn.Module) -> nn.ModuleList:
@@ -103,7 +259,12 @@ class PackedPhysicalQwenMLP(nn.Module):
     bundle contract.  Alignment padding is zero-filled in all three projections.
     """
 
-    def __init__(self, original: PhysicalQwenMLP, width_alignment: int):
+    def __init__(
+        self,
+        original: PhysicalQwenMLP,
+        width_alignment: int,
+        activation_implementation: str = "torch",
+    ):
         super().__init__()
         if not isinstance(original, PhysicalQwenMLP):
             raise TypeError(
@@ -114,16 +275,29 @@ class PackedPhysicalQwenMLP(nn.Module):
                 f"unsupported width alignment {width_alignment}; "
                 f"expected one of {SUPPORTED_WIDTH_ALIGNMENTS}"
             )
+        if activation_implementation not in SUPPORTED_ACTIVATION_IMPLEMENTATIONS:
+            raise ValueError(
+                f"unsupported activation implementation {activation_implementation!r}; "
+                f"expected one of {SUPPORTED_ACTIVATION_IMPLEMENTATIONS}"
+            )
 
         self.hidden_size = int(original.hidden_size)
         self.intermediate_size = int(original.intermediate_size)
         self.width_alignment = int(width_alignment)
+        self.activation_implementation = activation_implementation
         self.aligned_intermediate_size = (
             (self.intermediate_size + self.width_alignment - 1)
             // self.width_alignment
             * self.width_alignment
         )
         self.act_fn = original.act_fn
+        self._triton_silu_and_mul = None
+        if self.activation_implementation == "triton":
+            if not _is_silu_activation(self.act_fn):
+                raise ValueError(
+                    "activation implementation 'triton' requires a SiLU activation"
+                )
+            self._triton_silu_and_mul = _load_triton_silu_and_mul()
         device = original.gate_proj.weight.device
         dtype = original.gate_proj.weight.dtype
 
@@ -171,8 +345,80 @@ class PackedPhysicalQwenMLP(nn.Module):
         return self.aligned_intermediate_size - self.intermediate_size
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
-        gate, up = self.gate_up_proj(hidden_states).chunk(2, dim=-1)
-        return self.down_proj(self.act_fn(gate) * up)
+        gate_up = self.gate_up_proj(hidden_states)
+        if self.activation_implementation == "torch":
+            gate, up = gate_up.chunk(2, dim=-1)
+            activated = self.act_fn(gate) * up
+        else:
+            validate_triton_silu_mul_input(
+                gate_up,
+                expected_width=self.aligned_intermediate_size,
+            )
+            if self._triton_silu_and_mul is None:
+                raise RuntimeError("Triton activation selector was not initialized")
+            activated = self._triton_silu_and_mul(gate_up)
+        return self.down_proj(activated)
+
+
+def probe_triton_activation_runtime(model: nn.Module) -> dict[str, Any]:
+    """JIT-launch every selected jagged width after the model reaches CUDA."""
+
+    selected = [
+        layer.mlp
+        for layer in decoder_layers(model)
+        if isinstance(layer.mlp, PackedPhysicalQwenMLP)
+        and layer.mlp.activation_implementation == "triton"
+    ]
+    if not selected:
+        return {"status": "not_requested", "layers": 0, "unique_widths": []}
+
+    device = selected[0].gate_up_proj.weight.device
+    if device.type != "cuda":
+        raise RuntimeError(
+            "activation implementation 'triton' requires loading the model on CUDA"
+        )
+    widths = sorted({module.aligned_intermediate_size for module in selected})
+    dtype = selected[0].gate_up_proj.weight.dtype
+    try:
+        with torch.inference_mode():
+            for width in widths:
+                gate_up = torch.zeros(
+                    (1, 2 * width),
+                    dtype=dtype,
+                    device=device,
+                )
+                validate_triton_silu_mul_input(gate_up, expected_width=width)
+                kernel = selected[0]._triton_silu_and_mul
+                if kernel is None:
+                    raise RuntimeError("Triton activation selector was not initialized")
+                output = kernel(gate_up)
+                if output.shape != (1, width):
+                    raise RuntimeError(
+                        f"Triton activation probe shape mismatch at width {width}: "
+                        f"{tuple(output.shape)}"
+                    )
+                if output.dtype != dtype or output.device != device:
+                    raise RuntimeError(
+                        f"Triton activation probe dtype/device mismatch at width {width}"
+                    )
+                if torch.count_nonzero(output).item() != 0:
+                    raise RuntimeError(
+                        f"Triton activation zero probe failed at width {width}"
+                    )
+        torch.cuda.synchronize(device)
+    except Exception as exc:
+        raise RuntimeError(
+            "Triton activation CUDA probe failed before evaluation; rerun with "
+            "--activation-implementation torch"
+        ) from exc
+    return {
+        "status": "pass",
+        "layers": len(selected),
+        "unique_widths": widths,
+        "dtype": str(dtype),
+        "device": str(device),
+        "probe": "zero_input_jit_launch_per_unique_width",
+    }
 
 
 def _all_zero(tensor: torch.Tensor) -> bool:
@@ -247,6 +493,7 @@ def configure_mlp_runtime(
     widths: list[int],
     *,
     implementation: str = "separate",
+    activation_implementation: str = "torch",
     width_alignment: int = 1,
     allow_fallback: bool = False,
 ) -> dict[str, Any]:
@@ -262,12 +509,23 @@ def configure_mlp_runtime(
             f"unsupported width alignment {width_alignment}; "
             f"expected one of {SUPPORTED_WIDTH_ALIGNMENTS}"
         )
+    if activation_implementation not in SUPPORTED_ACTIVATION_IMPLEMENTATIONS:
+        raise ValueError(
+            f"unsupported activation implementation {activation_implementation!r}; "
+            f"expected one of {SUPPORTED_ACTIVATION_IMPLEMENTATIONS}"
+        )
     if implementation == "separate" and width_alignment != 1:
         raise ValueError("width alignment is only meaningful for packed_gate_up")
+    if implementation == "separate" and activation_implementation != "torch":
+        raise ValueError(
+            "non-Torch activation implementations require packed_gate_up"
+        )
 
     base_receipt: dict[str, Any] = {
         "requested_implementation": implementation,
         "active_implementation": "separate",
+        "requested_activation_implementation": activation_implementation,
+        "active_activation_implementation": "torch",
         "requested_width_alignment": width_alignment,
         "active_width_alignment": 1,
         "fallback_allowed": allow_fallback,
@@ -296,14 +554,19 @@ def configure_mlp_runtime(
                 raise RuntimeError(
                     f"loaded MLP width {source.intermediate_size} does not match {width}"
                 )
-            packed = PackedPhysicalQwenMLP(source, width_alignment)
+            packed = PackedPhysicalQwenMLP(
+                source,
+                width_alignment,
+                activation_implementation=activation_implementation,
+            )
             validations.append(validate_packed_mlp(source, packed))
             replacements.append(packed)
     except Exception as exc:
         if not allow_fallback:
             raise RuntimeError(
-                "packed_gate_up construction or validation failed; canonical separate "
-                "modules remain active (pass allow_fallback=True to accept fallback)"
+                "packed_gate_up construction or validation failed: "
+                f"{type(exc).__name__}: {exc}; canonical separate modules remain "
+                "active (pass allow_fallback=True to accept fallback)"
             ) from exc
         base_receipt.update(
             {
@@ -324,6 +587,7 @@ def configure_mlp_runtime(
     base_receipt.update(
         {
             "active_implementation": "packed_gate_up",
+            "active_activation_implementation": activation_implementation,
             "active_width_alignment": width_alignment,
             "validation": {
                 "status": "pass",
@@ -378,6 +642,7 @@ def load_physical_bundle(
     device: str = "cuda:0",
     attention_implementation: str = "eager",
     mlp_implementation: str = "separate",
+    activation_implementation: str = "torch",
     width_alignment: int = 1,
     allow_mlp_fallback: bool = False,
 ) -> tuple[nn.Module, Any, dict[str, Any]]:
@@ -462,6 +727,7 @@ def load_physical_bundle(
         model,
         widths,
         implementation=mlp_implementation,
+        activation_implementation=activation_implementation,
         width_alignment=width_alignment,
         allow_fallback=allow_mlp_fallback,
     )
@@ -477,6 +743,11 @@ def load_physical_bundle(
     if requested.type == "cuda":
         torch.cuda.synchronize(requested)
     device_move_seconds = time.perf_counter() - device_move_started
+
+    activation_probe_started = time.perf_counter()
+    activation_runtime_probe = probe_triton_activation_runtime(model)
+    activation_probe_seconds = time.perf_counter() - activation_probe_started
+    mlp_runtime["activation_runtime_probe"] = activation_runtime_probe
 
     restore_started = time.perf_counter()
     model.generation_config = GenerationConfig.from_pretrained(
@@ -507,6 +778,9 @@ def load_physical_bundle(
         "attention_implementation": resolved_attention,
         "requested_attention_implementation": attention_implementation,
         "mlp_implementation": mlp_runtime["active_implementation"],
+        "activation_implementation": mlp_runtime[
+            "active_activation_implementation"
+        ],
         "mlp_runtime": mlp_runtime,
         "layers": len(widths),
         "kept_total": sum(widths),
@@ -521,6 +795,7 @@ def load_physical_bundle(
             "strict_checkpoint_load": checkpoint_load_seconds,
             "runtime_repack": runtime_repack_seconds,
             "device_move": device_move_seconds,
+            "activation_runtime_probe": activation_probe_seconds,
             "generation_and_tokenizer_restore": generation_and_tokenizer_restore_seconds,
             "loader_total": time.perf_counter() - loader_started,
         },
@@ -573,6 +848,13 @@ def reference_parity(
 
 
 def evaluate(args: argparse.Namespace) -> None:
+    generation_compile_kwargs, generation_compile_receipt = (
+        build_generation_compile_settings(
+            cache_implementation=args.cache_implementation,
+            disable_compile=args.generation_disable_compile,
+            compile_dynamic=args.generation_compile_dynamic,
+        )
+    )
     rows = read_records(args.pairs)
     end = len(rows) if args.end is None else args.end
     rows = rows[args.start : end]
@@ -591,6 +873,7 @@ def evaluate(args: argparse.Namespace) -> None:
         device=args.device,
         attention_implementation=args.attention_implementation,
         mlp_implementation=args.mlp_implementation,
+        activation_implementation=args.activation_implementation,
         width_alignment=args.width_alignment,
         allow_mlp_fallback=args.allow_mlp_fallback,
     )
@@ -622,13 +905,16 @@ def evaluate(args: argparse.Namespace) -> None:
             padding=True,
             return_tensors="pt",
         ).to(input_device)
+        generation_kwargs: dict[str, Any] = {
+            "max_new_tokens": args.max_new_tokens,
+            "do_sample": False,
+            "pad_token_id": tokenizer.pad_token_id,
+        }
+        if args.cache_implementation != "dynamic":
+            generation_kwargs["cache_implementation"] = args.cache_implementation
+        generation_kwargs.update(generation_compile_kwargs)
         with torch.inference_mode():
-            generated = model.generate(
-                **encoded,
-                max_new_tokens=args.max_new_tokens,
-                do_sample=False,
-                pad_token_id=tokenizer.pad_token_id,
-            )
+            generated = model.generate(**encoded, **generation_kwargs)
         prompt_length = encoded["input_ids"].shape[-1]
         for row, sequence in zip(batch_rows, generated):
             text = tokenizer.decode(sequence[prompt_length:], skip_special_tokens=True)
@@ -674,6 +960,9 @@ def evaluate(args: argparse.Namespace) -> None:
         "evaluation_seconds": eval_seconds,
         "batch_size": args.batch_size,
         "max_new_tokens": args.max_new_tokens,
+        "cache_implementation": args.cache_implementation,
+        "generation_compile": generation_compile_receipt,
+        "generation_compile_observation": observe_generation_compile_state(model),
         "enable_thinking": args.enable_thinking,
         "bfcl_canonicalization_prompt": args.bfcl_canonicalization_prompt,
         "pairs": str(args.pairs),
@@ -697,6 +986,7 @@ def load_check(args: argparse.Namespace) -> None:
         device=args.device,
         attention_implementation=args.attention_implementation,
         mlp_implementation=args.mlp_implementation,
+        activation_implementation=args.activation_implementation,
         width_alignment=args.width_alignment,
         allow_mlp_fallback=args.allow_mlp_fallback,
     )
@@ -723,6 +1013,12 @@ def add_runtime_arguments(parser: argparse.ArgumentParser) -> None:
         "--mlp-implementation",
         choices=SUPPORTED_MLP_IMPLEMENTATIONS,
         default="separate",
+    )
+    parser.add_argument(
+        "--activation-implementation",
+        choices=SUPPORTED_ACTIVATION_IMPLEMENTATIONS,
+        default="torch",
+        help="pointwise activation for packed_gate_up; Triton is optional",
     )
     parser.add_argument(
         "--width-alignment",
@@ -762,6 +1058,7 @@ def main() -> None:
     evaluate_parser.add_argument("--bfcl-canonicalization-prompt", action="store_true")
     evaluate_parser.add_argument("--normalized", action="store_true")
     add_runtime_arguments(evaluate_parser)
+    add_generation_compile_arguments(evaluate_parser)
     evaluate_parser.set_defaults(func=evaluate)
 
     args = parser.parse_args()

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 import torch
@@ -17,9 +18,12 @@ from load_bfcl_physical_bundle import (  # noqa: E402
     PhysicalQwenMLP,
     configure_mlp_runtime,
     install_physical_mlps,
+    probe_triton_activation_runtime,
     reference_parity,
     validate_packed_mlp,
+    validate_triton_silu_mul_input,
 )
+import load_bfcl_physical_bundle as physical_loader  # noqa: E402
 
 
 class DummyMLP(nn.Module):
@@ -131,6 +135,12 @@ def test_runtime_repack_is_atomic_and_receipted() -> None:
             layer.mlp(inputs), expected_output, rtol=1e-6, atol=1e-7
         )
 
+    assert probe_triton_activation_runtime(model) == {
+        "status": "not_requested",
+        "layers": 0,
+        "unique_widths": [],
+    }
+
 
 def test_runtime_repack_can_explicitly_fallback_without_partial_mutation() -> None:
     model = DummyModel()
@@ -182,6 +192,108 @@ def test_runtime_selector_rejects_an_unavailable_implementation() -> None:
             implementation="flashinfer",
             width_alignment=1,
         )
+
+
+def test_triton_activation_requires_packed_gate_up() -> None:
+    model = DummyModel(layers=1)
+
+    with pytest.raises(ValueError, match="require packed_gate_up"):
+        configure_mlp_runtime(
+            model,
+            [3],
+            implementation="separate",
+            activation_implementation="triton",
+        )
+
+
+def test_triton_selector_is_lazy_and_receipted(monkeypatch: pytest.MonkeyPatch) -> None:
+    model = DummyModel(layers=1)
+    metadata = {
+        "isolation": {
+            "kept_total": 3,
+            "kept_per_layer": {"0": 3},
+        }
+    }
+    widths = install_physical_mlps(model, metadata)
+    sentinel_kernel = lambda gate_up: gate_up[..., : gate_up.shape[-1] // 2]
+    monkeypatch.setattr(
+        physical_loader,
+        "_load_triton_silu_and_mul",
+        lambda: sentinel_kernel,
+    )
+
+    receipt = configure_mlp_runtime(
+        model,
+        widths,
+        implementation="packed_gate_up",
+        activation_implementation="triton",
+        width_alignment=16,
+    )
+
+    packed = model.model.layers[0].mlp
+    assert isinstance(packed, PackedPhysicalQwenMLP)
+    assert packed.activation_implementation == "triton"
+    assert packed._triton_silu_and_mul is sentinel_kernel
+    assert receipt["requested_activation_implementation"] == "triton"
+    assert receipt["active_activation_implementation"] == "triton"
+
+
+def test_triton_selector_reports_missing_optional_dependency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    model = DummyModel(layers=1)
+    metadata = {
+        "isolation": {
+            "kept_total": 3,
+            "kept_per_layer": {"0": 3},
+        }
+    }
+    widths = install_physical_mlps(model, metadata)
+
+    def unavailable() -> None:
+        raise RuntimeError(
+            "activation implementation 'triton' requires the optional Triton package"
+        )
+
+    monkeypatch.setattr(physical_loader, "_load_triton_silu_and_mul", unavailable)
+
+    with pytest.raises(RuntimeError, match="requires the optional Triton package"):
+        configure_mlp_runtime(
+            model,
+            widths,
+            implementation="packed_gate_up",
+            activation_implementation="triton",
+            width_alignment=16,
+        )
+    assert isinstance(model.model.layers[0].mlp, PhysicalQwenMLP)
+
+
+def test_triton_input_validation_is_cuda_low_precision_and_inference_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cpu_input = torch.empty(2, 6, dtype=torch.bfloat16)
+    with torch.inference_mode(), pytest.raises(RuntimeError, match="requires a CUDA"):
+        validate_triton_silu_mul_input(cpu_input, expected_width=3)
+
+    fake_cuda = Mock()
+    fake_cuda.device = torch.device("cuda")
+    fake_cuda.dtype = torch.bfloat16
+    fake_cuda.ndim = 2
+    fake_cuda.shape = (2, 6)
+    fake_cuda.is_contiguous.return_value = True
+    fake_cuda.numel.return_value = 12
+
+    with torch.inference_mode():
+        validate_triton_silu_mul_input(fake_cuda, expected_width=3)
+
+    fake_cuda.dtype = torch.float32
+    with torch.inference_mode(), pytest.raises(TypeError, match="only CUDA BF16/FP16"):
+        validate_triton_silu_mul_input(fake_cuda, expected_width=3)
+
+    fake_cuda.dtype = torch.float16
+    monkeypatch.setattr(torch, "is_grad_enabled", lambda: True)
+    with pytest.raises(RuntimeError, match="inference-only"):
+        validate_triton_silu_mul_input(fake_cuda, expected_width=3)
 
 
 def test_install_physical_mlps_uses_every_recorded_width() -> None:

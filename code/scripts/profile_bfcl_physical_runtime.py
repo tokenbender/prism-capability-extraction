@@ -13,7 +13,12 @@ from typing import Any
 import torch
 
 from bfcl_direct_qwen3 import messages_for_generation, read_records
-from load_bfcl_physical_bundle import load_physical_bundle
+from load_bfcl_physical_bundle import (
+    add_generation_compile_arguments,
+    build_generation_compile_settings,
+    load_physical_bundle,
+    observe_generation_compile_state,
+)
 
 
 def _number(event: Any, *names: str) -> float:
@@ -42,7 +47,13 @@ def main() -> None:
         choices=("separate", "packed_gate_up"),
         default="packed_gate_up",
     )
+    parser.add_argument(
+        "--activation-implementation",
+        choices=("torch", "triton"),
+        default="torch",
+    )
     parser.add_argument("--width-alignment", type=int, default=128)
+    add_generation_compile_arguments(parser)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--max-new-tokens", type=int, default=16)
     parser.add_argument("--enable-thinking", action="store_true")
@@ -56,6 +67,16 @@ def main() -> None:
 
     if args.batch_size <= 0 or args.max_new_tokens <= 0 or args.top_k <= 0:
         parser.error("batch size, max new tokens, and top-k must be positive")
+    try:
+        generation_compile_kwargs, generation_compile_receipt = (
+            build_generation_compile_settings(
+                cache_implementation=args.cache_implementation,
+                disable_compile=args.generation_disable_compile,
+                compile_dynamic=args.generation_compile_dynamic,
+            )
+        )
+    except ValueError as exc:
+        parser.error(str(exc))
 
     device = torch.device(args.device)
     torch.cuda.set_device(device)
@@ -66,6 +87,7 @@ def main() -> None:
         device=args.device,
         attention_implementation=args.attention_implementation,
         mlp_implementation=args.mlp_implementation,
+        activation_implementation=args.activation_implementation,
         width_alignment=args.width_alignment,
     )
     torch.cuda.synchronize()
@@ -98,10 +120,14 @@ def main() -> None:
         "do_sample": False,
         "pad_token_id": tokenizer.pad_token_id,
     }
+    if args.cache_implementation != "dynamic":
+        generation_kwargs["cache_implementation"] = args.cache_implementation
+    generation_kwargs.update(generation_compile_kwargs)
 
     with torch.inference_mode():
         model.generate(**encoded, **generation_kwargs)
     torch.cuda.synchronize()
+    compile_observation_after_warmup = observe_generation_compile_state(model)
 
     profile_started = time.perf_counter()
     with torch.profiler.profile(
@@ -168,7 +194,10 @@ def main() -> None:
         "candidate": {
             "attention_implementation": args.attention_implementation,
             "mlp_implementation": args.mlp_implementation,
+            "activation_implementation": args.activation_implementation,
             "width_alignment": args.width_alignment,
+            "cache_implementation": args.cache_implementation,
+            "generation_compile": generation_compile_receipt,
             "batch_size": args.batch_size,
             "max_new_tokens": args.max_new_tokens,
         },
@@ -186,6 +215,9 @@ def main() -> None:
         },
         "load_seconds": load_seconds,
         "profile_elapsed_seconds": profile_elapsed_seconds,
+        "generation_compile_observation_after_warmup": (
+            compile_observation_after_warmup
+        ),
         "cuda_device_event_count": len(cuda_events),
         "kernel_launch_count": sum(int(row["count"]) for row in top_kernels),
         "top_cuda_kernels_by_device_time": top_kernels[: args.top_k],

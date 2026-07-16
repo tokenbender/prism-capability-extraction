@@ -14,7 +14,12 @@ from typing import Any
 import torch
 
 from bfcl_direct_qwen3 import messages_for_generation, read_records
-from load_bfcl_physical_bundle import load_physical_bundle
+from load_bfcl_physical_bundle import (
+    add_generation_compile_arguments,
+    build_generation_compile_settings,
+    load_physical_bundle,
+    observe_generation_compile_state,
+)
 
 
 COMPILE_MODES = (
@@ -24,6 +29,26 @@ COMPILE_MODES = (
     "max-autotune",
     "max-autotune-no-cudagraphs",
 )
+
+
+def validate_compile_layering(
+    *,
+    outer_compile_mode: str,
+    cache_implementation: str,
+    generation_disable_compile: bool,
+) -> None:
+    """Reject two independent compilation owners for the same generation."""
+
+    if (
+        outer_compile_mode != "none"
+        and cache_implementation == "static"
+        and not generation_disable_compile
+    ):
+        raise ValueError(
+            "outer --compile-mode cannot be combined with StaticCache automatic "
+            "generation compilation; use --compile-mode none or add "
+            "--generation-disable-compile"
+        )
 
 
 def percentile(values: list[float], quantile: float) -> float:
@@ -86,13 +111,14 @@ def main() -> None:
         choices=("separate", "packed_gate_up"),
         default="separate",
     )
+    parser.add_argument(
+        "--activation-implementation",
+        choices=("torch", "triton"),
+        default="torch",
+    )
     parser.add_argument("--width-alignment", type=int, default=1)
     parser.add_argument("--compile-mode", choices=COMPILE_MODES, default="none")
-    parser.add_argument(
-        "--cache-implementation",
-        choices=("dynamic", "static"),
-        default="dynamic",
-    )
+    add_generation_compile_arguments(parser)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--max-new-tokens", type=int, default=128)
     parser.add_argument("--decode-steps", type=int, default=32)
@@ -117,10 +143,30 @@ def main() -> None:
         parser.error("--width-alignment must be one of 1, 16, 64, 128, 256")
     if args.mlp_implementation == "separate" and args.width_alignment != 1:
         parser.error("width alignment requires --mlp-implementation packed_gate_up")
+    if (
+        args.mlp_implementation == "separate"
+        and args.activation_implementation != "torch"
+    ):
+        parser.error("Triton activation requires --mlp-implementation packed_gate_up")
     if args.batch_size <= 0 or args.max_new_tokens <= 0:
         parser.error("batch size and max new tokens must be positive")
     if args.warmup < 0 or args.repeats <= 0 or args.phase_repeats <= 0:
         parser.error("warmup must be nonnegative and repeat counts must be positive")
+    try:
+        validate_compile_layering(
+            outer_compile_mode=args.compile_mode,
+            cache_implementation=args.cache_implementation,
+            generation_disable_compile=args.generation_disable_compile,
+        )
+        generation_compile_kwargs, generation_compile_receipt = (
+            build_generation_compile_settings(
+                cache_implementation=args.cache_implementation,
+                disable_compile=args.generation_disable_compile,
+                compile_dynamic=args.generation_compile_dynamic,
+            )
+        )
+    except ValueError as exc:
+        parser.error(str(exc))
 
     device = torch.device(args.device)
     torch.cuda.set_device(device)
@@ -133,6 +179,7 @@ def main() -> None:
         device=args.device,
         attention_implementation=args.attention_implementation,
         mlp_implementation=args.mlp_implementation,
+        activation_implementation=args.activation_implementation,
         width_alignment=args.width_alignment,
     )
     torch.cuda.synchronize()
@@ -199,6 +246,7 @@ def main() -> None:
     }
     if args.cache_implementation != "dynamic":
         generation_kwargs["cache_implementation"] = args.cache_implementation
+    generation_kwargs.update(generation_compile_kwargs)
 
     def run_generation_once() -> dict[str, float | int]:
         examples = sum(item["examples"] for item in encoded_batch_stats)
@@ -369,7 +417,9 @@ def main() -> None:
         return measurements
 
     warmup_measurements = [run_generation_once() for _ in range(args.warmup)]
+    compile_observation_after_warmup = observe_generation_compile_state(model)
     generation_measurements = [run_generation_once() for _ in range(args.repeats)]
+    compile_observation_after_measurement = observe_generation_compile_state(model)
     run_phase_once()
     phase_measurements = [run_phase_once() for _ in range(args.phase_repeats)]
     batch_latency_measurements = run_batch_latency_once()
@@ -379,9 +429,11 @@ def main() -> None:
         "candidate": {
             "attention_implementation": args.attention_implementation,
             "mlp_implementation": args.mlp_implementation,
+            "activation_implementation": args.activation_implementation,
             "width_alignment": args.width_alignment,
             "compile_mode": args.compile_mode,
             "cache_implementation": args.cache_implementation,
+            "generation_compile": generation_compile_receipt,
         },
         "contract": {
             "pairs": str(args.pairs),
@@ -406,10 +458,24 @@ def main() -> None:
         "load_receipt": load_receipt,
         "load_seconds": load_seconds,
         "compile_wrap_seconds": compile_wrap_seconds,
+        "generation_compile_observation": {
+            "after_warmup": compile_observation_after_warmup,
+            "after_measurement": compile_observation_after_measurement,
+        },
         "after_load_memory": after_load,
         "warmup_measurements": warmup_measurements,
         "generation_measurements": generation_measurements,
         "phase_measurements": phase_measurements,
+        "phase_measurement_contract": {
+            "execution_path": "manual_model_forward",
+            "cache_implementation": "model_default_dynamic",
+            "generation_compile": "not_used",
+            "note": (
+                "phase metrics do not exercise StaticCache or Transformers "
+                "generation compilation; end-to-end and profiler receipts own "
+                "those candidate settings"
+            ),
+        },
         "batch_latency_measurements": batch_latency_measurements,
         "summary": {
             key: summarize([float(row[key]) for row in generation_measurements])
