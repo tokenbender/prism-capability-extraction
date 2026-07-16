@@ -182,6 +182,18 @@ def load_arithmetic_physical_bundle(
             f"checkpoint floating dtypes do not match {expected_dtype}: "
             f"{dtype_mismatches}"
         )
+    tied_weight_keys = ("model.embed_tokens.weight", "lm_head.weight")
+    if bool(getattr(config, "tie_word_embeddings", False)):
+        missing_tied = [key for key in tied_weight_keys if key not in state]
+        if missing_tied:
+            raise ValueError(
+                f"tied-embedding checkpoint is missing tensors: {missing_tied}"
+            )
+        if not torch.equal(state[tied_weight_keys[0]], state[tied_weight_keys[1]]):
+            raise ValueError(
+                "config requires tied word embeddings but serialized embedding "
+                "and LM-head tensors differ"
+            )
     incompatible = model.load_state_dict(state, strict=True, assign=True)
     if incompatible.missing_keys or incompatible.unexpected_keys:
         raise RuntimeError(
@@ -190,6 +202,12 @@ def load_arithmetic_physical_bundle(
             f"unexpected={incompatible.unexpected_keys}"
         )
     del state
+    # assign=True materializes the two serialized aliases as independent
+    # Parameters. Restore the config-declared tying only after proving the
+    # checkpoint tensors are identical, so parameter accounting and runtime
+    # semantics match the source model without weakening strict loading.
+    if bool(getattr(config, "tie_word_embeddings", False)):
+        model.tie_weights()
     if any(parameter.is_meta for parameter in model.parameters()):
         raise RuntimeError("one or more physical parameters remained on meta")
     canonical_parameters = sum(

@@ -284,6 +284,55 @@ def test_tiny_qwen2_bundle_strict_loads_without_dense_mlps(
     assert standalone_receipt["dense_mlp_allocated"] is False
 
 
+def test_tiny_tied_qwen2_bundle_restores_parameter_alias(
+    tmp_path: Path,
+) -> None:
+    transformers = pytest.importorskip("transformers")
+    pytest.importorskip("accelerate")
+    config = transformers.Qwen2Config(
+        vocab_size=32,
+        hidden_size=8,
+        intermediate_size=6,
+        num_hidden_layers=2,
+        num_attention_heads=2,
+        num_key_value_heads=2,
+        head_dim=4,
+        max_position_embeddings=32,
+        tie_word_embeddings=True,
+    )
+    model = transformers.Qwen2ForCausalLM(config).eval()
+    selected_lists = [[0, 3], [1, 4, 5]]
+    selected = [torch.tensor(values) for values in selected_lists]
+    mask = tmp_path / "mask.npz"
+    _write_mask(mask, selected_lists)
+    output = tmp_path / "physical-tied"
+    metadata = write_physical_bundle(
+        model=model,
+        selected=selected,
+        output=output,
+        source_model="tiny-qwen2-tied-test",
+        source_revision="test",
+        mask_path=mask,
+        candidate_id="tiny-tied",
+        include_scripts=False,
+    )
+
+    loaded, _, receipt = load_arithmetic_physical_bundle(
+        output,
+        device="cpu",
+        restore_tokenizer=False,
+    )
+    assert loaded.model.embed_tokens.weight is loaded.lm_head.weight
+    assert (
+        sum(parameter.numel() for parameter in loaded.parameters())
+        == metadata["physicalization"]["physical_parameters"]
+    )
+    assert (
+        receipt["parameter_accounting"]["canonical_physical_parameters"]
+        == metadata["physicalization"]["physical_parameters"]
+    )
+
+
 def test_parameter_accounting_separates_parameters_and_tensor_bytes() -> None:
     class Tiny(nn.Module):
         def __init__(self):
