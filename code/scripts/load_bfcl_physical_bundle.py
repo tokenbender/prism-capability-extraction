@@ -30,6 +30,9 @@ from bfcl_direct_qwen3 import (
 
 
 SUPPORTED_FORMAT = "qwen_physical_mlp_substrate_v1"
+SUPPORTED_ATTENTION_IMPLEMENTATIONS = ("eager", "sdpa", "flash_attention_2")
+SUPPORTED_MLP_IMPLEMENTATIONS = ("separate", "packed_gate_up")
+SUPPORTED_WIDTH_ALIGNMENTS = (1, 16, 64, 128, 256)
 
 
 def decoder_layers(model: nn.Module) -> nn.ModuleList:
@@ -91,6 +94,251 @@ class PhysicalQwenMLP(nn.Module):
         return self.down_proj(gated)
 
 
+class PackedPhysicalQwenMLP(nn.Module):
+    """Lossless runtime repack with one gate+up projection and aligned widths.
+
+    Checkpoint compatibility deliberately remains the responsibility of
+    :class:`PhysicalQwenMLP`.  This module is only installed after the canonical
+    jagged checkpoint has loaded strictly, so it never changes the serialized
+    bundle contract.  Alignment padding is zero-filled in all three projections.
+    """
+
+    def __init__(self, original: PhysicalQwenMLP, width_alignment: int):
+        super().__init__()
+        if not isinstance(original, PhysicalQwenMLP):
+            raise TypeError(
+                "packed_gate_up requires a strictly loaded PhysicalQwenMLP source"
+            )
+        if width_alignment not in SUPPORTED_WIDTH_ALIGNMENTS:
+            raise ValueError(
+                f"unsupported width alignment {width_alignment}; "
+                f"expected one of {SUPPORTED_WIDTH_ALIGNMENTS}"
+            )
+
+        self.hidden_size = int(original.hidden_size)
+        self.intermediate_size = int(original.intermediate_size)
+        self.width_alignment = int(width_alignment)
+        self.aligned_intermediate_size = (
+            (self.intermediate_size + self.width_alignment - 1)
+            // self.width_alignment
+            * self.width_alignment
+        )
+        self.act_fn = original.act_fn
+        device = original.gate_proj.weight.device
+        dtype = original.gate_proj.weight.dtype
+
+        gate_bias = original.gate_proj.bias is not None
+        up_bias = original.up_proj.bias is not None
+        if gate_bias != up_bias:
+            raise ValueError("gate_proj and up_proj bias layouts do not match")
+        self.gate_up_proj = nn.Linear(
+            original.gate_proj.in_features,
+            2 * self.aligned_intermediate_size,
+            bias=gate_bias,
+            device=device,
+            dtype=dtype,
+        )
+        self.down_proj = nn.Linear(
+            self.aligned_intermediate_size,
+            original.down_proj.out_features,
+            bias=original.down_proj.bias is not None,
+            device=device,
+            dtype=dtype,
+        )
+
+        width = self.intermediate_size
+        aligned = self.aligned_intermediate_size
+        with torch.no_grad():
+            self.gate_up_proj.weight.zero_()
+            self.gate_up_proj.weight[:width].copy_(original.gate_proj.weight)
+            self.gate_up_proj.weight[aligned : aligned + width].copy_(
+                original.up_proj.weight
+            )
+            if self.gate_up_proj.bias is not None:
+                self.gate_up_proj.bias.zero_()
+                self.gate_up_proj.bias[:width].copy_(original.gate_proj.bias)
+                self.gate_up_proj.bias[aligned : aligned + width].copy_(
+                    original.up_proj.bias
+                )
+
+            self.down_proj.weight.zero_()
+            self.down_proj.weight[:, :width].copy_(original.down_proj.weight)
+            if self.down_proj.bias is not None:
+                self.down_proj.bias.copy_(original.down_proj.bias)
+
+    @property
+    def padding_channels(self) -> int:
+        return self.aligned_intermediate_size - self.intermediate_size
+
+    def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
+        gate, up = self.gate_up_proj(hidden_states).chunk(2, dim=-1)
+        return self.down_proj(self.act_fn(gate) * up)
+
+
+def _all_zero(tensor: torch.Tensor) -> bool:
+    return bool(torch.count_nonzero(tensor).item() == 0)
+
+
+def validate_packed_mlp(
+    source: PhysicalQwenMLP,
+    packed: PackedPhysicalQwenMLP,
+) -> dict[str, int | str]:
+    """Prove that a packed module preserves every active tensor exactly."""
+
+    width = source.intermediate_size
+    aligned = packed.aligned_intermediate_size
+    if packed.intermediate_size != width:
+        raise RuntimeError("packed active width differs from its canonical source")
+    exact_pairs = (
+        (packed.gate_up_proj.weight[:width], source.gate_proj.weight, "gate weight"),
+        (
+            packed.gate_up_proj.weight[aligned : aligned + width],
+            source.up_proj.weight,
+            "up weight",
+        ),
+        (packed.down_proj.weight[:, :width], source.down_proj.weight, "down weight"),
+    )
+    for actual, expected, name in exact_pairs:
+        if not torch.equal(actual, expected):
+            raise RuntimeError(f"packed {name} differs from its canonical source")
+
+    source_biases = (source.gate_proj.bias, source.up_proj.bias, source.down_proj.bias)
+    packed_biases = (
+        None if packed.gate_up_proj.bias is None else packed.gate_up_proj.bias[:width],
+        None
+        if packed.gate_up_proj.bias is None
+        else packed.gate_up_proj.bias[aligned : aligned + width],
+        packed.down_proj.bias,
+    )
+    for actual, expected, name in zip(
+        packed_biases,
+        source_biases,
+        ("gate bias", "up bias", "down bias"),
+    ):
+        if (actual is None) != (expected is None):
+            raise RuntimeError(f"packed {name} presence differs from its source")
+        if actual is not None and not torch.equal(actual, expected):
+            raise RuntimeError(f"packed {name} differs from its canonical source")
+
+    if packed.padding_channels:
+        padding_tensors = (
+            packed.gate_up_proj.weight[width:aligned],
+            packed.gate_up_proj.weight[aligned + width :],
+            packed.down_proj.weight[:, width:],
+        )
+        if packed.gate_up_proj.bias is not None:
+            padding_tensors += (
+                packed.gate_up_proj.bias[width:aligned],
+                packed.gate_up_proj.bias[aligned + width :],
+            )
+        if not all(_all_zero(tensor) for tensor in padding_tensors):
+            raise RuntimeError("packed alignment padding is not exactly zero")
+
+    return {
+        "status": "pass",
+        "active_width": width,
+        "aligned_width": aligned,
+        "padding_channels": packed.padding_channels,
+    }
+
+
+def configure_mlp_runtime(
+    model: nn.Module,
+    widths: list[int],
+    *,
+    implementation: str = "separate",
+    width_alignment: int = 1,
+    allow_fallback: bool = False,
+) -> dict[str, Any]:
+    """Optionally repack strictly loaded physical MLPs for runtime throughput."""
+
+    if implementation not in SUPPORTED_MLP_IMPLEMENTATIONS:
+        raise ValueError(
+            f"unsupported MLP implementation {implementation!r}; "
+            f"expected one of {SUPPORTED_MLP_IMPLEMENTATIONS}"
+        )
+    if width_alignment not in SUPPORTED_WIDTH_ALIGNMENTS:
+        raise ValueError(
+            f"unsupported width alignment {width_alignment}; "
+            f"expected one of {SUPPORTED_WIDTH_ALIGNMENTS}"
+        )
+    if implementation == "separate" and width_alignment != 1:
+        raise ValueError("width alignment is only meaningful for packed_gate_up")
+
+    base_receipt: dict[str, Any] = {
+        "requested_implementation": implementation,
+        "active_implementation": "separate",
+        "requested_width_alignment": width_alignment,
+        "active_width_alignment": 1,
+        "fallback_allowed": allow_fallback,
+        "fallback_used": False,
+    }
+    if implementation == "separate":
+        base_receipt["validation"] = {
+            "status": "not_required",
+            "reason": "canonical strictly loaded modules remain active",
+        }
+        return base_receipt
+
+    layers = decoder_layers(model)
+    if len(widths) != len(layers):
+        raise ValueError(f"width count {len(widths)} does not match {len(layers)} layers")
+    replacements: list[PackedPhysicalQwenMLP] = []
+    validations: list[dict[str, int | str]] = []
+    try:
+        for layer, width in zip(layers, widths):
+            source = layer.mlp
+            if not isinstance(source, PhysicalQwenMLP):
+                raise TypeError(
+                    f"expected PhysicalQwenMLP before repack, got {type(source).__name__}"
+                )
+            if source.intermediate_size != width:
+                raise RuntimeError(
+                    f"loaded MLP width {source.intermediate_size} does not match {width}"
+                )
+            packed = PackedPhysicalQwenMLP(source, width_alignment)
+            validations.append(validate_packed_mlp(source, packed))
+            replacements.append(packed)
+    except Exception as exc:
+        if not allow_fallback:
+            raise RuntimeError(
+                "packed_gate_up construction or validation failed; canonical separate "
+                "modules remain active (pass allow_fallback=True to accept fallback)"
+            ) from exc
+        base_receipt.update(
+            {
+                "fallback_used": True,
+                "fallback_reason": f"{type(exc).__name__}: {exc}",
+                "validation": {"status": "fail"},
+            }
+        )
+        return base_receipt
+
+    # Assignment happens only after every replacement passes exact validation,
+    # so failure never leaves a partially repacked model.
+    for layer, replacement in zip(layers, replacements):
+        layer.mlp = replacement
+    aligned_widths = [
+        replacement.aligned_intermediate_size for replacement in replacements
+    ]
+    base_receipt.update(
+        {
+            "active_implementation": "packed_gate_up",
+            "active_width_alignment": width_alignment,
+            "validation": {
+                "status": "pass",
+                "method": "exact_active_tensors_and_zero_padding",
+                "layers": len(validations),
+            },
+            "active_channels": sum(widths),
+            "runtime_channels": sum(aligned_widths),
+            "padding_channels": sum(aligned_widths) - sum(widths),
+            "aligned_per_layer": aligned_widths,
+        }
+    )
+    return base_receipt
+
+
 def read_bundle_metadata(bundle: Path) -> dict[str, Any]:
     metadata_path = bundle / "substrate_metadata.json"
     if not metadata_path.is_file():
@@ -128,6 +376,10 @@ def load_physical_bundle(
     bundle: Path,
     *,
     device: str = "cuda:0",
+    attention_implementation: str = "eager",
+    mlp_implementation: str = "separate",
+    width_alignment: int = 1,
+    allow_mlp_fallback: bool = False,
 ) -> tuple[nn.Module, Any, dict[str, Any]]:
     """Reconstruct a bundle without ever allocating the original dense MLPs."""
 
@@ -136,6 +388,11 @@ def load_physical_bundle(
     from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, GenerationConfig
 
     bundle = bundle.resolve()
+    if attention_implementation not in SUPPORTED_ATTENTION_IMPLEMENTATIONS:
+        raise ValueError(
+            f"unsupported attention implementation {attention_implementation!r}; "
+            f"expected one of {SUPPORTED_ATTENTION_IMPLEMENTATIONS}"
+        )
     metadata = read_bundle_metadata(bundle)
     generation_config_path = bundle / "generation_config.json"
     if not generation_config_path.is_file():
@@ -163,7 +420,7 @@ def load_physical_bundle(
     with init_empty_weights():
         model = AutoModelForCausalLM.from_config(
             config,
-            attn_implementation="eager",
+            attn_implementation=attention_implementation,
         )
         widths = install_physical_mlps(model, metadata)
 
@@ -186,6 +443,21 @@ def load_physical_bundle(
     loaded_dtypes = {parameter.dtype for parameter in model.parameters()}
     if loaded_dtypes != {expected_dtype}:
         raise RuntimeError(f"loaded parameter dtype mismatch: {loaded_dtypes}")
+    del state
+
+    resolved_attention = getattr(model.config, "_attn_implementation", None)
+    if resolved_attention != attention_implementation:
+        raise RuntimeError(
+            "attention implementation did not resolve as requested: "
+            f"{resolved_attention!r} != {attention_implementation!r}"
+        )
+    mlp_runtime = configure_mlp_runtime(
+        model,
+        widths,
+        implementation=mlp_implementation,
+        width_alignment=width_alignment,
+        allow_fallback=allow_mlp_fallback,
+    )
 
     requested = torch.device(device)
     if requested.type == "cuda" and not torch.cuda.is_available():
@@ -215,11 +487,15 @@ def load_physical_bundle(
         "format": metadata["format"],
         "bundle": str(bundle),
         "device": str(requested),
-        "attention_implementation": "eager",
+        "attention_implementation": resolved_attention,
+        "requested_attention_implementation": attention_implementation,
+        "mlp_implementation": mlp_runtime["active_implementation"],
+        "mlp_runtime": mlp_runtime,
         "layers": len(widths),
         "kept_total": sum(widths),
         "kept_per_layer": widths,
         "checkpoint": checkpoint_files[0].name,
+        "canonical_checkpoint_load": {"strict": True, "status": "pass"},
         "parameter_dtype": str(expected_dtype),
         "generation_config_restored": True,
         "tokenizer_fix_mistral_regex": False,
@@ -281,6 +557,10 @@ def evaluate(args: argparse.Namespace) -> None:
     model, tokenizer, load_receipt = load_physical_bundle(
         args.bundle,
         device=args.device,
+        attention_implementation=args.attention_implementation,
+        mlp_implementation=args.mlp_implementation,
+        width_alignment=args.width_alignment,
+        allow_mlp_fallback=args.allow_mlp_fallback,
     )
     if args.device.startswith("cuda"):
         torch.cuda.synchronize()
@@ -380,7 +660,14 @@ def evaluate(args: argparse.Namespace) -> None:
 
 def load_check(args: argparse.Namespace) -> None:
     started = time.perf_counter()
-    model, _, receipt = load_physical_bundle(args.bundle, device=args.device)
+    model, _, receipt = load_physical_bundle(
+        args.bundle,
+        device=args.device,
+        attention_implementation=args.attention_implementation,
+        mlp_implementation=args.mlp_implementation,
+        width_alignment=args.width_alignment,
+        allow_mlp_fallback=args.allow_mlp_fallback,
+    )
     if args.device.startswith("cuda"):
         torch.cuda.set_device(torch.device(args.device))
         torch.cuda.synchronize()
@@ -394,6 +681,30 @@ def load_check(args: argparse.Namespace) -> None:
     print(json.dumps(receipt, indent=2))
 
 
+def add_runtime_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--attention-implementation",
+        choices=SUPPORTED_ATTENTION_IMPLEMENTATIONS,
+        default="eager",
+    )
+    parser.add_argument(
+        "--mlp-implementation",
+        choices=SUPPORTED_MLP_IMPLEMENTATIONS,
+        default="separate",
+    )
+    parser.add_argument(
+        "--width-alignment",
+        type=int,
+        choices=SUPPORTED_WIDTH_ALIGNMENTS,
+        default=1,
+    )
+    parser.add_argument(
+        "--allow-mlp-fallback",
+        action="store_true",
+        help="keep the canonical separate MLPs if packed construction fails",
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -401,6 +712,7 @@ def main() -> None:
     check = subparsers.add_parser("load-check", help="strictly reconstruct the bundle")
     check.add_argument("--bundle", type=Path, required=True)
     check.add_argument("--device", default="cuda:0")
+    add_runtime_arguments(check)
     check.set_defaults(func=load_check)
 
     evaluate_parser = subparsers.add_parser("eval", help="run the frozen direct BFCL scorer")
@@ -417,6 +729,7 @@ def main() -> None:
     evaluate_parser.add_argument("--enable-thinking", action="store_true")
     evaluate_parser.add_argument("--bfcl-canonicalization-prompt", action="store_true")
     evaluate_parser.add_argument("--normalized", action="store_true")
+    add_runtime_arguments(evaluate_parser)
     evaluate_parser.set_defaults(func=evaluate)
 
     args = parser.parse_args()
