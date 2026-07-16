@@ -1,0 +1,431 @@
+{
+  "status": "complete",
+  "principle": "failed, slower, incompatible, or numerically qualified lanes are retained instead of promoted",
+  "results": [
+    {
+      "family": "outer torch.compile reduce-overhead",
+      "outcome": "failed",
+      "reason": "CUDA graph output overwrite on jagged full-model generation",
+      "exit_code": 1,
+      "error_tail": [
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py\", line 410, in forward",
+        "    hidden_states = decoder_layer(",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/modeling_layers.py\", line 94, in __call__",
+        "    return super().__call__(*args, **kwargs)",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/utils/deprecation.py\", line 172, in wrapped_func",
+        "    return func(*args, **kwargs)",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py\", line 260, in forward",
+        "    hidden_states, _ = self.self_attn(",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/utils/deprecation.py\", line 172, in wrapped_func",
+        "    return func(*args, **kwargs)",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py\", line 210, in forward",
+        "    key_states, value_states = past_key_values.update(key_states, value_states, self.layer_idx, cache_kwargs)",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/cache_utils.py\", line 776, in update",
+        "    keys, values = self.layers[layer_idx].update(key_states, value_states, cache_kwargs)",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/cache_utils.py\", line 119, in update",
+        "    self.keys = torch.cat([self.keys, key_states], dim=-2). To prevent overwriting, clone the tensor outside of torch.compile() or call torch.compiler.cudagraph_mark_step_begin() before each model invocation."
+      ]
+    },
+    {
+      "family": "outer torch.compile max-autotune-no-cudagraphs",
+      "outcome": "pruned",
+      "reason": "bounded jagged-shape autotuning did not reach a credible end-to-end candidate",
+      "exit_code": 143,
+      "error_tail": [
+        "Autotune Choices Stats:",
+        "{\"num_choices\": 19, \"num_triton_choices\": 18, \"best_kernel\": \"triton_mm_9670\", \"best_kernel_desc\": \"ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=128, BLOCK_M=16, BLOCK_N=32, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=5, num_warps=2\", \"best_time\": 0.20345599949359894, \"best_triton_pos\": 0}",
+        "AUTOTUNE mm(8x4096, 4096x151936)",
+        "strides: [4096, 1], [1, 4096]",
+        "dtypes: torch.bfloat16, torch.bfloat16",
+        "  triton_mm_9670 0.2035 ms 100.0% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=128, BLOCK_M=16, BLOCK_N=32, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=5, num_warps=2",
+        "  triton_mm_9674 0.2050 ms 99.3% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=128, BLOCK_M=16, BLOCK_N=64, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=5, num_warps=4",
+        "  triton_mm_9678 0.2057 ms 98.9% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=128, BLOCK_M=16, BLOCK_N=128, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=4, num_warps=4",
+        "  triton_mm_9667 0.2060 ms 98.8% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=128, BLOCK_M=16, BLOCK_N=32, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=2, num_warps=2",
+        "  triton_mm_9683 0.2076 ms 98.0% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=128, BLOCK_M=16, BLOCK_N=128, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=4, num_warps=8",
+        "  mm 0.2202 ms 92.4% ",
+        "  triton_mm_9682 0.2239 ms 90.9% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=64, BLOCK_M=16, BLOCK_N=128, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=5, num_warps=8",
+        "  triton_mm_9673 0.2262 ms 90.0% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=64, BLOCK_M=16, BLOCK_N=64, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=3, num_warps=4",
+        "  triton_mm_9677 0.2285 ms 89.0% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=64, BLOCK_M=16, BLOCK_N=128, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=3, num_warps=4",
+        "  triton_mm_9668 0.2363 ms 86.1% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=32, BLOCK_M=16, BLOCK_N=64, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=5, num_warps=4",
+        "SingleProcess AUTOTUNE benchmarking takes 0.6691 seconds and 0.0002 seconds precompiling for 19 choices"
+      ]
+    },
+    {
+      "family": "FlashInfer BF16 fused lane",
+      "outcome": "incompatible",
+      "receipt": {
+        "status": "pruned_before_kernel_execution",
+        "recorded_at_utc": "2026-07-16T05:21:53Z",
+        "pod_huid": "swift-hawk-c7",
+        "physical_gpu": 6,
+        "gpu": "NVIDIA B200",
+        "versions_after_alignment": {
+          "flashinfer-python": "0.6.14",
+          "ninja": "1.13.0",
+          "nvidia-cuda-nvcc": "13.0.88",
+          "nvidia-nvvm": "13.0.88",
+          "torch": "2.12.0+cu130",
+          "torch_cuda": "13.0"
+        },
+        "cuda_home": "/usr/local/lib/python3.12/dist-packages/nvidia/cu13",
+        "reversible_cuda_links": {
+          "bin": "<experiment-root>/venv/lib/python3.12/site-packages/nvidia/cu13/bin",
+          "nvvm": "<experiment-root>/venv/lib/python3.12/site-packages/nvidia/cu13/nvvm"
+        },
+        "initial_negative_receipt": {
+          "path": "<experiment-root>/outputs/flashinfer_microbench.initial_nvcc_missing.json",
+          "sha256": "37d02540b83cff74f9116421101cf3621af80822948bfbee31d7b3e826f0f383"
+        },
+        "attempts": [
+          {
+            "stage": "jit_launcher",
+            "result": "failed",
+            "error": "FileNotFoundError: ninja",
+            "resolution": "The installed ninja 1.13.0 executable was exposed by prepending <experiment-root>/venv/bin to PATH."
+          },
+          {
+            "stage": "cuda_compile",
+            "result": "failed",
+            "error": "ptxas fatal: Unsupported .version 9.3; current version is 9.0",
+            "cause": "nvidia-nvvm 13.3.73 was mixed with nvcc and ptxas 13.0.88.",
+            "resolution": "Pinned the task-local nvidia-nvvm package to 13.0.88."
+          },
+          {
+            "stage": "cuda_link",
+            "result": "failed",
+            "compile_result": "The CUDA source compiled successfully after the NVVM pin.",
+            "error": "/usr/bin/ld: cannot find -lcudart, -lcublas, or -lcublasLt",
+            "cause": "FlashInfer emitted -L$CUDA_HOME/lib64 and unversioned -l names, but this pip-style CUDA root exposes libraries under lib and only versioned shared-object names."
+          }
+        ],
+        "requested_smoke": {
+          "mm_backend": "cublaslt",
+          "shape": {
+            "m": 8,
+            "k": 4096,
+            "n": 1210,
+            "jagged_width": 605
+          },
+          "mm_executed": false,
+          "silu_and_mul_executed": false
+        },
+        "representative_microbenchmark_executed": false,
+        "recommendation": "prune_on_current_image_setup"
+      }
+    },
+    {
+      "family": "Transformers flash_attention_2 selector",
+      "outcome": "incompatible",
+      "reason": "installed FlashAttention-4 beta metadata did not satisfy the FA2 integration selector",
+      "exit_code": 1,
+      "error_tail": [
+        "    applicable_attn_implementation = self.get_correct_attn_implementation(",
+        "                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/modeling_utils.py\", line 2714, in get_correct_attn_implementation",
+        "    self._flash_attn_2_can_dispatch(is_init_check)",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/modeling_utils.py\", line 2425, in _flash_attn_2_can_dispatch",
+        "    flash_attention_version = version.parse(importlib.metadata.version(\"flash_attn\"))",
+        "                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/usr/lib/python3.12/importlib/metadata/__init__.py\", line 889, in version",
+        "    return distribution(distribution_name).version",
+        "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/usr/lib/python3.12/importlib/metadata/__init__.py\", line 862, in distribution",
+        "    return Distribution.from_name(distribution_name)",
+        "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/usr/lib/python3.12/importlib/metadata/__init__.py\", line 399, in from_name",
+        "    raise PackageNotFoundError(name)",
+        "importlib.metadata.PackageNotFoundError: No package metadata was found for flash_attn"
+      ]
+    },
+    {
+      "family": "always-on Triton SiLU multiply",
+      "outcome": "slower end-to-end",
+      "accepted_tokens_per_second": 603.7530345265067,
+      "dynamic_torch_accepted_tokens_per_second": 624.4276432594573,
+      "microbenchmark": {
+        "planned_shape_dtype_cases": 324,
+        "torch_measured_cases": 322,
+        "triton_measured_cases": 322,
+        "skipped_cases": 2,
+        "skip_reasons": {
+          "estimated_peak_live_elements_exceed_max": 2
+        },
+        "triton_statuses": {
+          "measured": 322
+        },
+        "torch_shape_median_latency_milliseconds": {
+          "count": 322,
+          "mean": 0.028555776429310533,
+          "median": 0.02611199952661991,
+          "p95": 0.04825759893283247,
+          "min": 0.024288000538945198,
+          "max": 0.07142399996519089
+        },
+        "triton_shape_median_latency_milliseconds": {
+          "count": 322,
+          "mean": 0.027582757733183805,
+          "median": 0.02659199945628643,
+          "p95": 0.033904001116752625,
+          "min": 0.025472000241279602,
+          "max": 0.03492800146341324
+        },
+        "triton_speedup_across_shapes": {
+          "count": 322,
+          "mean": 1.023528016911116,
+          "median": 0.9795119359231461,
+          "p95": 1.4260332636505424,
+          "min": 0.8889524460411328,
+          "max": 2.106855722944089
+        },
+        "accuracy": {
+          "total_elements": 532852736,
+          "exact_elements": 532847900,
+          "exact_element_fraction": 0.9999909243217248,
+          "finite_error_elements": 532852736,
+          "all_errors_finite": true,
+          "max_abs_error": 0.00048828125,
+          "mean_abs_error": 9.290815939879362e-10
+        }
+      },
+      "large_prefill_microbenchmark": {
+        "planned_shape_dtype_cases": 54,
+        "torch_measured_cases": 54,
+        "triton_measured_cases": 54,
+        "skipped_cases": 0,
+        "skip_reasons": {},
+        "triton_statuses": {
+          "measured": 54
+        },
+        "torch_shape_median_latency_milliseconds": {
+          "count": 54,
+          "mean": 0.3999528880748484,
+          "median": 0.24635200202465057,
+          "p95": 0.9443719938397407,
+          "min": 0.03566399961709976,
+          "max": 1.4715359807014465
+        },
+        "triton_shape_median_latency_milliseconds": {
+          "count": 54,
+          "mean": 0.16972799995845114,
+          "median": 0.10425599850714207,
+          "p95": 0.39654479920864105,
+          "min": 0.03403199836611748,
+          "max": 0.6168320178985596
+        },
+        "triton_speedup_across_shapes": {
+          "count": 54,
+          "mean": 2.2697062089980085,
+          "median": 2.3669872434825847,
+          "p95": 2.4141400380687688,
+          "min": 1.0396454979741345,
+          "max": 2.4150425485476736
+        },
+        "accuracy": {
+          "total_elements": 4278190080,
+          "exact_elements": 4278190080,
+          "exact_element_fraction": 1.0,
+          "finite_error_elements": 4278190080,
+          "all_errors_finite": true,
+          "max_abs_error": 0.0,
+          "mean_abs_error": 0.0
+        }
+      },
+      "decision": "retain Triton only behind the large-row hybrid dispatcher"
+    },
+    {
+      "family": "StaticCache with generation compile disabled",
+      "outcome": "slower than compiled StaticCache",
+      "accepted_tokens_per_second": 525.439672736725,
+      "repeats": 1
+    },
+    {
+      "family": "dynamic SDPA packed pad-128 batch 128",
+      "outcome": "pruned after full-workload expansion",
+      "reason": "the 256-example screen was not representative of the fixed 1007-example workload",
+      "screen_examples": 256,
+      "screen_accepted_tokens_per_second": 1006.8186124838885,
+      "full_workload_examples": 1007,
+      "full_workload_accepted_tokens_per_second": 610.7114985720989,
+      "full_workload_repeats": 1,
+      "receipt": "benchmarks/sdpa_packed128_dynamic_b128_full_r1.json"
+    },
+    {
+      "family": "batch 256 and larger",
+      "outcome": "pruned",
+      "reason": "eager variants OOM; padding inflation made the surviving SDPA screen slower; batch 512 was not attempted",
+      "eager_exit_code": 1,
+      "error_tail": [
+        "  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
+        "    return forward_call(*args, **kwargs)",
+        "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/utils/deprecation.py\", line 172, in wrapped_func",
+        "    return func(*args, **kwargs)",
+        "           ^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py\", line 216, in forward",
+        "    attn_output, attn_weights = attention_interface(",
+        "                                ^^^^^^^^^^^^^^^^^^^^",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py\", line 150, in eager_attention_forward",
+        "    attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query.dtype)",
+        "                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/functional.py\", line 2161, in softmax",
+        "    ret = input.softmax(dim, dtype=dtype)",
+        "          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 26.62 GiB. GPU 0 has a total capacity of 178.34 GiB of which 12.61 GiB is free. Including non-PyTorch memory, this process has 165.72 GiB memory in use. Of the allocated memory 106.01 GiB is allocated by PyTorch, and 58.94 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)"
+      ]
+    },
+    {
+      "family": "pad-256 packed width",
+      "outcome": "quality-qualified and not promoted",
+      "reason": "smoke prediction drift without a compensating end-to-end win over pad-128",
+      "smoke_summary": {
+        "status": "fail",
+        "examples": 24,
+        "raw_exact_correct": 16,
+        "raw_exact_accuracy": 0.6666666666666666,
+        "normalized_exact_correct": 16,
+        "normalized_exact_accuracy": 0.6666666666666666,
+        "reported_metric": "normalized_exact",
+        "load_seconds": 14.416450697230175,
+        "evaluation_seconds": 7.657381440978497,
+        "batch_size": 8,
+        "max_new_tokens": 512,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "pairs": "<experiment-root>/smoke_pairs.jsonl",
+        "output": "<experiment-root>/outputs/smoke_eager_packed256.jsonl",
+        "load_receipt": {
+          "format": "qwen_physical_mlp_substrate_v1",
+          "bundle": "<experiment-root>/bundle",
+          "device": "cuda:0",
+          "attention_implementation": "eager",
+          "requested_attention_implementation": "eager",
+          "mlp_implementation": "packed_gate_up",
+          "mlp_runtime": {
+            "requested_implementation": "packed_gate_up",
+            "active_implementation": "packed_gate_up",
+            "requested_width_alignment": 256,
+            "active_width_alignment": 256,
+            "fallback_allowed": false,
+            "fallback_used": false,
+            "validation": {
+              "status": "pass",
+              "method": "exact_active_tensors_and_zero_padding",
+              "layers": 36
+            },
+            "active_channels": 140875,
+            "runtime_channels": 144384,
+            "padding_channels": 3509,
+            "aligned_per_layer": [
+              9216,
+              768,
+              1024,
+              1280,
+              2304,
+              3328,
+              2816,
+              3328,
+              4352,
+              4864,
+              4864,
+              4864,
+              4608,
+              5632,
+              6400,
+              6400,
+              5888,
+              5632,
+              5376,
+              5376,
+              5632,
+              5888,
+              5632,
+              5120,
+              4352,
+              3840,
+              3328,
+              2816,
+              2560,
+              2304,
+              2048,
+              2048,
+              1792,
+              2304,
+              3328,
+              3072
+            ]
+          },
+          "layers": 36,
+          "kept_total": 140875,
+          "kept_per_layer": [
+            9087,
+            605,
+            885,
+            1179,
+            2252,
+            3318,
+            2757,
+            3095,
+            4300,
+            4678,
+            4693,
+            4792,
+            4549,
+            5539,
+            6348,
+            6380,
+            5875,
+            5499,
+            5339,
+            5218,
+            5603,
+            5658,
+            5582,
+            5008,
+            4262,
+            3822,
+            3092,
+            2788,
+            2542,
+            2141,
+            1961,
+            1842,
+            1753,
+            2246,
+            3194,
+            2993
+          ],
+          "checkpoint": "model.safetensors",
+          "canonical_checkpoint_load": {
+            "strict": true,
+            "status": "pass"
+          },
+          "parameter_dtype": "torch.bfloat16",
+          "generation_config_restored": true,
+          "tokenizer_fix_mistral_regex": false
+        },
+        "reference_parity": {
+          "status": "fail",
+          "reference_predictions": "<experiment-root>/smoke_predictions.public.jsonl",
+          "examples": 24,
+          "field_diff_counts": {
+            "prediction_text": 1,
+            "prediction_calls": 1,
+            "raw_correct": 1,
+            "normalized_correct": 1
+          },
+          "differing_ids": [
+            "javascript_2"
+          ]
+        },
+        "peak_allocated_bytes": 10813301760,
+        "peak_reserved_bytes": 11718885376
+      }
+    },
+    {
+      "family": "native vLLM or SGLang physical-Qwen runner",
+      "outcome": "deferred",
+      "reason": "stock global intermediate_size cannot represent 36 jagged widths; matching engine environment and out-of-tree model work is tracked in #21",
+      "counted_as_measured_family": false
+    }
+  ]
+}

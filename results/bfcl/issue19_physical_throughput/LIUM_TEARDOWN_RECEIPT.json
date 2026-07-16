@@ -1,0 +1,24 @@
+{
+  "status": "pending_results_preservation_push",
+  "pod": {
+    "huid": "swift-hawk-c7",
+    "id": "60379f13-8983-4f79-b916-a0e0cb54419d",
+    "name": "prism-bfcl-kernel-throughput-v1",
+    "executor_huid": "lunar-lion-90",
+    "gpu_type": "NVIDIA B200",
+    "gpu_count": 8,
+    "created_at": "2026-07-16T04:51:20.854383Z",
+    "scheduled_removal_at": "2026-07-16T10:51:06.182782Z"
+  },
+  "pre_teardown": {
+    "checked_at": "2026-07-16T07:36:10Z",
+    "pod_status": "RUNNING",
+    "active_gpu_processes": 0,
+    "active_lium_pods": [
+      "swift-hawk-c7"
+    ],
+    "credential_preflight": "pass; no W&B, Hugging Face, or ModelScope credential copied to the task pod"
+  },
+  "teardown_gate": "remove only after the result evidence commit is pushed and verified on the issue19-physical-throughput branch",
+  "scope": "Only swift-hawk-c7 is task-owned; no other pod is authorized for modification."
+}

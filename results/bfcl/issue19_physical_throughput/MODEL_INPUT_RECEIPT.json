@@ -1,0 +1,21 @@
+{
+  "status": "verified",
+  "modelscope": {
+    "repo": "tokenbender/prism-bfcl-mace-140875-physical-restricted-v2",
+    "revision": "master",
+    "visibility": "private",
+    "authority": "Issue #18 MODELSCOPE_RECEIPT.json plus immutable model hash",
+    "receipt": "results/bfcl/issue18_physical_mace_v1/MODELSCOPE_RECEIPT.json"
+  },
+  "model_sha256": "d0e78a244b01e0d0cce027f9bc65cea304315f522dc4359de2fc9fc4b5f2fb64",
+  "huggingface_data": {
+    "repo": "Occupying-Mars/issue49-bfcl-repro-artifacts",
+    "revision": "303db0bddcfb04bebaf07ab4a4dc4c089240c545",
+    "pair_file_sha256": "f5466f7d1c17744bcfc2b6bc1e1647e2095c98762e5afd6fe7641dfcb6c1276e"
+  },
+  "credentials": {
+    "modelscope_transient_copy_removed_from_pod": true,
+    "wandb_credential_moved_to_pod": false,
+    "credentials_committed": false
+  }
+}

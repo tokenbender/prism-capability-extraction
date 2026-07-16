@@ -12,7 +12,8 @@
     "description": "camera-ready code and evidence index; physical BFCL weights remain private pending provenance completion",
     "primary_experiment_families": [
       "arithmetic capability extraction",
-      "physical BFCL/function-calling substrate extraction"
+      "physical BFCL/function-calling substrate extraction",
+      "quality-gated physical BFCL runtime optimization"
     ],
     "historical_non_primary_families": [
       "EN-PT translation rescue",
@@ -47,6 +48,17 @@
       "clean_v1_status": "blocked_signed_storage_signature_mismatch",
       "receipt": "results/bfcl/issue18_physical_mace_v1/WANDB_RECEIPT.json",
       "residual": "results/bfcl/issue18_physical_mace_v1/WANDB_STORAGE_RESIDUAL.json"
+    },
+    {
+      "name": "Issue #19 physical BFCL B200 throughput",
+      "path": "ahm-rimer/prism-bfcl/issue19-winner-verification-8755cf4",
+      "url": "https://wandb.ai/ahm-rimer/prism-bfcl/runs/issue19-winner-verification-8755cf4",
+      "group": "issue19-physical-throughput",
+      "artifact": "ahm-rimer/prism-bfcl/issue19-physical-throughput-evidence:v0",
+      "artifact_digest": "6277f72b33e9998d41b679369f37f2d6",
+      "run_state": "finished",
+      "artifact_status": "verified_uploaded",
+      "receipt": "results/bfcl/issue19_physical_throughput/WANDB_RECEIPT.json"
     }
   ],
   "huggingface_artifacts": [
@@ -187,6 +199,45 @@
         "W&B ahm-rimer/prism-bfcl/bfcl_physical_mace_k140875_v1"
       ],
       "artifact_status": "physical_experiment_and_private_preservation_complete_public_release_blocked"
+    },
+    {
+      "claim": "Quality-gated physical BFCL runtime reaches 989.097 accepted tokens/s on one B200",
+      "claim_status": "bounded_runtime_result_private_input_artifact_verified",
+      "paper_result": "989.097 median accepted generated tokens/s over five repeats; +270.33% versus the canonical quality-valid eager/separate physical baseline; 600/1007 normalized and 587/1007 raw exact",
+      "claim_boundary": "fastest tested setup for the frozen 1007-row workload, one physical artifact, one B200, and the recorded software stack; not a universal serving speedup",
+      "included_receipts": [
+        "results/bfcl/issue19_physical_throughput/README.md",
+        "results/bfcl/issue19_physical_throughput/selection.json",
+        "results/bfcl/issue19_physical_throughput/benchmarks/comparison.json",
+        "results/bfcl/issue19_physical_throughput/benchmarks/sdpa_packed128_dynamic_b128_full_r1.json",
+        "results/bfcl/issue19_physical_throughput/benchmarks/static_torch_finalist_b64_r5.json",
+        "results/bfcl/issue19_physical_throughput/benchmarks/winner_hybrid_static_b64_r5.json",
+        "results/bfcl/issue19_physical_throughput/benchmarks/winner_phase_r3.json",
+        "results/bfcl/issue19_physical_throughput/evaluation/winner_summary.json",
+        "results/bfcl/issue19_physical_throughput/evaluation/winner_vs_primary_baseline_diff_summary.json",
+        "results/bfcl/issue19_physical_throughput/profiling/winner.json",
+        "results/bfcl/issue19_physical_throughput/negative_results.json",
+        "results/bfcl/issue19_physical_throughput/SERVING_RUNTIME_AUDIT.md",
+        "results/bfcl/issue19_physical_throughput/MODEL_INPUT_RECEIPT.json",
+        "results/bfcl/issue19_physical_throughput/WANDB_RECEIPT.json",
+        "results/bfcl/issue19_physical_throughput/LOCAL_ARCHIVE_RECEIPT.json",
+        "results/bfcl/issue19_physical_throughput/LIUM_TEARDOWN_RECEIPT.json",
+        "results/bfcl/issue19_physical_throughput/REMOTE_MANIFEST.json",
+        "results/bfcl/issue19_physical_throughput/SHA256SUMS"
+      ],
+      "code": [
+        "code/scripts/load_bfcl_physical_bundle.py",
+        "code/scripts/triton_silu_mul.py",
+        "code/scripts/benchmark_bfcl_silu_mul.py",
+        "code/scripts/benchmark_bfcl_physical_throughput.py",
+        "code/scripts/profile_bfcl_physical_runtime.py",
+        "code/scripts/compare_bfcl_physical_throughput.py"
+      ],
+      "external_artifacts": [
+        "private ModelScope tokenbender/prism-bfcl-mace-140875-physical-restricted-v2",
+        "W&B ahm-rimer/prism-bfcl/issue19-physical-throughput-evidence:v0"
+      ],
+      "artifact_status": "benchmark_quality_profile_wandb_and_local_preservation_complete_executor_teardown_pending"
     },
     {
       "claim": "Historical provenance: function calling improves at fixed k160 substrate",

@@ -1,0 +1,41 @@
+{
+  "status": "verified",
+  "entity": "ahm-rimer",
+  "project": "prism-bfcl",
+  "group": "issue19-physical-throughput",
+  "runs": [
+    {
+      "id": "issue19-kernel-sweep-8755cf4",
+      "path": "ahm-rimer/prism-bfcl/issue19-kernel-sweep-8755cf4",
+      "url": "https://wandb.ai/ahm-rimer/prism-bfcl/runs/issue19-kernel-sweep-8755cf4",
+      "job_type": "kernel-sweep",
+      "state": "finished",
+      "group": "issue19-physical-throughput"
+    },
+    {
+      "id": "issue19-finalist-benchmark-8755cf4",
+      "path": "ahm-rimer/prism-bfcl/issue19-finalist-benchmark-8755cf4",
+      "url": "https://wandb.ai/ahm-rimer/prism-bfcl/runs/issue19-finalist-benchmark-8755cf4",
+      "job_type": "finalist-benchmark",
+      "state": "finished",
+      "group": "issue19-physical-throughput"
+    },
+    {
+      "id": "issue19-winner-verification-8755cf4",
+      "path": "ahm-rimer/prism-bfcl/issue19-winner-verification-8755cf4",
+      "url": "https://wandb.ai/ahm-rimer/prism-bfcl/runs/issue19-winner-verification-8755cf4",
+      "job_type": "winner-verification",
+      "state": "finished",
+      "group": "issue19-physical-throughput"
+    }
+  ],
+  "artifact": {
+    "status": "uploaded",
+    "name": "issue19-physical-throughput-evidence:v0",
+    "qualified_name": "ahm-rimer/prism-bfcl/issue19-physical-throughput-evidence:v0",
+    "version": "v0",
+    "digest": "6277f72b33e9998d41b679369f37f2d6",
+    "file_count": 11
+  },
+  "credentials": "local netrc only; no credential copied to the task pod or receipt"
+}

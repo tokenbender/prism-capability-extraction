@@ -1,0 +1,3093 @@
+{
+  "status": "complete",
+  "scope": "cheap full-model candidate and batch sweep on task-owned B200 GPUs",
+  "candidate_count": 50,
+  "rows": [
+    {
+      "name": "stage1_compile_max_packed64_b8",
+      "status": "failed",
+      "exit_code": 143,
+      "error_tail": [
+        "Autotune Choices Stats:",
+        "{\"num_choices\": 19, \"num_triton_choices\": 18, \"best_kernel\": \"triton_mm_9670\", \"best_kernel_desc\": \"ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=128, BLOCK_M=16, BLOCK_N=32, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=5, num_warps=2\", \"best_time\": 0.20345599949359894, \"best_triton_pos\": 0}",
+        "AUTOTUNE mm(8x4096, 4096x151936)",
+        "strides: [4096, 1], [1, 4096]",
+        "dtypes: torch.bfloat16, torch.bfloat16",
+        "  triton_mm_9670 0.2035 ms 100.0% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=128, BLOCK_M=16, BLOCK_N=32, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=5, num_warps=2",
+        "  triton_mm_9674 0.2050 ms 99.3% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=128, BLOCK_M=16, BLOCK_N=64, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=5, num_warps=4",
+        "  triton_mm_9678 0.2057 ms 98.9% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=128, BLOCK_M=16, BLOCK_N=128, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=4, num_warps=4",
+        "  triton_mm_9667 0.2060 ms 98.8% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=128, BLOCK_M=16, BLOCK_N=32, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=2, num_warps=2",
+        "  triton_mm_9683 0.2076 ms 98.0% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=128, BLOCK_M=16, BLOCK_N=128, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=4, num_warps=8",
+        "  mm 0.2202 ms 92.4% ",
+        "  triton_mm_9682 0.2239 ms 90.9% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=64, BLOCK_M=16, BLOCK_N=128, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=5, num_warps=8",
+        "  triton_mm_9673 0.2262 ms 90.0% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=64, BLOCK_M=16, BLOCK_N=64, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=3, num_warps=4",
+        "  triton_mm_9677 0.2285 ms 89.0% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=64, BLOCK_M=16, BLOCK_N=128, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=3, num_warps=4",
+        "  triton_mm_9668 0.2363 ms 86.1% ACC_TYPE='tl.float32', ALLOW_TF32=False, BLOCK_K=32, BLOCK_M=16, BLOCK_N=64, EVEN_K=True, GROUP_M=8, OUT_DTYPE='tl.bfloat16', USE_FAST_ACCUM=False, num_stages=5, num_warps=4",
+        "SingleProcess AUTOTUNE benchmarking takes 0.6691 seconds and 0.0002 seconds precompiling for 19 choices"
+      ],
+      "log_sha256": "dd2a2965d679066231be13c3d5f112649d968c53fb3a4852f0df7115c3c7258e"
+    },
+    {
+      "name": "stage1_compile_reduce_packed64_b8",
+      "status": "failed",
+      "exit_code": 1,
+      "error_tail": [
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py\", line 410, in forward",
+        "    hidden_states = decoder_layer(",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/modeling_layers.py\", line 94, in __call__",
+        "    return super().__call__(*args, **kwargs)",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/utils/deprecation.py\", line 172, in wrapped_func",
+        "    return func(*args, **kwargs)",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py\", line 260, in forward",
+        "    hidden_states, _ = self.self_attn(",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/utils/deprecation.py\", line 172, in wrapped_func",
+        "    return func(*args, **kwargs)",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py\", line 210, in forward",
+        "    key_states, value_states = past_key_values.update(key_states, value_states, self.layer_idx, cache_kwargs)",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/cache_utils.py\", line 776, in update",
+        "    keys, values = self.layers[layer_idx].update(key_states, value_states, cache_kwargs)",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/cache_utils.py\", line 119, in update",
+        "    self.keys = torch.cat([self.keys, key_states], dim=-2). To prevent overwriting, clone the tensor outside of torch.compile() or call torch.compiler.cudagraph_mark_step_begin() before each model invocation."
+      ],
+      "log_sha256": "0b96620fe8f1c43752a59b58df2930945fa92458d7273b2db583df6529d35349"
+    },
+    {
+      "name": "stage1_eager_packed128_b1",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 1,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 29.991968411561352,
+        "median": 29.991968411561352,
+        "min": 29.991968411561352,
+        "max": 29.991968411561352,
+        "p95": 29.991968411561352,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 29.991968411561352,
+        "median": 29.991968411561352,
+        "min": 29.991968411561352,
+        "max": 29.991968411561352,
+        "p95": 29.991968411561352,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 0.8071850203279758,
+        "median": 0.8071850203279758,
+        "min": 0.8071850203279758,
+        "max": 0.8071850203279758,
+        "p95": 0.8071850203279758,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 79.287893590983,
+        "median": 79.287893590983,
+        "min": 79.287893590983,
+        "max": 79.287893590983,
+        "p95": 79.287893590983,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9285144064.0,
+        "median": 9285144064.0,
+        "min": 9285144064.0,
+        "max": 9285144064.0,
+        "p95": 9285144064.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "f02067b46b6cd91af3a572e77d5d1bab42b0375473fcb297340821cbd6cb0870"
+    },
+    {
+      "name": "stage1_eager_packed128_b128",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 256,
+        "batch_size": 128,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 785.3597108687757,
+        "median": 785.3597108687757,
+        "min": 785.3597108687757,
+        "max": 785.3597108687757,
+        "p95": 785.3597108687757,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 1541.7506108144166,
+        "median": 1541.7506108144166,
+        "min": 1541.7506108144166,
+        "max": 1541.7506108144166,
+        "p95": 1541.7506108144166,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 19.515830516638186,
+        "median": 19.515830516638186,
+        "min": 19.515830516638186,
+        "max": 19.515830516638186,
+        "p95": 19.515830516638186,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 13.117556015960872,
+        "median": 13.117556015960872,
+        "min": 13.117556015960872,
+        "max": 13.117556015960872,
+        "p95": 13.117556015960872,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 37454205952.0,
+        "median": 37454205952.0,
+        "min": 37454205952.0,
+        "max": 37454205952.0,
+        "p95": 37454205952.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "520384970ad7d68d21c88a2baa047897de35549014be3f6f0b5e2d8635ec4e1f"
+    },
+    {
+      "name": "stage1_eager_packed128_b16",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 16,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 400.5302917950175,
+        "median": 400.5302917950175,
+        "min": 400.5302917950175,
+        "max": 400.5302917950175,
+        "p95": 400.5302917950175,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 532.9245503866844,
+        "median": 532.9245503866844,
+        "min": 532.9245503866844,
+        "max": 532.9245503866844,
+        "p95": 532.9245503866844,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 10.712051264053958,
+        "median": 10.712051264053958,
+        "min": 10.712051264053958,
+        "max": 10.712051264053958,
+        "p95": 10.712051264053958,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 5.974579324014485,
+        "median": 5.974579324014485,
+        "min": 5.974579324014485,
+        "max": 5.974579324014485,
+        "p95": 5.974579324014485,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 12609552384.0,
+        "median": 12609552384.0,
+        "min": 12609552384.0,
+        "max": 12609552384.0,
+        "p95": 12609552384.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "f0a71fcaddccd1698ec9b3d7a119723dfb1daa42166345d2237cca1f5add8135"
+    },
+    {
+      "name": "stage1_eager_packed128_b2",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 2,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 61.084992576300536,
+        "median": 61.084992576300536,
+        "min": 61.084992576300536,
+        "max": 61.084992576300536,
+        "p95": 61.084992576300536,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 66.27387756385845,
+        "median": 66.27387756385845,
+        "min": 66.27387756385845,
+        "max": 66.27387756385845,
+        "p95": 66.27387756385845,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 1.644003164374783,
+        "median": 1.644003164374783,
+        "min": 1.644003164374783,
+        "max": 1.644003164374783,
+        "p95": 1.644003164374783,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 38.929365457966924,
+        "median": 38.929365457966924,
+        "min": 38.929365457966924,
+        "max": 38.929365457966924,
+        "p95": 38.929365457966924,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9528665088.0,
+        "median": 9528665088.0,
+        "min": 9528665088.0,
+        "max": 9528665088.0,
+        "p95": 9528665088.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "76dac21eaddde09dcf4b645b861a413f7f6e76e6261a3622c7c79e7a83d8902e"
+    },
+    {
+      "name": "stage1_eager_packed128_b256",
+      "status": "failed",
+      "exit_code": 1,
+      "error_tail": [
+        "  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
+        "    return forward_call(*args, **kwargs)",
+        "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/utils/deprecation.py\", line 172, in wrapped_func",
+        "    return func(*args, **kwargs)",
+        "           ^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py\", line 216, in forward",
+        "    attn_output, attn_weights = attention_interface(",
+        "                                ^^^^^^^^^^^^^^^^^^^^",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py\", line 150, in eager_attention_forward",
+        "    attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query.dtype)",
+        "                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/functional.py\", line 2161, in softmax",
+        "    ret = input.softmax(dim, dtype=dtype)",
+        "          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 26.62 GiB. GPU 0 has a total capacity of 178.34 GiB of which 18.89 GiB is free. Including non-PyTorch memory, this process has 159.44 GiB memory in use. Of the allocated memory 108.77 GiB is allocated by PyTorch, and 49.91 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)"
+      ],
+      "log_sha256": "7851a48573ca44f536dc86d3420320448ac411ff57f03281339ac55017a6b711"
+    },
+    {
+      "name": "stage1_eager_packed128_b32",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 32,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 668.4326344982861,
+        "median": 668.4326344982861,
+        "min": 668.4326344982861,
+        "max": 668.4326344982861,
+        "p95": 668.4326344982861,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 919.799375633392,
+        "median": 919.799375633392,
+        "min": 919.799375633392,
+        "max": 919.799375633392,
+        "p95": 919.799375633392,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 18.03528187516455,
+        "median": 18.03528187516455,
+        "min": 18.03528187516455,
+        "max": 18.03528187516455,
+        "p95": 18.03528187516455,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 3.5485999300144613,
+        "median": 3.5485999300144613,
+        "min": 3.5485999300144613,
+        "max": 3.5485999300144613,
+        "p95": 3.5485999300144613,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 16245068288.0,
+        "median": 16245068288.0,
+        "min": 16245068288.0,
+        "max": 16245068288.0,
+        "p95": 16245068288.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "f605437b3e033b6815a2778be08c7db9062d9da82f8f788dc7590a1eeb0cfeaa"
+    },
+    {
+      "name": "stage1_eager_packed128_b4",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 4,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 96.92847424656232,
+        "median": 96.92847424656232,
+        "min": 96.92847424656232,
+        "max": 96.92847424656232,
+        "p95": 96.92847424656232,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 114.71017094286022,
+        "median": 114.71017094286022,
+        "min": 114.71017094286022,
+        "max": 114.71017094286022,
+        "p95": 114.71017094286022,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 2.592320247296276,
+        "median": 2.592320247296276,
+        "min": 2.592320247296276,
+        "max": 2.592320247296276,
+        "p95": 2.592320247296276,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 24.688307730015367,
+        "median": 24.688307730015367,
+        "min": 24.688307730015367,
+        "max": 24.688307730015367,
+        "p95": 24.688307730015367,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9977408000.0,
+        "median": 9977408000.0,
+        "min": 9977408000.0,
+        "max": 9977408000.0,
+        "p95": 9977408000.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "fbe184e0c6262b4b04df42f9cee0c0da7067a9a578c72bc0498dac82aff04a47"
+    },
+    {
+      "name": "stage1_eager_packed128_b64",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 64,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 757.0086276773334,
+        "median": 757.0086276773334,
+        "min": 757.0086276773334,
+        "max": 757.0086276773334,
+        "p95": 757.0086276773334,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 1197.5134386718103,
+        "median": 1197.5134386718103,
+        "min": 1197.5134386718103,
+        "max": 1197.5134386718103,
+        "p95": 1197.5134386718103,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 20.296837943590003,
+        "median": 20.296837943590003,
+        "min": 20.296837943590003,
+        "max": 20.296837943590003,
+        "p95": 20.296837943590003,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 3.1532005220651627,
+        "median": 3.1532005220651627,
+        "min": 3.1532005220651627,
+        "max": 3.1532005220651627,
+        "p95": 3.1532005220651627,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 18978042368.0,
+        "median": 18978042368.0,
+        "min": 18978042368.0,
+        "max": 18978042368.0,
+        "p95": 18978042368.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "fc97b3a2c4700825112ee17a9b611e0883124cbe1538f7616ba11e5621ab4546"
+    },
+    {
+      "name": "stage1_eager_packed128_b8",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 8,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 175.07742037187163,
+        "median": 175.07742037187163,
+        "min": 175.07742037187163,
+        "max": 175.07742037187163,
+        "p95": 175.07742037187163,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 227.9254106696204,
+        "median": 227.9254106696204,
+        "min": 227.9254106696204,
+        "max": 227.9254106696204,
+        "p95": 227.9254106696204,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 4.723842708178661,
+        "median": 4.723842708178661,
+        "min": 4.723842708178661,
+        "max": 4.723842708178661,
+        "p95": 4.723842708178661,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 13.54829192114994,
+        "median": 13.54829192114994,
+        "min": 13.54829192114994,
+        "max": 13.54829192114994,
+        "p95": 13.54829192114994,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 10844233216.0,
+        "median": 10844233216.0,
+        "min": 10844233216.0,
+        "max": 10844233216.0,
+        "p95": 10844233216.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "20bfd3c8780f2b1d495e2452dcca7ec52d0aaf83902ad37fdb1548ed47babcbd"
+    },
+    {
+      "name": "stage1_eager_packed1_b1",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 1,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 31.878073586871086,
+        "median": 31.878073586871086,
+        "min": 31.878073586871086,
+        "max": 31.878073586871086,
+        "p95": 31.878073586871086,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 31.878073586871086,
+        "median": 31.878073586871086,
+        "min": 31.878073586871086,
+        "max": 31.878073586871086,
+        "p95": 31.878073586871086,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 0.8525686207938777,
+        "median": 0.8525686207938777,
+        "min": 0.8525686207938777,
+        "max": 0.8525686207938777,
+        "p95": 0.8525686207938777,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 75.06727134808898,
+        "median": 75.06727134808898,
+        "min": 75.06727134808898,
+        "max": 75.06727134808898,
+        "p95": 75.06727134808898,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9250328064.0,
+        "median": 9250328064.0,
+        "min": 9250328064.0,
+        "max": 9250328064.0,
+        "p95": 9250328064.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "243995168ac0a93bfbaf8d0c2901cb19c1c8e8a98578adcb6e345d4b23cde1b1"
+    },
+    {
+      "name": "stage1_eager_packed1_b16",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 16,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 347.36241210936674,
+        "median": 347.36241210936674,
+        "min": 347.36241210936674,
+        "max": 347.36241210936674,
+        "p95": 347.36241210936674,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 465.09752739958947,
+        "median": 465.09752739958947,
+        "min": 465.09752739958947,
+        "max": 465.09752739958947,
+        "p95": 465.09752739958947,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 9.3486940180822,
+        "median": 9.3486940180822,
+        "min": 9.3486940180822,
+        "max": 9.3486940180822,
+        "p95": 9.3486940180822,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 6.845875998958945,
+        "median": 6.845875998958945,
+        "min": 6.845875998958945,
+        "max": 6.845875998958945,
+        "p95": 6.845875998958945,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 12574261248.0,
+        "median": 12574261248.0,
+        "min": 12574261248.0,
+        "max": 12574261248.0,
+        "p95": 12574261248.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "9fa5a92d8b6c6ad0ff52eedbbd6145742d8d9b6df87f268da8c9fd87f4abfb30"
+    },
+    {
+      "name": "stage1_eager_packed1_b2",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 2,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 54.6792571057066,
+        "median": 54.6792571057066,
+        "min": 54.6792571057066,
+        "max": 54.6792571057066,
+        "p95": 54.6792571057066,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 59.19195658196307,
+        "median": 59.19195658196307,
+        "min": 59.19195658196307,
+        "max": 59.19195658196307,
+        "p95": 59.19195658196307,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 1.4660546521848439,
+        "median": 1.4660546521848439,
+        "min": 1.4660546521848439,
+        "max": 1.4660546521848439,
+        "p95": 1.4660546521848439,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 43.654579933034256,
+        "median": 43.654579933034256,
+        "min": 43.654579933034256,
+        "max": 43.654579933034256,
+        "p95": 43.654579933034256,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9494013952.0,
+        "median": 9494013952.0,
+        "min": 9494013952.0,
+        "max": 9494013952.0,
+        "p95": 9494013952.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "9773cd35a619405b789d0ee90c83140641acead2354e1a52b0445784ac9d8157"
+    },
+    {
+      "name": "stage1_eager_packed1_b32",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 32,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 631.4132452182977,
+        "median": 631.4132452182977,
+        "min": 631.4132452182977,
+        "max": 631.4132452182977,
+        "p95": 631.4132452182977,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 872.1679358411019,
+        "median": 872.1679358411019,
+        "min": 872.1679358411019,
+        "max": 872.1679358411019,
+        "p95": 872.1679358411019,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 17.101332075315725,
+        "median": 17.101332075315725,
+        "min": 17.101332075315725,
+        "max": 17.101332075315725,
+        "p95": 17.101332075315725,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 3.7423985288478434,
+        "median": 3.7423985288478434,
+        "min": 3.7423985288478434,
+        "max": 3.7423985288478434,
+        "p95": 3.7423985288478434,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 16210252288.0,
+        "median": 16210252288.0,
+        "min": 16210252288.0,
+        "max": 16210252288.0,
+        "p95": 16210252288.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "4269af37ac9b41391909a9e921941ffefbf5fd727d2602899c805069be494836"
+    },
+    {
+      "name": "stage1_eager_packed1_b4",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 4,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 118.42838798995915,
+        "median": 118.42838798995915,
+        "min": 118.42838798995915,
+        "max": 118.42838798995915,
+        "p95": 118.42838798995915,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 140.15428114816729,
+        "median": 140.15428114816729,
+        "min": 140.15428114816729,
+        "max": 140.15428114816729,
+        "p95": 140.15428114816729,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 3.167328387529204,
+        "median": 3.167328387529204,
+        "min": 3.167328387529204,
+        "max": 3.167328387529204,
+        "p95": 3.167328387529204,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 20.206303915940225,
+        "median": 20.206303915940225,
+        "min": 20.206303915940225,
+        "max": 20.206303915940225,
+        "p95": 20.206303915940225,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9940787712.0,
+        "median": 9940787712.0,
+        "min": 9940787712.0,
+        "max": 9940787712.0,
+        "p95": 9940787712.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "314f0862a5eadc322ae65551fe4ac24dac5f3e820e7e40f8f6cf38ffbae1fa2e"
+    },
+    {
+      "name": "stage1_eager_packed1_b64",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 64,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 685.8088421613779,
+        "median": 685.8088421613779,
+        "min": 685.8088421613779,
+        "max": 685.8088421613779,
+        "p95": 685.8088421613779,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 1082.1622181368002,
+        "median": 1082.1622181368002,
+        "min": 1082.1622181368002,
+        "max": 1082.1622181368002,
+        "p95": 1082.1622181368002,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 18.341732510793225,
+        "median": 18.341732510793225,
+        "min": 18.341732510793225,
+        "max": 18.341732510793225,
+        "p95": 18.341732510793225,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 3.4893105088267475,
+        "median": 3.4893105088267475,
+        "min": 3.4893105088267475,
+        "max": 3.4893105088267475,
+        "p95": 3.4893105088267475,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 18943226368.0,
+        "median": 18943226368.0,
+        "min": 18943226368.0,
+        "max": 18943226368.0,
+        "p95": 18943226368.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "5219be08e1dc00c2cc167786fa5153a6d18bb4ce81f1b555fa25096810b8d4ae"
+    },
+    {
+      "name": "stage1_eager_packed1_b8",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 8,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 187.47916144005455,
+        "median": 187.47916144005455,
+        "min": 187.47916144005455,
+        "max": 187.47916144005455,
+        "p95": 187.47916144005455,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 243.45485724427607,
+        "median": 243.45485724427607,
+        "min": 243.45485724427607,
+        "max": 243.45485724427607,
+        "p95": 243.45485724427607,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 5.045696523197432,
+        "median": 5.045696523197432,
+        "min": 5.045696523197432,
+        "max": 5.045696523197432,
+        "p95": 5.045696523197432,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 12.684076362056658,
+        "median": 12.684076362056658,
+        "min": 12.684076362056658,
+        "max": 12.684076362056658,
+        "p95": 12.684076362056658,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 10810572288.0,
+        "median": 10810572288.0,
+        "min": 10810572288.0,
+        "max": 10810572288.0,
+        "p95": 10810572288.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "23053e4c94570a7b258436897c949a7bfd1afc46b0e035afe60e824631bd4e7a"
+    },
+    {
+      "name": "stage1_eager_packed64_b1",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 64,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 1,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 28.92115297483596,
+        "median": 28.92115297483596,
+        "min": 28.92115297483596,
+        "max": 28.92115297483596,
+        "p95": 28.92115297483596,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 28.92115297483596,
+        "median": 28.92115297483596,
+        "min": 28.92115297483596,
+        "max": 28.92115297483596,
+        "p95": 28.92115297483596,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 0.7754309972306248,
+        "median": 0.7754309972306248,
+        "min": 0.7754309972306248,
+        "max": 0.7754309972306248,
+        "p95": 0.7754309972306248,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 82.53474548808299,
+        "median": 82.53474548808299,
+        "min": 82.53474548808299,
+        "max": 82.53474548808299,
+        "p95": 82.53474548808299,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9278328320.0,
+        "median": 9278328320.0,
+        "min": 9278328320.0,
+        "max": 9278328320.0,
+        "p95": 9278328320.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "d5b0274e8d5037a1f3b3247042f0c6fac6efe253726149357be7c82272e5233f"
+    },
+    {
+      "name": "stage1_eager_packed64_b16",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 64,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 16,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 387.4171430463928,
+        "median": 387.4171430463928,
+        "min": 387.4171430463928,
+        "max": 387.4171430463928,
+        "p95": 387.4171430463928,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 516.7725946626371,
+        "median": 516.7725946626371,
+        "min": 516.7725946626371,
+        "max": 516.7725946626371,
+        "p95": 516.7725946626371,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 10.387388837439941,
+        "median": 10.387388837439941,
+        "min": 10.387388837439941,
+        "max": 10.387388837439941,
+        "p95": 10.387388837439941,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 6.161317439982668,
+        "median": 6.161317439982668,
+        "min": 6.161317439982668,
+        "max": 6.161317439982668,
+        "p95": 6.161317439982668,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 12601489920.0,
+        "median": 12601489920.0,
+        "min": 12601489920.0,
+        "max": 12601489920.0,
+        "p95": 12601489920.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "90d528eeb60206edffc570425227ac6136e791fc908bbd3d5848c295a9d6251c"
+    },
+    {
+      "name": "stage1_eager_packed64_b2",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 64,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 2,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 61.73790682051837,
+        "median": 61.73790682051837,
+        "min": 61.73790682051837,
+        "max": 61.73790682051837,
+        "p95": 61.73790682051837,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 66.83315928957666,
+        "median": 66.83315928957666,
+        "min": 66.83315928957666,
+        "max": 66.83315928957666,
+        "p95": 66.83315928957666,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 1.65531044680066,
+        "median": 1.65531044680066,
+        "min": 1.65531044680066,
+        "max": 1.65531044680066,
+        "p95": 1.65531044680066,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 38.66344233113341,
+        "median": 38.66344233113341,
+        "min": 38.66344233113341,
+        "max": 38.66344233113341,
+        "p95": 38.66344233113341,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9522375680.0,
+        "median": 9522375680.0,
+        "min": 9522375680.0,
+        "max": 9522375680.0,
+        "p95": 9522375680.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "4697bd7cc185196d197a016ecb4e54bcab31d5a6de4167b3fa2129cfb304f272"
+    },
+    {
+      "name": "stage1_eager_packed64_b32",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 64,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 32,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 699.4198277847802,
+        "median": 699.4198277847802,
+        "min": 699.4198277847802,
+        "max": 699.4198277847802,
+        "p95": 699.4198277847802,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 956.3914193085558,
+        "median": 956.3914193085558,
+        "min": 956.3914193085558,
+        "max": 956.3914193085558,
+        "p95": 956.3914193085558,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 18.75277292761874,
+        "median": 18.75277292761874,
+        "min": 18.75277292761874,
+        "max": 18.75277292761874,
+        "p95": 18.75277292761874,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 3.4128286119084805,
+        "median": 3.4128286119084805,
+        "min": 3.4128286119084805,
+        "max": 3.4128286119084805,
+        "p95": 3.4128286119084805,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 16238252544.0,
+        "median": 16238252544.0,
+        "min": 16238252544.0,
+        "max": 16238252544.0,
+        "p95": 16238252544.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "1d264e6888ebddb3ec3bf0ca79991a74eabbccc025b2083e4860be00c19fb592"
+    },
+    {
+      "name": "stage1_eager_packed64_b4",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 64,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 4,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 110.86280173279874,
+        "median": 110.86280173279874,
+        "min": 110.86280173279874,
+        "max": 110.86280173279874,
+        "p95": 110.86280173279874,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 131.2007749717033,
+        "median": 131.2007749717033,
+        "min": 131.2007749717033,
+        "max": 131.2007749717033,
+        "p95": 131.2007749717033,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 2.96498926489725,
+        "median": 2.96498926489725,
+        "min": 2.96498926489725,
+        "max": 2.96498926489725,
+        "p95": 2.96498926489725,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 21.58523835404776,
+        "median": 21.58523835404776,
+        "min": 21.58523835404776,
+        "max": 21.58523835404776,
+        "p95": 21.58523835404776,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9967290880.0,
+        "median": 9967290880.0,
+        "min": 9967290880.0,
+        "max": 9967290880.0,
+        "p95": 9967290880.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "c9a105fe0604d19354a650874ef46af03048c5f5ee46c697acc97f02fb7c9c0a"
+    },
+    {
+      "name": "stage1_eager_packed64_b64",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 64,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 64,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 756.5230012675743,
+        "median": 756.5230012675743,
+        "min": 756.5230012675743,
+        "max": 756.5230012675743,
+        "p95": 756.5230012675743,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 1196.7452252980145,
+        "median": 1196.7452252980145,
+        "min": 1196.7452252980145,
+        "max": 1196.7452252980145,
+        "p95": 1196.7452252980145,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 20.28381737793245,
+        "median": 20.28381737793245,
+        "min": 20.28381737793245,
+        "max": 20.28381737793245,
+        "p95": 20.28381737793245,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 3.1552246210630983,
+        "median": 3.1552246210630983,
+        "min": 3.1552246210630983,
+        "max": 3.1552246210630983,
+        "p95": 3.1552246210630983,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 18971226624.0,
+        "median": 18971226624.0,
+        "min": 18971226624.0,
+        "max": 18971226624.0,
+        "p95": 18971226624.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "5c4a944ad965cd25a72bb67ce28c8de922b78d1214bbff2578772f64e51710fc"
+    },
+    {
+      "name": "stage1_eager_packed64_b8",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 64,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 8,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 171.00349810178957,
+        "median": 171.00349810178957,
+        "min": 171.00349810178957,
+        "max": 171.00349810178957,
+        "p95": 171.00349810178957,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 220.66811622997332,
+        "median": 220.66811622997332,
+        "min": 220.66811622997332,
+        "max": 220.66811622997332,
+        "p95": 220.66811622997332,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 4.573432460724836,
+        "median": 4.573432460724836,
+        "min": 4.573432460724836,
+        "max": 4.573432460724836,
+        "p95": 4.573432460724836,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 13.993865777971223,
+        "median": 13.993865777971223,
+        "min": 13.993865777971223,
+        "max": 13.993865777971223,
+        "p95": 13.993865777971223,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 10843086336.0,
+        "median": 10843086336.0,
+        "min": 10843086336.0,
+        "max": 10843086336.0,
+        "p95": 10843086336.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "7a5351fe6d0dbe42e0957a6953cb0b9ef14a0b6ea88437f9dbfc9cd2be61e863"
+    },
+    {
+      "name": "stage1_eager_separate_b1",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 1,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 29.5170291821765,
+        "median": 29.5170291821765,
+        "min": 29.5170291821765,
+        "max": 29.5170291821765,
+        "p95": 29.5170291821765,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 29.5170291821765,
+        "median": 29.5170291821765,
+        "min": 29.5170291821765,
+        "max": 29.5170291821765,
+        "p95": 29.5170291821765,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 0.7944028038937326,
+        "median": 0.7944028038937326,
+        "min": 0.7944028038937326,
+        "max": 0.7944028038937326,
+        "p95": 0.7944028038937326,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 80.56366327800788,
+        "median": 80.56366327800788,
+        "min": 80.56366327800788,
+        "max": 80.56366327800788,
+        "p95": 80.56366327800788,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9255964160.0,
+        "median": 9255964160.0,
+        "min": 9255964160.0,
+        "max": 9255964160.0,
+        "p95": 9255964160.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "629409dcfc8caa1048560859114f1dccc014dd5735b2fcc33daf939809c57b6e"
+    },
+    {
+      "name": "stage1_eager_separate_b128",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 256,
+        "batch_size": 128,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 678.3405841473822,
+        "median": 678.3405841473822,
+        "min": 678.3405841473822,
+        "max": 678.3405841473822,
+        "p95": 678.3405841473822,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 1332.0477690840526,
+        "median": 1332.0477690840526,
+        "min": 1332.0477690840526,
+        "max": 1332.0477690840526,
+        "p95": 1332.0477690840526,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 16.86136416562092,
+        "median": 16.86136416562092,
+        "min": 16.86136416562092,
+        "max": 16.86136416562092,
+        "p95": 16.86136416562092,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 15.182638693135232,
+        "median": 15.182638693135232,
+        "min": 15.182638693135232,
+        "max": 15.182638693135232,
+        "p95": 15.182638693135232,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 37425026048.0,
+        "median": 37425026048.0,
+        "min": 37425026048.0,
+        "max": 37425026048.0,
+        "p95": 37425026048.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "b05f4653123b21cecb3abc5cbcf32c93e432ccf734b3b3e2730840f7c331c453"
+    },
+    {
+      "name": "stage1_eager_separate_b16",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 16,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 325.3859589282751,
+        "median": 325.3859589282751,
+        "min": 325.3859589282751,
+        "max": 325.3859589282751,
+        "p95": 325.3859589282751,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 436.77440692564414,
+        "median": 436.77440692564414,
+        "min": 436.77440692564414,
+        "max": 436.77440692564414,
+        "p95": 436.77440692564414,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 8.779385063832043,
+        "median": 8.779385063832043,
+        "min": 8.779385063832043,
+        "max": 8.779385063832043,
+        "p95": 8.779385063832043,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 7.289804415078834,
+        "median": 7.289804415078834,
+        "min": 7.289804415078834,
+        "max": 7.289804415078834,
+        "p95": 7.289804415078834,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 12579676160.0,
+        "median": 12579676160.0,
+        "min": 12579676160.0,
+        "max": 12579676160.0,
+        "p95": 12579676160.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "9294879ab0450916fb4fe91f003a62fc803373c34febe15ee6d8ae09d06295a3"
+    },
+    {
+      "name": "stage1_eager_separate_b2",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 2,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 64.14264214437509,
+        "median": 64.14264214437509,
+        "min": 64.14264214437509,
+        "max": 64.14264214437509,
+        "p95": 64.14264214437509,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 69.76729204573682,
+        "median": 69.76729204573682,
+        "min": 69.76729204573682,
+        "max": 69.76729204573682,
+        "p95": 69.76729204573682,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 1.730661508111301,
+        "median": 1.730661508111301,
+        "min": 1.730661508111301,
+        "max": 1.730661508111301,
+        "p95": 1.730661508111301,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 36.98007940896787,
+        "median": 36.98007940896787,
+        "min": 36.98007940896787,
+        "max": 36.98007940896787,
+        "p95": 36.98007940896787,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9499698176.0,
+        "median": 9499698176.0,
+        "min": 9499698176.0,
+        "max": 9499698176.0,
+        "p95": 9499698176.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "cf2af1388567707a8a24d9aef762398172b52ab74c8abe6e305cb71f4438b45d"
+    },
+    {
+      "name": "stage1_eager_separate_b256",
+      "status": "failed",
+      "exit_code": 1,
+      "error_tail": [
+        "  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
+        "    return forward_call(*args, **kwargs)",
+        "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/utils/deprecation.py\", line 172, in wrapped_func",
+        "    return func(*args, **kwargs)",
+        "           ^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py\", line 216, in forward",
+        "    attn_output, attn_weights = attention_interface(",
+        "                                ^^^^^^^^^^^^^^^^^^^^",
+        "  File \"<experiment-root>/venv/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py\", line 150, in eager_attention_forward",
+        "    attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query.dtype)",
+        "                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/functional.py\", line 2161, in softmax",
+        "    ret = input.softmax(dim, dtype=dtype)",
+        "          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 26.62 GiB. GPU 0 has a total capacity of 178.34 GiB of which 12.61 GiB is free. Including non-PyTorch memory, this process has 165.72 GiB memory in use. Of the allocated memory 106.01 GiB is allocated by PyTorch, and 58.94 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)"
+      ],
+      "log_sha256": "004f2de068725090e1b32c7e70b98a239166fb061bb28dcafa57afe30563339c"
+    },
+    {
+      "name": "stage1_eager_separate_b32",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 32,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 556.8809664839457,
+        "median": 556.8809664839457,
+        "min": 556.8809664839457,
+        "max": 556.8809664839457,
+        "p95": 556.8809664839457,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 767.268668047108,
+        "median": 767.268668047108,
+        "min": 767.268668047108,
+        "max": 767.268668047108,
+        "p95": 767.268668047108,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 15.044483687198197,
+        "median": 15.044483687198197,
+        "min": 15.044483687198197,
+        "max": 15.044483687198197,
+        "p95": 15.044483687198197,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 4.254050941905007,
+        "median": 4.254050941905007,
+        "min": 4.254050941905007,
+        "max": 4.254050941905007,
+        "p95": 4.254050941905007,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 16215888384.0,
+        "median": 16215888384.0,
+        "min": 16215888384.0,
+        "max": 16215888384.0,
+        "p95": 16215888384.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "04aff0ee6233ed872e55b192ad5c395ee4888c700a369049693dcac4232e6dbf"
+    },
+    {
+      "name": "stage1_eager_separate_b4",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 4,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 107.74905930121126,
+        "median": 107.74905930121126,
+        "min": 107.74905930121126,
+        "max": 107.74905930121126,
+        "p95": 107.74905930121126,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 127.99720467325096,
+        "median": 127.99720467325096,
+        "min": 127.99720467325096,
+        "max": 127.99720467325096,
+        "p95": 127.99720467325096,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 2.8925921960056713,
+        "median": 2.8925921960056713,
+        "min": 2.8925921960056713,
+        "max": 2.8925921960056713,
+        "p95": 2.8925921960056713,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 22.125483187148347,
+        "median": 22.125483187148347,
+        "min": 22.125483187148347,
+        "max": 22.125483187148347,
+        "p95": 22.125483187148347,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9948678656.0,
+        "median": 9948678656.0,
+        "min": 9948678656.0,
+        "max": 9948678656.0,
+        "p95": 9948678656.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "ec9a3eab866f83c733912bb041d91079d17250eade433c5e98e283e0d9f755b1"
+    },
+    {
+      "name": "stage1_eager_separate_b64",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 64,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 643.3673113033833,
+        "median": 643.3673113033833,
+        "min": 643.3673113033833,
+        "max": 643.3673113033833,
+        "p95": 643.3673113033833,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 1017.7440165402494,
+        "median": 1017.7440165402494,
+        "min": 1017.7440165402494,
+        "max": 1017.7440165402494,
+        "p95": 1017.7440165402494,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 17.249898585427957,
+        "median": 17.249898585427957,
+        "min": 17.249898585427957,
+        "max": 17.249898585427957,
+        "p95": 17.249898585427957,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 3.7101667399983853,
+        "median": 3.7101667399983853,
+        "min": 3.7101667399983853,
+        "max": 3.7101667399983853,
+        "p95": 3.7101667399983853,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 18948862464.0,
+        "median": 18948862464.0,
+        "min": 18948862464.0,
+        "max": 18948862464.0,
+        "p95": 18948862464.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "9f6369475518c8f7588cb2a4491e150a0488399e7940988a0a46a8cd6e68679c"
+    },
+    {
+      "name": "stage1_eager_separate_b8",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 8,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 158.069432720942,
+        "median": 158.069432720942,
+        "min": 158.069432720942,
+        "max": 158.069432720942,
+        "p95": 158.069432720942,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 205.26425914309036,
+        "median": 205.26425914309036,
+        "min": 205.26425914309036,
+        "max": 205.26425914309036,
+        "p95": 205.26425914309036,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 4.254181536644359,
+        "median": 4.254181536644359,
+        "min": 4.254181536644359,
+        "max": 4.254181536644359,
+        "p95": 4.254181536644359,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 15.044021852081642,
+        "median": 15.044021852081642,
+        "min": 15.044021852081642,
+        "max": 15.044021852081642,
+        "p95": 15.044021852081642,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 10816151040.0,
+        "median": 10816151040.0,
+        "min": 10816151040.0,
+        "max": 10816151040.0,
+        "p95": 10816151040.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "ddf6e92d399a8e3a6a192f225f6e2c77b1eec42a2d9150c117bd32a8c988111a"
+    },
+    {
+      "name": "stage1_sdpa_packed128_b1",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 1,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 44.81413666194103,
+        "median": 44.81413666194103,
+        "min": 44.81413666194103,
+        "max": 44.81413666194103,
+        "p95": 44.81413666194103,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 44.81413666194103,
+        "median": 44.81413666194103,
+        "min": 44.81413666194103,
+        "max": 44.81413666194103,
+        "p95": 44.81413666194103,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 1.2015520512627673,
+        "median": 1.2015520512627673,
+        "min": 1.2015520512627673,
+        "max": 1.2015520512627673,
+        "p95": 1.2015520512627673,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 53.26444237912074,
+        "median": 53.26444237912074,
+        "min": 53.26444237912074,
+        "max": 53.26444237912074,
+        "p95": 53.26444237912074,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9224969728.0,
+        "median": 9224969728.0,
+        "min": 9224969728.0,
+        "max": 9224969728.0,
+        "p95": 9224969728.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "c91b06c9737e85004c6b7d31d20e118957bac9e1def98d9bfdd7df210da05cc2"
+    },
+    {
+      "name": "stage1_sdpa_packed128_b128",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 256,
+        "batch_size": 128,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 1006.8186124838885,
+        "median": 1006.8186124838885,
+        "min": 1006.8186124838885,
+        "max": 1006.8186124838885,
+        "p95": 1006.8186124838885,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 1977.2673935593477,
+        "median": 1977.2673935593477,
+        "min": 1977.2673935593477,
+        "max": 1977.2673935593477,
+        "p95": 1977.2673935593477,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 25.02870118429554,
+        "median": 25.02870118429554,
+        "min": 25.02870118429554,
+        "max": 25.02870118429554,
+        "p95": 25.02870118429554,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 10.228257475886494,
+        "median": 10.228257475886494,
+        "min": 10.228257475886494,
+        "max": 10.228257475886494,
+        "p95": 10.228257475886494,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 30648276992.0,
+        "median": 30648276992.0,
+        "min": 30648276992.0,
+        "max": 30648276992.0,
+        "p95": 30648276992.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "4babc3ce20b7e11630a3a13c6b68a657635b9111cdbdbc0d4cc9577290fbbeeb"
+    },
+    {
+      "name": "stage1_sdpa_packed128_b16",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 16,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 387.4998225272208,
+        "median": 387.4998225272208,
+        "min": 387.4998225272208,
+        "max": 387.4998225272208,
+        "p95": 387.4998225272208,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 522.1326427958828,
+        "median": 522.1326427958828,
+        "min": 522.1326427958828,
+        "max": 522.1326427958828,
+        "p95": 522.1326427958828,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 10.495128498409704,
+        "median": 10.495128498409704,
+        "min": 10.495128498409704,
+        "max": 10.495128498409704,
+        "p95": 10.495128498409704,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 6.098067309008911,
+        "median": 6.098067309008911,
+        "min": 6.098067309008911,
+        "max": 6.098067309008911,
+        "p95": 6.098067309008911,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 11730161152.0,
+        "median": 11730161152.0,
+        "min": 11730161152.0,
+        "max": 11730161152.0,
+        "p95": 11730161152.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "d0c3bb8a8ff1dc49a249fcb6b3b18db2e39762a75fbad7d6e1853b6e611c42b8"
+    },
+    {
+      "name": "stage1_sdpa_packed128_b2",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 2,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 55.87942983271016,
+        "median": 55.87942983271016,
+        "min": 55.87942983271016,
+        "max": 55.87942983271016,
+        "p95": 55.87942983271016,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 60.33950968981323,
+        "median": 60.33950968981323,
+        "min": 60.33950968981323,
+        "max": 60.33950968981323,
+        "p95": 60.33950968981323,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 1.4944770201811324,
+        "median": 1.4944770201811324,
+        "min": 1.4944770201811324,
+        "max": 1.4944770201811324,
+        "p95": 1.4944770201811324,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 42.82434533000924,
+        "median": 42.82434533000924,
+        "min": 42.82434533000924,
+        "max": 42.82434533000924,
+        "p95": 42.82434533000924,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9407606784.0,
+        "median": 9407606784.0,
+        "min": 9407606784.0,
+        "max": 9407606784.0,
+        "p95": 9407606784.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "8c3809c434472704edd554766eba5aac7be436766fe81e0bf8bc055680fbc5c9"
+    },
+    {
+      "name": "stage1_sdpa_packed128_b256",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 512,
+        "batch_size": 256,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 559.5995817950769,
+        "median": 559.5995817950769,
+        "min": 559.5995817950769,
+        "max": 559.5995817950769,
+        "p95": 559.5995817950769,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 1453.3468202700108,
+        "median": 1453.3468202700108,
+        "min": 1453.3468202700108,
+        "max": 1453.3468202700108,
+        "p95": 1453.3468202700108,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 13.710819059151046,
+        "median": 13.710819059151046,
+        "min": 13.710819059151046,
+        "max": 13.710819059151046,
+        "p95": 13.710819059151046,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 37.34277272503823,
+        "median": 37.34277272503823,
+        "min": 37.34277272503823,
+        "max": 37.34277272503823,
+        "p95": 37.34277272503823,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 79626940928.0,
+        "median": 79626940928.0,
+        "min": 79626940928.0,
+        "max": 79626940928.0,
+        "p95": 79626940928.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "1db5a47269a04e582bbc7ee569d8954479c8b61d0e7b6e9cbb58a569db587360"
+    },
+    {
+      "name": "stage1_sdpa_packed128_b32",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 32,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 708.4543083527278,
+        "median": 708.4543083527278,
+        "min": 708.4543083527278,
+        "max": 708.4543083527278,
+        "p95": 708.4543083527278,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 969.9642879460166,
+        "median": 969.9642879460166,
+        "min": 969.9642879460166,
+        "max": 969.9642879460166,
+        "p95": 969.9642879460166,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 19.018907606784637,
+        "median": 19.018907606784637,
+        "min": 19.018907606784637,
+        "max": 19.018907606784637,
+        "p95": 19.018907606784637,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 3.3650723439641297,
+        "median": 3.3650723439641297,
+        "min": 3.3650723439641297,
+        "max": 3.3650723439641297,
+        "p95": 3.3650723439641297,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 14329843200.0,
+        "median": 14329843200.0,
+        "min": 14329843200.0,
+        "max": 14329843200.0,
+        "p95": 14329843200.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "2fb9eadedb3f16393d9da8a8366c776e9cbf860d8f3f298f5e421f202552413d"
+    },
+    {
+      "name": "stage1_sdpa_packed128_b4",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 4,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 118.28757204235596,
+        "median": 118.28757204235596,
+        "min": 118.28757204235596,
+        "max": 118.28757204235596,
+        "p95": 118.28757204235596,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 139.98763227076978,
+        "median": 139.98763227076978,
+        "min": 139.98763227076978,
+        "max": 139.98763227076978,
+        "p95": 139.98763227076978,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 3.163562311203837,
+        "median": 3.163562311203837,
+        "min": 3.163562311203837,
+        "max": 3.163562311203837,
+        "p95": 3.163562311203837,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 20.230358597123995,
+        "median": 20.230358597123995,
+        "min": 20.230358597123995,
+        "max": 20.230358597123995,
+        "p95": 20.230358597123995,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9758465536.0,
+        "median": 9758465536.0,
+        "min": 9758465536.0,
+        "max": 9758465536.0,
+        "p95": 9758465536.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "7e5d49ba3fa923fdeeb292a60f7764ca0e2466b1328b58e5f28f685c064cb732"
+    },
+    {
+      "name": "stage1_sdpa_packed128_b64",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 64,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 970.7856591328414,
+        "median": 970.7856591328414,
+        "min": 970.7856591328414,
+        "max": 970.7856591328414,
+        "p95": 970.7856591328414,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 1531.8372958151313,
+        "median": 1531.8372958151313,
+        "min": 1531.8372958151313,
+        "max": 1531.8372958151313,
+        "p95": 1531.8372958151313,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 25.96334399686663,
+        "median": 25.96334399686663,
+        "min": 25.96334399686663,
+        "max": 25.96334399686663,
+        "p95": 25.96334399686663,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 2.465013751992956,
+        "median": 2.465013751992956,
+        "min": 2.465013751992956,
+        "max": 2.465013751992956,
+        "p95": 2.465013751992956,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 15144676864.0,
+        "median": 15144676864.0,
+        "min": 15144676864.0,
+        "max": 15144676864.0,
+        "p95": 15144676864.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "e102eb5c8af244ee75a9234beb08b46cb9fce1c614d458cb118b54952563c03d"
+    },
+    {
+      "name": "stage1_sdpa_packed128_b8",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 8,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 211.15175797934018,
+        "median": 211.15175797934018,
+        "min": 211.15175797934018,
+        "max": 211.15175797934018,
+        "p95": 211.15175797934018,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 273.1615536825314,
+        "median": 273.1615536825314,
+        "min": 273.1615536825314,
+        "max": 273.1615536825314,
+        "p95": 273.1615536825314,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 5.661379350933293,
+        "median": 5.661379350933293,
+        "min": 5.661379350933293,
+        "max": 5.661379350933293,
+        "p95": 5.661379350933293,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 11.304665529867634,
+        "median": 11.304665529867634,
+        "min": 11.304665529867634,
+        "max": 11.304665529867634,
+        "p95": 11.304665529867634,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 10403668992.0,
+        "median": 10403668992.0,
+        "min": 10403668992.0,
+        "max": 10403668992.0,
+        "p95": 10403668992.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "a45a253b59cc9db0ae5ba22213fead47ef74bd4346d173e58ad2b8f5f105f8e9"
+    },
+    {
+      "name": "stage1_sdpa_separate_b1",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 1,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 40.35115311049507,
+        "median": 40.35115311049507,
+        "min": 40.35115311049507,
+        "max": 40.35115311049507,
+        "p95": 40.35115311049507,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 40.35115311049507,
+        "median": 40.35115311049507,
+        "min": 40.35115311049507,
+        "max": 40.35115311049507,
+        "p95": 40.35115311049507,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 1.0887326303000355,
+        "median": 1.0887326303000355,
+        "min": 1.0887326303000355,
+        "max": 1.0887326303000355,
+        "p95": 1.0887326303000355,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 58.78394586406648,
+        "median": 58.78394586406648,
+        "min": 58.78394586406648,
+        "max": 58.78394586406648,
+        "p95": 58.78394586406648,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9195789824.0,
+        "median": 9195789824.0,
+        "min": 9195789824.0,
+        "max": 9195789824.0,
+        "p95": 9195789824.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "fac36f1b1e22c15e20edee5c1c393a1c8c341421fd9a77413e5670e0d0ccc8f6"
+    },
+    {
+      "name": "stage1_sdpa_separate_b16",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 16,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 353.12664743475847,
+        "median": 353.12664743475847,
+        "min": 353.12664743475847,
+        "max": 353.12664743475847,
+        "p95": 353.12664743475847,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 471.03277982080897,
+        "median": 471.03277982080897,
+        "min": 471.03277982080897,
+        "max": 471.03277982080897,
+        "p95": 471.03277982080897,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 9.467995574287617,
+        "median": 9.467995574287617,
+        "min": 9.467995574287617,
+        "max": 9.467995574287617,
+        "p95": 9.467995574287617,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 6.7596144820563495,
+        "median": 6.7596144820563495,
+        "min": 6.7596144820563495,
+        "max": 6.7596144820563495,
+        "p95": 6.7596144820563495,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 11698687488.0,
+        "median": 11698687488.0,
+        "min": 11698687488.0,
+        "max": 11698687488.0,
+        "p95": 11698687488.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "38a8c8dad1c005648e70c63f57ce2c96bf6ff92f6b21c0b579e618fb6cc4b096"
+    },
+    {
+      "name": "stage1_sdpa_separate_b2",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 2,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 51.257682581091615,
+        "median": 51.257682581091615,
+        "min": 51.257682581091615,
+        "max": 51.257682581091615,
+        "p95": 51.257682581091615,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 55.34887245697482,
+        "median": 55.34887245697482,
+        "min": 55.34887245697482,
+        "max": 55.34887245697482,
+        "p95": 55.34887245697482,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 1.3708699060551037,
+        "median": 1.3708699060551037,
+        "min": 1.3708699060551037,
+        "max": 1.3708699060551037,
+        "p95": 1.3708699060551037,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 46.68568455497734,
+        "median": 46.68568455497734,
+        "min": 46.68568455497734,
+        "max": 46.68568455497734,
+        "p95": 46.68568455497734,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9377247232.0,
+        "median": 9377247232.0,
+        "min": 9377247232.0,
+        "max": 9377247232.0,
+        "p95": 9377247232.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "b4d044b5c56103946982d77e7d6e6c2373fc3ac16f604844b2fc9420cb253793"
+    },
+    {
+      "name": "stage1_sdpa_separate_b32",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 32,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 622.5231478119807,
+        "median": 622.5231478119807,
+        "min": 622.5231478119807,
+        "max": 622.5231478119807,
+        "p95": 622.5231478119807,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 854.4640683172015,
+        "median": 854.4640683172015,
+        "min": 854.4640683172015,
+        "max": 854.4640683172015,
+        "p95": 854.4640683172015,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 16.754197417984344,
+        "median": 16.754197417984344,
+        "min": 16.754197417984344,
+        "max": 16.754197417984344,
+        "p95": 16.754197417984344,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 3.819938275963068,
+        "median": 3.819938275963068,
+        "min": 3.819938275963068,
+        "max": 3.819938275963068,
+        "p95": 3.819938275963068,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 14301679104.0,
+        "median": 14301679104.0,
+        "min": 14301679104.0,
+        "max": 14301679104.0,
+        "p95": 14301679104.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "b55dc52f2b203f00b6aeb866a58d4c76930e0b91de1d4c2f6309f53adf303f38"
+    },
+    {
+      "name": "stage1_sdpa_separate_b4",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 4,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 114.42160050562184,
+        "median": 114.42160050562184,
+        "min": 114.42160050562184,
+        "max": 114.42160050562184,
+        "p95": 114.42160050562184,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 135.7528163518731,
+        "median": 135.7528163518731,
+        "min": 135.7528163518731,
+        "max": 135.7528163518731,
+        "p95": 135.7528163518731,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 3.067860256539505,
+        "median": 3.067860256539505,
+        "min": 3.067860256539505,
+        "max": 3.067860256539505,
+        "p95": 3.067860256539505,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 20.86144564882852,
+        "median": 20.86144564882852,
+        "min": 20.86144564882852,
+        "max": 20.86144564882852,
+        "p95": 20.86144564882852,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 9728679424.0,
+        "median": 9728679424.0,
+        "min": 9728679424.0,
+        "max": 9728679424.0,
+        "p95": 9728679424.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "4b02097f11b77ace00abb9578f3fa716c16e1374be5ffa0b5e763053e1517266"
+    },
+    {
+      "name": "stage1_sdpa_separate_b64",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 64,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 772.0392307980673,
+        "median": 772.0392307980673,
+        "min": 772.0392307980673,
+        "max": 772.0392307980673,
+        "p95": 772.0392307980673,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 1221.2903793437379,
+        "median": 1221.2903793437379,
+        "min": 1221.2903793437379,
+        "max": 1221.2903793437379,
+        "p95": 1221.2903793437379,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 20.699836938029453,
+        "median": 20.699836938029453,
+        "min": 20.699836938029453,
+        "max": 20.699836938029453,
+        "p95": 20.699836938029453,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 3.091811795020476,
+        "median": 3.091811795020476,
+        "min": 3.091811795020476,
+        "max": 3.091811795020476,
+        "p95": 3.091811795020476,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 15115496960.0,
+        "median": 15115496960.0,
+        "min": 15115496960.0,
+        "max": 15115496960.0,
+        "p95": 15115496960.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "c255e50cff54fdb449937166d2a565ee90fed92b75080267aa314e7b3860e9d9"
+    },
+    {
+      "name": "stage1_sdpa_separate_b8",
+      "status": "pass",
+      "exit_code": 0,
+      "candidate": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "separate",
+        "width_alignment": 1,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "contract": {
+        "pairs": "<experiment-root>/pairs.jsonl",
+        "examples": 64,
+        "batch_size": 8,
+        "max_new_tokens": 128,
+        "decode_steps": 16,
+        "warmup": 1,
+        "repeats": 1,
+        "enable_thinking": false,
+        "bfcl_canonicalization_prompt": true,
+        "tokenizer_fix_mistral_regex": false
+      },
+      "accepted_generated_tokens_per_second": {
+        "mean": 198.45694633455898,
+        "median": 198.45694633455898,
+        "min": 198.45694633455898,
+        "max": 198.45694633455898,
+        "p95": 198.45694633455898,
+        "stdev": 0.0
+      },
+      "generated_slots_per_second": {
+        "mean": 257.7102818675854,
+        "median": 257.7102818675854,
+        "min": 257.7102818675854,
+        "max": 257.7102818675854,
+        "p95": 257.7102818675854,
+        "stdev": 0.0
+      },
+      "examples_per_second": {
+        "mean": 5.341145738188299,
+        "median": 5.341145738188299,
+        "min": 5.341145738188299,
+        "max": 5.341145738188299,
+        "p95": 5.341145738188299,
+        "stdev": 0.0
+      },
+      "elapsed_seconds": {
+        "mean": 11.982447799993679,
+        "median": 11.982447799993679,
+        "min": 11.982447799993679,
+        "max": 11.982447799993679,
+        "p95": 11.982447799993679,
+        "stdev": 0.0
+      },
+      "peak_allocated_bytes": {
+        "mean": 10370638848.0,
+        "median": 10370638848.0,
+        "min": 10370638848.0,
+        "max": 10370638848.0,
+        "p95": 10370638848.0,
+        "stdev": 0.0
+      },
+      "source_sha256": "0923e7a22ebcbaa339a072ad564fc28ce4d9369b276c23e4825c373598e14e4c"
+    }
+  ]
+}

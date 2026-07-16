@@ -1,0 +1,663 @@
+{
+  "status": "pass",
+  "validated_contract": {
+    "status": "pass",
+    "repeats": 5,
+    "examples": 1007,
+    "model_hash": null,
+    "pairs": "<experiment-root>/pairs.jsonl"
+  },
+  "baseline": {
+    "label": "baseline",
+    "role": "baseline",
+    "source": "results/bfcl/issue19_physical_throughput/benchmarks/eager_separate_b16_r5.json",
+    "contract": {
+      "status": "pass",
+      "repeats": 5,
+      "examples": 1007,
+      "model_hash": null,
+      "pairs": "<experiment-root>/pairs.jsonl"
+    },
+    "setup": {
+      "attention_implementation": "eager",
+      "mlp_implementation": "separate",
+      "width_alignment": 1,
+      "compile_mode": "none",
+      "cache_implementation": "dynamic"
+    },
+    "metrics": {
+      "accepted_tokens_per_second": {
+        "unit": "tokens/second",
+        "higher_is_better": true,
+        "median": 267.0844287045868,
+        "p95": 268.48843179389536
+      },
+      "generated_slots_per_second": {
+        "unit": "slots/second",
+        "higher_is_better": true,
+        "median": 453.72558575861706,
+        "p95": 456.11071965501526
+      },
+      "examples_per_second": {
+        "unit": "examples/second",
+        "higher_is_better": true,
+        "median": 6.180861784839796,
+        "p95": 6.213353192454213
+      },
+      "elapsed_seconds": {
+        "unit": "seconds",
+        "higher_is_better": false,
+        "median": 162.92226473498158,
+        "p95": 163.42631645896472
+      },
+      "batch_latency_milliseconds": {
+        "unit": "milliseconds",
+        "higher_is_better": false,
+        "median": 2297.5771739147604,
+        "p95": 4332.3831213172525
+      },
+      "prefill_tokens_per_second": {
+        "unit": "tokens/second",
+        "higher_is_better": true,
+        "median": 20778.6026021104,
+        "p95": 20778.6026021104
+      },
+      "decode_slots_per_second": {
+        "unit": "slots/second",
+        "higher_is_better": true,
+        "median": 524.1342738518127,
+        "p95": 524.1342738518127
+      },
+      "peak_allocated_bytes": {
+        "unit": "bytes",
+        "higher_is_better": false,
+        "median": 18127626240.0,
+        "p95": 18127626240.0
+      },
+      "peak_reserved_bytes": {
+        "unit": "bytes",
+        "higher_is_better": false,
+        "median": 23085449216.0,
+        "p95": 23085449216.0
+      },
+      "load_seconds": {
+        "unit": "seconds",
+        "higher_is_better": false,
+        "median": 4.145997073035687,
+        "p95": null
+      },
+      "runtime_repack_seconds": {
+        "unit": "seconds",
+        "higher_is_better": false,
+        "median": 3.769993782043457e-06,
+        "p95": null
+      },
+      "outer_compile_wrap_seconds": {
+        "unit": "seconds",
+        "higher_is_better": false,
+        "median": 0.0,
+        "p95": null
+      },
+      "generation_first_warmup_seconds": {
+        "unit": "seconds",
+        "higher_is_better": false,
+        "median": 165.38484000694007,
+        "p95": null
+      },
+      "generation_steady_warmup_seconds": {
+        "unit": "seconds",
+        "higher_is_better": false,
+        "median": null,
+        "p95": null
+      },
+      "generation_first_use_overhead_seconds": {
+        "unit": "seconds",
+        "higher_is_better": false,
+        "median": null,
+        "p95": null
+      }
+    }
+  },
+  "candidates": [
+    {
+      "label": "eager_packed128_b64",
+      "role": "candidate",
+      "source": "results/bfcl/issue19_physical_throughput/benchmarks/eager_packed128_b64_r5.json",
+      "contract": {
+        "status": "pass",
+        "repeats": 5,
+        "examples": 1007,
+        "model_hash": null,
+        "pairs": "<experiment-root>/pairs.jsonl"
+      },
+      "setup": {
+        "attention_implementation": "eager",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "metrics": {
+        "accepted_tokens_per_second": {
+          "unit": "tokens/second",
+          "higher_is_better": true,
+          "median": 488.923651549725,
+          "p95": 488.9578148593785
+        },
+        "generated_slots_per_second": {
+          "unit": "slots/second",
+          "higher_is_better": true,
+          "median": 1083.6000783673028,
+          "p95": 1083.6757944119256
+        },
+        "examples_per_second": {
+          "unit": "examples/second",
+          "higher_is_better": true,
+          "median": 11.336283233417905,
+          "p95": 11.337075350864456
+        },
+        "elapsed_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 88.82982007996179,
+          "p95": 88.86608773795888
+        },
+        "batch_latency_milliseconds": {
+          "unit": "milliseconds",
+          "higher_is_better": false,
+          "median": 5624.346431461163,
+          "p95": 8709.643841022626
+        },
+        "prefill_tokens_per_second": {
+          "unit": "tokens/second",
+          "higher_is_better": true,
+          "median": 31293.612380968574,
+          "p95": 31293.612380968574
+        },
+        "decode_slots_per_second": {
+          "unit": "slots/second",
+          "higher_is_better": true,
+          "median": 1351.2820446474739,
+          "p95": 1351.2820446474739
+        },
+        "peak_allocated_bytes": {
+          "unit": "bytes",
+          "higher_is_better": false,
+          "median": 46180899328.0,
+          "p95": 46180899328.0
+        },
+        "peak_reserved_bytes": {
+          "unit": "bytes",
+          "higher_is_better": false,
+          "median": 54301556736.0,
+          "p95": 54301556736.0
+        },
+        "load_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 13.164666545111686,
+          "p95": null
+        },
+        "runtime_repack_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 8.81134329480119,
+          "p95": null
+        },
+        "outer_compile_wrap_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 0.0,
+          "p95": null
+        },
+        "generation_first_warmup_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 89.87912167306058,
+          "p95": null
+        },
+        "generation_steady_warmup_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": null,
+          "p95": null
+        },
+        "generation_first_use_overhead_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": null,
+          "p95": null
+        }
+      },
+      "vs_baseline": {
+        "accepted_tokens_per_second": {
+          "median_improvement_percent": 83.05958678351375,
+          "p95_improvement_percent": 82.11503996370541
+        },
+        "generated_slots_per_second": {
+          "median_improvement_percent": 138.82278460350705,
+          "p95_improvement_percent": 137.59051206504785
+        },
+        "examples_per_second": {
+          "median_improvement_percent": 83.40942781188132,
+          "p95_improvement_percent": 82.46307589004809
+        },
+        "elapsed_seconds": {
+          "median_improvement_percent": 45.477175741168764,
+          "p95_improvement_percent": 45.623147077250216
+        },
+        "batch_latency_milliseconds": {
+          "median_improvement_percent": -144.7946687195729,
+          "p95_improvement_percent": -101.03586402982927
+        },
+        "prefill_tokens_per_second": {
+          "median_improvement_percent": 50.604990047743655,
+          "p95_improvement_percent": 50.604990047743655
+        },
+        "decode_slots_per_second": {
+          "median_improvement_percent": 157.81218898680888,
+          "p95_improvement_percent": 157.81218898680888
+        },
+        "peak_allocated_bytes": {
+          "median_improvement_percent": -154.75425583355366,
+          "p95_improvement_percent": -154.75425583355366
+        },
+        "peak_reserved_bytes": {
+          "median_improvement_percent": -135.21984011627904,
+          "p95_improvement_percent": -135.21984011627904
+        },
+        "load_seconds": {
+          "median_improvement_percent": -217.52715482436545,
+          "p95_improvement_percent": null
+        },
+        "runtime_repack_seconds": {
+          "median_improvement_percent": -233722919.29965416,
+          "p95_improvement_percent": null
+        },
+        "outer_compile_wrap_seconds": {
+          "median_improvement_percent": null,
+          "p95_improvement_percent": null
+        },
+        "generation_first_warmup_seconds": {
+          "median_improvement_percent": 45.65455838075063,
+          "p95_improvement_percent": null
+        },
+        "generation_steady_warmup_seconds": {
+          "median_improvement_percent": null,
+          "p95_improvement_percent": null
+        },
+        "generation_first_use_overhead_seconds": {
+          "median_improvement_percent": null,
+          "p95_improvement_percent": null
+        }
+      }
+    },
+    {
+      "label": "sdpa_packed128_b64_dynamic",
+      "role": "candidate",
+      "source": "results/bfcl/issue19_physical_throughput/benchmarks/sdpa_packed128_dynamic_b64_r5.json",
+      "contract": {
+        "status": "pass",
+        "repeats": 5,
+        "examples": 1007,
+        "model_hash": null,
+        "pairs": "<experiment-root>/pairs.jsonl"
+      },
+      "setup": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "packed_gate_up",
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "dynamic"
+      },
+      "metrics": {
+        "accepted_tokens_per_second": {
+          "unit": "tokens/second",
+          "higher_is_better": true,
+          "median": 624.4276432594573,
+          "p95": 624.8017658946934
+        },
+        "generated_slots_per_second": {
+          "unit": "slots/second",
+          "higher_is_better": true,
+          "median": 1385.6147253211102,
+          "p95": 1386.4449093112887
+        },
+        "examples_per_second": {
+          "unit": "examples/second",
+          "higher_is_better": true,
+          "median": 14.447834124403142,
+          "p95": 14.456490470473696
+        },
+        "elapsed_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 69.69902833388187,
+          "p95": 69.77865744521841
+        },
+        "batch_latency_milliseconds": {
+          "unit": "milliseconds",
+          "higher_is_better": false,
+          "median": 4436.719964956865,
+          "p95": 6741.436337819323
+        },
+        "prefill_tokens_per_second": {
+          "unit": "tokens/second",
+          "higher_is_better": true,
+          "median": 44399.26937367441,
+          "p95": 44399.26937367441
+        },
+        "decode_slots_per_second": {
+          "unit": "slots/second",
+          "higher_is_better": true,
+          "median": 1700.8303504984842,
+          "p95": 1700.8303504984842
+        },
+        "peak_allocated_bytes": {
+          "unit": "bytes",
+          "higher_is_better": false,
+          "median": 29054729216.0,
+          "p95": 29054729216.0
+        },
+        "peak_reserved_bytes": {
+          "unit": "bytes",
+          "higher_is_better": false,
+          "median": 33418117120.0,
+          "p95": 33418117120.0
+        },
+        "load_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 12.871701712952927,
+          "p95": null
+        },
+        "runtime_repack_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 8.723251692019403,
+          "p95": null
+        },
+        "outer_compile_wrap_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 0.0,
+          "p95": null
+        },
+        "generation_first_warmup_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 96.08774970797822,
+          "p95": null
+        },
+        "generation_steady_warmup_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": null,
+          "p95": null
+        },
+        "generation_first_use_overhead_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": null,
+          "p95": null
+        }
+      },
+      "vs_baseline": {
+        "accepted_tokens_per_second": {
+          "median_improvement_percent": 133.7941025944706,
+          "p95_improvement_percent": 132.7108701555981
+        },
+        "generated_slots_per_second": {
+          "median_improvement_percent": 205.38606788162483,
+          "p95_improvement_percent": 203.97113015891026
+        },
+        "examples_per_second": {
+          "median_improvement_percent": 133.75112771232466,
+          "p95_improvement_percent": 132.66809438791176
+        },
+        "elapsed_seconds": {
+          "median_improvement_percent": 57.21945772896161,
+          "p95_improvement_percent": 57.30267991279155
+        },
+        "batch_latency_milliseconds": {
+          "median_improvement_percent": -93.10428460591358,
+          "p95_improvement_percent": -55.605728972778444
+        },
+        "prefill_tokens_per_second": {
+          "median_improvement_percent": 113.67784072815827,
+          "p95_improvement_percent": 113.67784072815827
+        },
+        "decode_slots_per_second": {
+          "median_improvement_percent": 224.50279162231544,
+          "p95_improvement_percent": 224.50279162231544
+        },
+        "peak_allocated_bytes": {
+          "median_improvement_percent": -60.2787305482309,
+          "p95_improvement_percent": -60.2787305482309
+        },
+        "peak_reserved_bytes": {
+          "median_improvement_percent": -44.75835755813953,
+          "p95_improvement_percent": -44.75835755813953
+        },
+        "load_seconds": {
+          "median_improvement_percent": -210.46094549044878,
+          "p95_improvement_percent": null
+        },
+        "runtime_repack_seconds": {
+          "median_improvement_percent": -231386268.15711465,
+          "p95_improvement_percent": null
+        },
+        "outer_compile_wrap_seconds": {
+          "median_improvement_percent": null,
+          "p95_improvement_percent": null
+        },
+        "generation_first_warmup_seconds": {
+          "median_improvement_percent": 41.90050931878274,
+          "p95_improvement_percent": null
+        },
+        "generation_steady_warmup_seconds": {
+          "median_improvement_percent": null,
+          "p95_improvement_percent": null
+        },
+        "generation_first_use_overhead_seconds": {
+          "median_improvement_percent": null,
+          "p95_improvement_percent": null
+        }
+      }
+    },
+    {
+      "label": "winner_hybrid_static_b64",
+      "role": "candidate",
+      "source": "results/bfcl/issue19_physical_throughput/benchmarks/winner_combined.json",
+      "contract": {
+        "status": "pass",
+        "repeats": 5,
+        "examples": 1007,
+        "model_hash": null,
+        "pairs": "<experiment-root>/pairs.jsonl"
+      },
+      "setup": {
+        "attention_implementation": "sdpa",
+        "mlp_implementation": "packed_gate_up",
+        "activation_implementation": "hybrid",
+        "hybrid_activation_threshold_rows": 2048,
+        "width_alignment": 128,
+        "compile_mode": "none",
+        "cache_implementation": "static",
+        "generation_compile": {
+          "mode": "transformers_default_auto",
+          "disable_compile": null,
+          "compile_config": {
+            "source": "transformers_default",
+            "mode": "reduce-overhead",
+            "dynamic": null,
+            "fullgraph": false,
+            "backend": "inductor",
+            "options": null
+          }
+        },
+        "compiled_decode_instrumentation_requested": false
+      },
+      "metrics": {
+        "accepted_tokens_per_second": {
+          "unit": "tokens/second",
+          "higher_is_better": true,
+          "median": 989.0967970553354,
+          "p95": 990.5772807689181
+        },
+        "generated_slots_per_second": {
+          "unit": "slots/second",
+          "higher_is_better": true,
+          "median": 2196.1837515212337,
+          "p95": 2199.4710074155428
+        },
+        "examples_per_second": {
+          "unit": "examples/second",
+          "higher_is_better": true,
+          "median": 22.899654549597027,
+          "p95": 22.93393083651685
+        },
+        "elapsed_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 43.97446248889901,
+          "p95": 45.26009883773513
+        },
+        "batch_latency_milliseconds": {
+          "unit": "milliseconds",
+          "higher_is_better": false,
+          "median": 2694.281524512917,
+          "p95": 4044.3604753236286
+        },
+        "prefill_tokens_per_second": {
+          "unit": "tokens/second",
+          "higher_is_better": true,
+          "median": 45921.25946449104,
+          "p95": 45930.65624542508
+        },
+        "decode_slots_per_second": {
+          "unit": "slots/second",
+          "higher_is_better": true,
+          "median": 3290.7946007242303,
+          "p95": 3291.2482233458263
+        },
+        "peak_allocated_bytes": {
+          "unit": "bytes",
+          "higher_is_better": false,
+          "median": 30714907136.0,
+          "p95": 30715294208.0
+        },
+        "peak_reserved_bytes": {
+          "unit": "bytes",
+          "higher_is_better": false,
+          "median": 39445331968.0,
+          "p95": 40220858777.6
+        },
+        "load_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 13.668477765051648,
+          "p95": null
+        },
+        "runtime_repack_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 8.936416368931532,
+          "p95": null
+        },
+        "outer_compile_wrap_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 0.0,
+          "p95": null
+        },
+        "generation_first_warmup_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 178.65367883001454,
+          "p95": null
+        },
+        "generation_steady_warmup_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 44.0716743839439,
+          "p95": null
+        },
+        "generation_first_use_overhead_seconds": {
+          "unit": "seconds",
+          "higher_is_better": false,
+          "median": 134.58200444607064,
+          "p95": null
+        }
+      },
+      "vs_baseline": {
+        "accepted_tokens_per_second": {
+          "median_improvement_percent": 270.33113530903086,
+          "p95_improvement_percent": 268.9459818251435
+        },
+        "generated_slots_per_second": {
+          "median_improvement_percent": 384.0334820107782,
+          "p95_improvement_percent": 382.2230464302919
+        },
+        "examples_per_second": {
+          "median_improvement_percent": 270.4929077327778,
+          "p95_improvement_percent": 269.1071491697734
+        },
+        "elapsed_seconds": {
+          "median_improvement_percent": 73.0089300192148,
+          "p95_improvement_percent": 72.30550145263805
+        },
+        "batch_latency_milliseconds": {
+          "median_improvement_percent": -17.266203507855458,
+          "p95_improvement_percent": 6.648134246863446
+        },
+        "prefill_tokens_per_second": {
+          "median_improvement_percent": 121.00263595121166,
+          "p95_improvement_percent": 121.04785930484124
+        },
+        "decode_slots_per_second": {
+          "median_improvement_percent": 527.853350734058,
+          "p95_improvement_percent": 527.9398977591673
+        },
+        "peak_allocated_bytes": {
+          "median_improvement_percent": -69.43700586801154,
+          "p95_improvement_percent": -69.43914112827605
+        },
+        "peak_reserved_bytes": {
+          "median_improvement_percent": -70.86664244186048,
+          "p95_improvement_percent": -74.22601744186046
+        },
+        "load_seconds": {
+          "median_improvement_percent": -229.67890532164867,
+          "p95_improvement_percent": null
+        },
+        "runtime_repack_seconds": {
+          "median_improvement_percent": -237040512.944664,
+          "p95_improvement_percent": null
+        },
+        "outer_compile_wrap_seconds": {
+          "median_improvement_percent": null,
+          "p95_improvement_percent": null
+        },
+        "generation_first_warmup_seconds": {
+          "median_improvement_percent": -8.023007926553415,
+          "p95_improvement_percent": null
+        },
+        "generation_steady_warmup_seconds": {
+          "median_improvement_percent": null,
+          "p95_improvement_percent": null
+        },
+        "generation_first_use_overhead_seconds": {
+          "median_improvement_percent": null,
+          "p95_improvement_percent": null
+        }
+      }
+    }
+  ],
+  "fastest_by_accepted_tokens_per_second": {
+    "label": "winner_hybrid_static_b64",
+    "role": "candidate",
+    "source": "results/bfcl/issue19_physical_throughput/benchmarks/winner_combined.json",
+    "median_accepted_tokens_per_second": 989.0967970553354
+  }
+}

@@ -8,8 +8,11 @@ preserved on ModelScope pending adapter provenance and public-release approval;
 its receipt and model SHA-256, rather than mutable `master`, are the proof surface.
 
 The current camera-ready evidence is the Issue #18 physical MACE substrate in
-`issue18_physical_mace_v1/`. Older k160/k240 results below are retained as
-historical runtime-mask lineage and are not the primary physical-model claim.
+`issue18_physical_mace_v1/` plus the quality-gated B200 runtime result in
+`issue19_physical_throughput/`. Issue #19 changes the runtime representation and
+execution setup; it does not change the stored physical-substrate weights.
+Older k160/k240 results below are retained as historical runtime-mask lineage
+and are not the primary physical-model claim.
 
 ## Included Local Receipts
 
@@ -23,6 +26,9 @@ historical runtime-mask lineage and are not the primary physical-model claim.
   full-model artifact.
 - `issue18_physical_mace_v1/`: physical jagged-MLP bundle receipts, strict
   loader provenance, full parity audit, and same-harness benchmark.
+- `issue19_physical_throughput/`: diversity-first kernel/runtime sweep,
+  five-repeat B200 winner, full quality replay, profiler and phase receipts,
+  vLLM/SGLang audit, W&B artifact, and executor cleanup proof.
 
 ## Public Artifact Pointers
 

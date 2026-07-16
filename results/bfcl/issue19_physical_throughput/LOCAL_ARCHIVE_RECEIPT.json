@@ -1,0 +1,33 @@
+{
+  "status": "verified",
+  "archive": "issue19_physical_throughput_private_evidence.tar.gz",
+  "archive_bytes": 1662454,
+  "archive_sha256": "c4ade1a88a32dc8bc49294c4a5e9d7eb910ec275fb547ef2b7d440edd412f128",
+  "payload_file_count": 354,
+  "tar_entry_count": 356,
+  "checksum_manifest": "SHA256SUMS.raw",
+  "checksum_manifest_sha256": "bd1487d5bde11379a2d93831f6020980dbb6fbadd099bdcd785ef7601016cf2b",
+  "checksum_verification": {
+    "status": "pass",
+    "verified_files": 354
+  },
+  "contents": {
+    "raw_prediction_files": true,
+    "per_id_prediction_differences": true,
+    "benchmark_and_phase_receipts": true,
+    "profiler_receipts": true,
+    "environment_and_command_logs": true,
+    "compiler_cache_included": false
+  },
+  "secret_scan": {
+    "private_key_matches": 0,
+    "authorization_bearer_matches": 0,
+    "signed_url_matches": 0,
+    "forty_hex_matches": 3,
+    "forty_hex_classification": "source commit identifiers, not credentials",
+    "status": "pass"
+  },
+  "source_commit": "8755cf454de011f5996f9158264ca9c7ad3b3318",
+  "storage_boundary": "private local workspace; git contains only small sanitized receipts",
+  "verified_at": "2026-07-16T07:30:00Z"
+}

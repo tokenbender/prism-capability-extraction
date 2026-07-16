@@ -1,0 +1,106 @@
+{
+  "status": "selected",
+  "winner_scope": "fastest tested quality-preserving setup on the frozen 1007-row workload and one B200",
+  "source_commit": "8755cf454de011f5996f9158264ca9c7ad3b3318",
+  "winner": {
+    "attention_implementation": "sdpa",
+    "mlp_implementation": "packed_gate_up",
+    "activation_implementation": "hybrid",
+    "hybrid_activation_threshold_rows": 2048,
+    "width_alignment": 128,
+    "compile_mode": "none",
+    "cache_implementation": "static",
+    "generation_compile": {
+      "mode": "transformers_default_auto",
+      "disable_compile": null,
+      "compile_config": {
+        "source": "transformers_default",
+        "mode": "reduce-overhead",
+        "dynamic": null,
+        "fullgraph": false,
+        "backend": "inductor",
+        "options": null
+      }
+    },
+    "compiled_decode_instrumentation_requested": false
+  },
+  "baseline": {
+    "attention_implementation": "eager",
+    "mlp_implementation": "separate",
+    "width_alignment": 1,
+    "compile_mode": "none",
+    "cache_implementation": "dynamic"
+  },
+  "primary_metric": {
+    "name": "median end-to-end accepted generated tokens per second",
+    "baseline": 267.0844287045868,
+    "winner": 989.0967970553354,
+    "improvement_percent": 270.33113530903086,
+    "baseline_repeats": 5,
+    "winner_repeats": 5
+  },
+  "corroborating_metrics": {
+    "winner_generated_slots_per_second": 2196.1837515212337,
+    "winner_examples_per_second": 22.899654549597027,
+    "winner_elapsed_seconds": 43.97446248889901,
+    "winner_batch_latency_median_milliseconds": 2694.281524512917,
+    "winner_batch_latency_p95_milliseconds": 4044.3604753236286
+  },
+  "quality": {
+    "examples": 1007,
+    "normalized_exact_correct": 600,
+    "raw_exact_correct": 587,
+    "floor_pass": true,
+    "strict_prediction_identity": false,
+    "strict_parity_follow_up": "#20"
+  },
+  "candidate_specific_phases": {
+    "prefill_useful_tokens_per_second": {
+      "mean": 45922.05120211581,
+      "median": 45921.25946449104,
+      "min": 45913.19380966084,
+      "max": 45931.70033219553,
+      "p95": 45930.65624542508,
+      "stdev": 9.278630310101937
+    },
+    "compiled_decode_input_slots_per_second_device_scope": {
+      "mean": 3290.065509364809,
+      "median": 3290.7946007242303,
+      "min": 3288.103301510859,
+      "max": 3291.298625859337,
+      "p95": 3291.2482233458263,
+      "stdev": 1.7179071804905448
+    },
+    "compiled_decode_instrumentation": {
+      "status": "pass",
+      "timing_scope": "summed_cuda_event_device_time",
+      "host_scheduling_included": false,
+      "slot_accounting": "generated_slots_equals_compiled_input_slots_plus_one_prefill_output_per_example",
+      "all_slot_accounting_deltas_zero": true,
+      "uninstrumented_steady_warmup_seconds": 44.090501367812976,
+      "instrumented_end_to_end_median_seconds": 44.2145146089606,
+      "estimated_instrumentation_overhead_percent": 0.2812697458644875,
+      "primary_claim_uses_uninstrumented_report": true
+    },
+    "dynamo_stats_measurement_delta": {
+      "calls_captured": 0,
+      "unique_graphs": 0
+    }
+  },
+  "setup_overhead": {
+    "load_seconds": 13.668477765051648,
+    "runtime_repack_seconds": 8.936416368931532,
+    "first_cold_generation_seconds": 178.65367883001454,
+    "steady_warm_generation_seconds": 44.0716743839439,
+    "first_use_compile_capture_overhead_seconds": 134.58200444607064,
+    "static_no_compile_accepted_tokens_per_second": 525.439672736725
+  },
+  "profiler": {
+    "profile_elapsed_seconds": 0.998152457177639,
+    "kernel_launch_count": 12411,
+    "cuda_device_event_count": 12576
+  },
+  "model_sha256": "d0e78a244b01e0d0cce027f9bc65cea304315f522dc4359de2fc9fc4b5f2fb64",
+  "pair_file_sha256": "f5466f7d1c17744bcfc2b6bc1e1647e2095c98762e5afd6fe7641dfcb6c1276e",
+  "serving_engine_follow_up": "#21"
+}

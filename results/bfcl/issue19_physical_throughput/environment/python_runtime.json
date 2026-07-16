@@ -1,0 +1,12 @@
+{
+  "python": "3.12.3",
+  "torch": "2.12.0+cu130",
+  "torch_cuda": "13.0",
+  "transformers": "4.57.6",
+  "triton": "3.7.0",
+  "cudnn": 92000,
+  "private_raw_source": {
+    "file": "environment/python_runtime.json",
+    "sha256": "7a1dc5bcc33f6ef3fc66ffc23da69675bc6653aeb33119dd8b4d48e02f667beb"
+  }
+}

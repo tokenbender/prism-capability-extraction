@@ -1,0 +1,3286 @@
+{
+  "status": "complete",
+  "benchmark": "torch_silu_mul_vs_optional_triton",
+  "bundle": {
+    "path": "<experiment-root>/bundle",
+    "metadata": "<experiment-root>/bundle/substrate_metadata.json",
+    "format": "qwen_physical_mlp_substrate_v1",
+    "layers": 36,
+    "physical_widths": [
+      9087,
+      605,
+      885,
+      1179,
+      2252,
+      3318,
+      2757,
+      3095,
+      4300,
+      4678,
+      4693,
+      4792,
+      4549,
+      5539,
+      6348,
+      6380,
+      5875,
+      5499,
+      5339,
+      5218,
+      5603,
+      5658,
+      5582,
+      5008,
+      4262,
+      3822,
+      3092,
+      2788,
+      2542,
+      2141,
+      1961,
+      1842,
+      1753,
+      2246,
+      3194,
+      2993
+    ],
+    "unique_aligned_widths": [
+      640,
+      896,
+      1280,
+      1792,
+      1920,
+      2048,
+      2176,
+      2304,
+      2560,
+      2816,
+      3072,
+      3200,
+      3328,
+      3840,
+      4352,
+      4608,
+      4736,
+      4864,
+      5120,
+      5248,
+      5376,
+      5504,
+      5632,
+      5760,
+      5888,
+      6400,
+      9088
+    ]
+  },
+  "configuration": {
+    "device": "cuda:0",
+    "dtypes": [
+      "bf16"
+    ],
+    "rows": [
+      8192,
+      32768
+    ],
+    "alignment": 128,
+    "warmups": 10,
+    "repeats": 50,
+    "max_elements": 3000000000,
+    "max_elements_scope": "conservative estimated peak simultaneously live tensor elements per shape",
+    "steady_state_timing": "one CUDA event pair per repeat",
+    "accuracy_interpretation": "raw Torch-versus-Triton elementwise comparison; no numerical pass/fail tolerance is applied",
+    "seed": 1900,
+    "triton_mode": "required"
+  },
+  "environment": {
+    "python": "3.12.3 (main, Jun 19 2026, 12:46:00) [GCC 13.3.0]",
+    "platform": "Linux-7.0.0-27-generic-x86_64-with-glibc2.39",
+    "torch": "2.12.0+cu130",
+    "cuda": "13.0",
+    "gpu": "NVIDIA B200",
+    "gpu_capability": [
+      10,
+      0
+    ],
+    "device": "cuda:0",
+    "triton": "3.7.0"
+  },
+  "triton": {
+    "status": "available",
+    "version": "3.7.0",
+    "error": null,
+    "runtime_errors": [],
+    "comparison_coverage": "measured",
+    "first_call_jit_receipt": {
+      "dtype": "bf16",
+      "rows": 8192,
+      "aligned_width": 640,
+      "wall_milliseconds": 517.6170330960304,
+      "scope": "first Triton invocation in this process; includes any cache lookup or JIT, first kernel execution, and CUDA synchronization"
+    }
+  },
+  "results": [
+    {
+      "rows": 8192,
+      "aligned_width": 640,
+      "layer_indices": [
+        1
+      ],
+      "active_widths": [
+        605
+      ],
+      "input_elements": 10485760,
+      "output_elements": 5242880,
+      "estimated_peak_live_elements": 36700160,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1901,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 22.77772198431194,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.03572863981127739,
+          "median": 0.03566399961709976,
+          "p95": 0.038367999531328675,
+          "min": 0.032255999743938446,
+          "max": 0.04198399931192398
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 517.6170330960304,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.035213439762592315,
+          "median": 0.034304000437259674,
+          "p95": 0.04138880111277103,
+          "min": 0.0315839983522892,
+          "max": 0.0469760000705719
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 1.0396454979741345,
+        "p95": 0.927014035192475
+      },
+      "accuracy": {
+        "total_elements": 5242880,
+        "exact_elements": 5242880,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 5242880,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 110106624
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 640,
+      "layer_indices": [
+        1
+      ],
+      "active_widths": [
+        605
+      ],
+      "input_elements": 41943040,
+      "output_elements": 20971520,
+      "estimated_peak_live_elements": 146800640,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1902,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1807149276137352,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.11404480025172234,
+          "median": 0.11414399743080139,
+          "p95": 0.11490080319344997,
+          "min": 0.11228799819946289,
+          "max": 0.1236800029873848
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.1451810821890831,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.0588409598171711,
+          "median": 0.05852799862623215,
+          "p95": 0.059276800602674484,
+          "min": 0.05663999915122986,
+          "max": 0.07657600194215775
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 1.9502460379645077,
+        "p95": 1.9383772745026628
+      },
+      "accuracy": {
+        "total_elements": 20971520,
+        "exact_elements": 20971520,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 20971520,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 440408064
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 896,
+      "layer_indices": [
+        2
+      ],
+      "active_widths": [
+        885
+      ],
+      "input_elements": 14680064,
+      "output_elements": 7340032,
+      "estimated_peak_live_elements": 51380224,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1903,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.0888311080634594,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.036706559807062146,
+          "median": 0.03638400137424469,
+          "p95": 0.03733600117266178,
+          "min": 0.035392001271247864,
+          "max": 0.04873599857091904
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.1077230554074049,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.03594111993908882,
+          "median": 0.03403199836611748,
+          "p95": 0.040159999579191204,
+          "min": 0.03094400092959404,
+          "max": 0.10704000294208527
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 1.0691115162508025,
+        "p95": 0.9296813138416299
+      },
+      "accuracy": {
+        "total_elements": 7340032,
+        "exact_elements": 7340032,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 7340032,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 154146816
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 896,
+      "layer_indices": [
+        2
+      ],
+      "active_widths": [
+        885
+      ],
+      "input_elements": 58720256,
+      "output_elements": 29360128,
+      "estimated_peak_live_elements": 205520896,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1904,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1824138928204775,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.15677183955907822,
+          "median": 0.1568319946527481,
+          "p95": 0.15787359848618507,
+          "min": 0.15513600409030914,
+          "max": 0.1664319932460785
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.16048108227550983,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.07541056007146835,
+          "median": 0.07497599720954895,
+          "p95": 0.07573280297219753,
+          "min": 0.07430399954319,
+          "max": 0.0942080020904541
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.0917627039280506,
+        "p95": 2.084613170123156
+      },
+      "accuracy": {
+        "total_elements": 29360128,
+        "exact_elements": 29360128,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 29360128,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 616568832
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 1280,
+      "layer_indices": [
+        3
+      ],
+      "active_widths": [
+        1179
+      ],
+      "input_elements": 20971520,
+      "output_elements": 10485760,
+      "estimated_peak_live_elements": 73400320,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1905,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1016938369721174,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.05113471999764443,
+          "median": 0.050912000238895416,
+          "p95": 0.051683198660612106,
+          "min": 0.05027199909090996,
+          "max": 0.06035200133919716
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.11538504622876644,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.03557695969939232,
+          "median": 0.03420799970626831,
+          "p95": 0.042847998999059195,
+          "min": 0.03200000151991844,
+          "max": 0.04726399853825569
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 1.4883068485751374,
+        "p95": 1.2061986526312911
+      },
+      "accuracy": {
+        "total_elements": 10485760,
+        "exact_elements": 10485760,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 10485760,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 220207104
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 1280,
+      "layer_indices": [
+        3
+      ],
+      "active_widths": [
+        1179
+      ],
+      "input_elements": 83886080,
+      "output_elements": 41943040,
+      "estimated_peak_live_elements": 293601280,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1906,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.2852719519287348,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.21877119988203048,
+          "median": 0.2186719998717308,
+          "p95": 0.21958719566464424,
+          "min": 0.21715199947357178,
+          "max": 0.22633600234985352
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.17521390691399574,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.09225407943129539,
+          "median": 0.09166399762034416,
+          "p95": 0.09341439940035343,
+          "min": 0.09068799763917923,
+          "max": 0.11209599673748016
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3855821865573765,
+        "p95": 2.3506782366982004
+      },
+      "accuracy": {
+        "total_elements": 41943040,
+        "exact_elements": 41943040,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 41943040,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 880809984
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 1792,
+      "layer_indices": [
+        32
+      ],
+      "active_widths": [
+        1753
+      ],
+      "input_elements": 29360128,
+      "output_elements": 14680064,
+      "estimated_peak_live_elements": 102760448,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1907,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1247000657022,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.08021952033042908,
+          "median": 0.07972800359129906,
+          "p95": 0.08136160112917423,
+          "min": 0.07900799810886383,
+          "max": 0.09145600348711014
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.11835992336273193,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.036971519961953164,
+          "median": 0.03619199991226196,
+          "p95": 0.040406400710344306,
+          "min": 0.03513599932193756,
+          "max": 0.05395200103521347
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.202917876452773,
+        "p95": 2.0135819993574713
+      },
+      "accuracy": {
+        "total_elements": 14680064,
+        "exact_elements": 14680064,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 14680064,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 308287488
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 1792,
+      "layer_indices": [
+        32
+      ],
+      "active_widths": [
+        1753
+      ],
+      "input_elements": 117440512,
+      "output_elements": 58720256,
+      "estimated_peak_live_elements": 411041792,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1908,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.2773680500686169,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.30097663938999175,
+          "median": 0.3007360100746155,
+          "p95": 0.30164959132671354,
+          "min": 0.2998720109462738,
+          "max": 0.30985599756240845
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.21292781457304955,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.12643584057688714,
+          "median": 0.12619200348854065,
+          "p95": 0.1268479973077774,
+          "min": 0.1244800016283989,
+          "max": 0.14233599603176117
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3831621795427393,
+        "p95": 2.3780398408246572
+      },
+      "accuracy": {
+        "total_elements": 58720256,
+        "exact_elements": 58720256,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 58720256,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 1233131520
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 1920,
+      "layer_indices": [
+        31
+      ],
+      "active_widths": [
+        1842
+      ],
+      "input_elements": 31457280,
+      "output_elements": 15728640,
+      "estimated_peak_live_elements": 110100480,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1909,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1356810573488474,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.08569664016366005,
+          "median": 0.08555200323462486,
+          "p95": 0.08619360066950321,
+          "min": 0.0846719965338707,
+          "max": 0.09375999867916107
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.12661097571253777,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.04101695992052555,
+          "median": 0.04047999903559685,
+          "p95": 0.04225279930979013,
+          "min": 0.0395519994199276,
+          "max": 0.058079998940229416
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.1134388654355725,
+        "p95": 2.03995006431519
+      },
+      "accuracy": {
+        "total_elements": 15728640,
+        "exact_elements": 15728640,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 15728640,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 330307584
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 1920,
+      "layer_indices": [
+        31
+      ],
+      "active_widths": [
+        1842
+      ],
+      "input_elements": 125829120,
+      "output_elements": 62914560,
+      "estimated_peak_live_elements": 440401920,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1910,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.291806111112237,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.3214553564786911,
+          "median": 0.3211999982595444,
+          "p95": 0.3222255915403366,
+          "min": 0.3200959861278534,
+          "max": 0.3303680121898651
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.22641988471150398,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.14299455940723418,
+          "median": 0.14270400255918503,
+          "p95": 0.14324959889054298,
+          "min": 0.14185599982738495,
+          "max": 0.16115200519561768
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.2508128188368786,
+        "p95": 2.2493996076495066
+      },
+      "accuracy": {
+        "total_elements": 62914560,
+        "exact_elements": 62914560,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 62914560,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 1321211904
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 2048,
+      "layer_indices": [
+        30
+      ],
+      "active_widths": [
+        1961
+      ],
+      "input_elements": 33554432,
+      "output_elements": 16777216,
+      "estimated_peak_live_elements": 117440512,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1911,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1064410209655762,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.09162943959236144,
+          "median": 0.0915679968893528,
+          "p95": 0.09246559962630271,
+          "min": 0.08972799777984619,
+          "max": 0.09980800002813339
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.11901604011654854,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.041362560167908666,
+          "median": 0.0411360003054142,
+          "p95": 0.042321599833667276,
+          "min": 0.039744000881910324,
+          "max": 0.0578560009598732
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.2259820159837194,
+        "p95": 2.1848323312377564
+      },
+      "accuracy": {
+        "total_elements": 16777216,
+        "exact_elements": 16777216,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 16777216,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 352327680
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 2048,
+      "layer_indices": [
+        30
+      ],
+      "active_widths": [
+        1961
+      ],
+      "input_elements": 134217728,
+      "output_elements": 67108864,
+      "estimated_peak_live_elements": 469762048,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1912,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.283995108678937,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.3417977607250214,
+          "median": 0.34163200855255127,
+          "p95": 0.34237760603427886,
+          "min": 0.34095999598503113,
+          "max": 0.35017600655555725
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.22475002333521843,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.14300864070653915,
+          "median": 0.14259199798107147,
+          "p95": 0.1434016041457653,
+          "min": 0.14182400703430176,
+          "max": 0.16172799468040466
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3958708299879605,
+        "p95": 2.3875437661510244
+      },
+      "accuracy": {
+        "total_elements": 67108864,
+        "exact_elements": 67108864,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 67108864,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 1409292288
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 2176,
+      "layer_indices": [
+        29
+      ],
+      "active_widths": [
+        2141
+      ],
+      "input_elements": 35651584,
+      "output_elements": 17825792,
+      "estimated_peak_live_elements": 124780544,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1913,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1334321461617947,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.09688959985971451,
+          "median": 0.09655999764800072,
+          "p95": 0.09801600128412247,
+          "min": 0.09539200365543365,
+          "max": 0.10499200224876404
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.1321330200880766,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.04578559994697571,
+          "median": 0.045744000002741814,
+          "p95": 0.046833598986268044,
+          "min": 0.043935999274253845,
+          "max": 0.06275200098752975
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.110877877802839,
+        "p95": 2.0928564835015453
+      },
+      "accuracy": {
+        "total_elements": 17825792,
+        "exact_elements": 17825792,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 17825792,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 374347776
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 2176,
+      "layer_indices": [
+        29
+      ],
+      "active_widths": [
+        2141
+      ],
+      "input_elements": 142606336,
+      "output_elements": 71303168,
+      "estimated_peak_live_elements": 499122176,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1914,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.29608903080225,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.36231167674064635,
+          "median": 0.36211198568344116,
+          "p95": 0.36289759576320646,
+          "min": 0.3615359961986542,
+          "max": 0.36982399225234985
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.24958187714219093,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.15974016040563582,
+          "median": 0.15918400138616562,
+          "p95": 0.16106879711151123,
+          "min": 0.1584320068359375,
+          "max": 0.17638400197029114
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.274801377840673,
+        "p95": 2.2530595762254624
+      },
+      "accuracy": {
+        "total_elements": 71303168,
+        "exact_elements": 71303168,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 71303168,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 1497372672
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 2304,
+      "layer_indices": [
+        4,
+        33
+      ],
+      "active_widths": [
+        2246,
+        2252
+      ],
+      "input_elements": 37748736,
+      "output_elements": 18874368,
+      "estimated_peak_live_elements": 132120576,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1915,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1448969598859549,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.10246272087097168,
+          "median": 0.1021760031580925,
+          "p95": 0.10299360193312168,
+          "min": 0.10121600329875946,
+          "max": 0.11158400028944016
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.13172300532460213,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.0461241602152586,
+          "median": 0.045791998505592346,
+          "p95": 0.04678719863295555,
+          "min": 0.04419200122356415,
+          "max": 0.06467200070619583
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.2313069202606273,
+        "p95": 2.201320124786782
+      },
+      "accuracy": {
+        "total_elements": 18874368,
+        "exact_elements": 18874368,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 18874368,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 396367872
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 2304,
+      "layer_indices": [
+        4,
+        33
+      ],
+      "active_widths": [
+        2246,
+        2252
+      ],
+      "input_elements": 150994944,
+      "output_elements": 75497472,
+      "estimated_peak_live_elements": 528482304,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1916,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.3071037828922272,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.3828492796421051,
+          "median": 0.38259199261665344,
+          "p95": 0.38364320397377016,
+          "min": 0.3813120126724243,
+          "max": 0.3917759954929352
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.2443399280309677,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.15993664026260376,
+          "median": 0.1592480018734932,
+          "p95": 0.16127200275659562,
+          "min": 0.15836800634860992,
+          "max": 0.17744000256061554
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.402491636413655,
+        "p95": 2.3788580622564393
+      },
+      "accuracy": {
+        "total_elements": 75497472,
+        "exact_elements": 75497472,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 75497472,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 1585453056
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 2560,
+      "layer_indices": [
+        28
+      ],
+      "active_widths": [
+        2542
+      ],
+      "input_elements": 41943040,
+      "output_elements": 20971520,
+      "estimated_peak_live_elements": 146800640,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1917,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1402841191738844,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.1141145595908165,
+          "median": 0.11423999816179276,
+          "p95": 0.11512159742414951,
+          "min": 0.11196800321340561,
+          "max": 0.12310399860143661
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.13756402768194675,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.05045567989349365,
+          "median": 0.05027199909090996,
+          "p95": 0.05094720050692558,
+          "min": 0.048287998884916306,
+          "max": 0.06745599955320358
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.272437942147586,
+        "p95": 2.2596255786125146
+      },
+      "accuracy": {
+        "total_elements": 20971520,
+        "exact_elements": 20971520,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 20971520,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 440408064
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 2560,
+      "layer_indices": [
+        28
+      ],
+      "active_widths": [
+        2542
+      ],
+      "input_elements": 167772160,
+      "output_elements": 83886080,
+      "estimated_peak_live_elements": 587202560,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1918,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.3370881788432598,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.42385984003543853,
+          "median": 0.4236000031232834,
+          "p95": 0.42464320063591,
+          "min": 0.42259201407432556,
+          "max": 0.4313279986381531
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.2634250558912754,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.17723520040512086,
+          "median": 0.17732799798250198,
+          "p95": 0.17795519903302193,
+          "min": 0.175135999917984,
+          "max": 0.19382399320602417
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3887936927201,
+        "p95": 2.3862365524769626
+      },
+      "accuracy": {
+        "total_elements": 83886080,
+        "exact_elements": 83886080,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 83886080,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 1761613824
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 2816,
+      "layer_indices": [
+        6,
+        27
+      ],
+      "active_widths": [
+        2757,
+        2788
+      ],
+      "input_elements": 46137344,
+      "output_elements": 23068672,
+      "estimated_peak_live_elements": 161480704,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1919,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1687390506267548,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.12480512082576752,
+          "median": 0.12457600235939026,
+          "p95": 0.12557440251111984,
+          "min": 0.12358400225639343,
+          "max": 0.13344000279903412
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.13709207996726036,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.054873599857091906,
+          "median": 0.05463999882340431,
+          "p95": 0.05502559971064329,
+          "min": 0.05270399898290634,
+          "max": 0.07209599763154984
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.279941527122248,
+        "p95": 2.2821087488634983
+      },
+      "accuracy": {
+        "total_elements": 23068672,
+        "exact_elements": 23068672,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 23068672,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 484448256
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 2816,
+      "layer_indices": [
+        6,
+        27
+      ],
+      "active_widths": [
+        2757,
+        2788
+      ],
+      "input_elements": 184549376,
+      "output_elements": 92274688,
+      "estimated_peak_live_elements": 645922816,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1920,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.3874510768800974,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.4649228811264038,
+          "median": 0.46454399824142456,
+          "p95": 0.46616000384092326,
+          "min": 0.46406400203704834,
+          "max": 0.47382399439811707
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.27941283769905567,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.19421055942773818,
+          "median": 0.19387199729681015,
+          "p95": 0.19471200332045557,
+          "min": 0.1921280026435852,
+          "max": 0.21395200490951538
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3961376821750413,
+        "p95": 2.39409998300783
+      },
+      "accuracy": {
+        "total_elements": 92274688,
+        "exact_elements": 92274688,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 92274688,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 1937775104
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 3072,
+      "layer_indices": [
+        35
+      ],
+      "active_widths": [
+        2993
+      ],
+      "input_elements": 50331648,
+      "output_elements": 25165824,
+      "estimated_peak_live_elements": 176160768,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1921,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1669390369206667,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.13567232042551042,
+          "median": 0.13540799915790558,
+          "p95": 0.13686400651931763,
+          "min": 0.13446399569511414,
+          "max": 0.14511999487876892
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.14106696471571922,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.058888319805264475,
+          "median": 0.05870399996638298,
+          "p95": 0.0591535996645689,
+          "min": 0.0570559985935688,
+          "max": 0.07568000257015228
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3066230450301064,
+        "p95": 2.313705459945065
+      },
+      "accuracy": {
+        "total_elements": 25165824,
+        "exact_elements": 25165824,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 25165824,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 528488448
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 3072,
+      "layer_indices": [
+        35
+      ],
+      "active_widths": [
+        2993
+      ],
+      "input_elements": 201326592,
+      "output_elements": 100663296,
+      "estimated_peak_live_elements": 704643072,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1922,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.4091928023844957,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.5063232016563416,
+          "median": 0.5061279833316803,
+          "p95": 0.5075056165456773,
+          "min": 0.5048959851264954,
+          "max": 0.5160959959030151
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.29684300534427166,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.21075584143400192,
+          "median": 0.21032000333070755,
+          "p95": 0.21188960000872611,
+          "min": 0.2093760073184967,
+          "max": 0.22867199778556824
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.4064662196483697,
+        "p95": 2.395141698907247
+      },
+      "accuracy": {
+        "total_elements": 100663296,
+        "exact_elements": 100663296,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 100663296,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 2113936384
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 3200,
+      "layer_indices": [
+        7,
+        26,
+        34
+      ],
+      "active_widths": [
+        3092,
+        3095,
+        3194
+      ],
+      "input_elements": 52428800,
+      "output_elements": 26214400,
+      "estimated_peak_live_elements": 183500800,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1923,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1722180061042309,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.14139839947223665,
+          "median": 0.14107199758291245,
+          "p95": 0.1420159935951233,
+          "min": 0.14028799533843994,
+          "max": 0.15062400698661804
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.14391099102795124,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.06310080043971539,
+          "median": 0.0628800019621849,
+          "p95": 0.06362560018897057,
+          "min": 0.0613120011985302,
+          "max": 0.0791039988398552
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.243511341932703,
+        "p95": 2.2320574292946573
+      },
+      "accuracy": {
+        "total_elements": 26214400,
+        "exact_elements": 26214400,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 26214400,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 550508544
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 3200,
+      "layer_indices": [
+        7,
+        26,
+        34
+      ],
+      "active_widths": [
+        3092,
+        3095,
+        3194
+      ],
+      "input_elements": 209715200,
+      "output_elements": 104857600,
+      "estimated_peak_live_elements": 734003200,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1924,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.4325359370559454,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.5271193587779999,
+          "median": 0.526991993188858,
+          "p95": 0.5281311959028244,
+          "min": 0.525600016117096,
+          "max": 0.5358719825744629
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.3164790105074644,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.2277107220888138,
+          "median": 0.22696000337600708,
+          "p95": 0.22880320623517036,
+          "min": 0.22655999660491943,
+          "max": 0.245728000998497
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.321959752158554,
+        "p95": 2.3082333704712004
+      },
+      "accuracy": {
+        "total_elements": 104857600,
+        "exact_elements": 104857600,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 104857600,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 2202017280
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 3328,
+      "layer_indices": [
+        5
+      ],
+      "active_widths": [
+        3318
+      ],
+      "input_elements": 54525952,
+      "output_elements": 27262976,
+      "estimated_peak_live_elements": 190840832,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1925,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1743230279535055,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.1461830398440361,
+          "median": 0.1459520012140274,
+          "p95": 0.14733440428972244,
+          "min": 0.14473600685596466,
+          "max": 0.15558399260044098
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.1477929763495922,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.06327104069292545,
+          "median": 0.0629120022058487,
+          "p95": 0.06359359994530678,
+          "min": 0.06185600161552429,
+          "max": 0.08361600339412689
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3199389003146176,
+        "p95": 2.316811824089788
+      },
+      "accuracy": {
+        "total_elements": 27262976,
+        "exact_elements": 27262976,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 27262976,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 572528640
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 3328,
+      "layer_indices": [
+        5
+      ],
+      "active_widths": [
+        3318
+      ],
+      "input_elements": 218103808,
+      "output_elements": 109051904,
+      "estimated_peak_live_elements": 763363328,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1926,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.4428780414164066,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.5471513557434082,
+          "median": 0.546783983707428,
+          "p95": 0.5483375996351242,
+          "min": 0.5461440086364746,
+          "max": 0.55622398853302
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.3165451344102621,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.22790656208992005,
+          "median": 0.22710400074720383,
+          "p95": 0.22883200645446777,
+          "min": 0.22652800381183624,
+          "max": 0.2451840043067932
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.407636950068834,
+        "p95": 2.3962452111970207
+      },
+      "accuracy": {
+        "total_elements": 109051904,
+        "exact_elements": 109051904,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 109051904,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 2290097664
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 3840,
+      "layer_indices": [
+        25
+      ],
+      "active_widths": [
+        3822
+      ],
+      "input_elements": 62914560,
+      "output_elements": 31457280,
+      "estimated_peak_live_elements": 220200960,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1927,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1844178661704063,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.16732351928949357,
+          "median": 0.16742399334907532,
+          "p95": 0.16833759620785715,
+          "min": 0.16547200083732605,
+          "max": 0.1761920005083084
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.1642762217670679,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.07136127889156342,
+          "median": 0.07110399752855301,
+          "p95": 0.07168160192668438,
+          "min": 0.07020799815654755,
+          "max": 0.08745600283145905
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3546354518512604,
+        "p95": 2.348407285596548
+      },
+      "accuracy": {
+        "total_elements": 31457280,
+        "exact_elements": 31457280,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 31457280,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 660609024
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 3840,
+      "layer_indices": [
+        25
+      ],
+      "active_widths": [
+        3822
+      ],
+      "input_elements": 251658240,
+      "output_elements": 125829120,
+      "estimated_peak_live_elements": 880803840,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1928,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.4835100155323744,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.6292819225788117,
+          "median": 0.6291199922561646,
+          "p95": 0.6304496139287948,
+          "min": 0.6278079748153687,
+          "max": 0.6382079720497131
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.3496741410344839,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.26189823865890505,
+          "median": 0.26159998774528503,
+          "p95": 0.2621472001075745,
+          "min": 0.26051199436187744,
+          "max": 0.28070399165153503
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.4048930494168324,
+        "p95": 2.404945060142104
+      },
+      "accuracy": {
+        "total_elements": 125829120,
+        "exact_elements": 125829120,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 125829120,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 2642420224
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 4352,
+      "layer_indices": [
+        8,
+        24
+      ],
+      "active_widths": [
+        4262,
+        4300
+      ],
+      "input_elements": 71303168,
+      "output_elements": 35651584,
+      "estimated_peak_live_elements": 249561088,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1929,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.2330231256783009,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.1880396780371666,
+          "median": 0.18799999356269836,
+          "p95": 0.18846880048513415,
+          "min": 0.18582400679588318,
+          "max": 0.19737599790096283
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.1680338755249977,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.0795859207212925,
+          "median": 0.07929600030183792,
+          "p95": 0.07968320325016975,
+          "min": 0.07836800068616867,
+          "max": 0.09699200093746185
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3708635094718757,
+        "p95": 2.3652262057466
+      },
+      "accuracy": {
+        "total_elements": 35651584,
+        "exact_elements": 35651584,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 35651584,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 748689408
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 4352,
+      "layer_indices": [
+        8,
+        24
+      ],
+      "active_widths": [
+        4262,
+        4300
+      ],
+      "input_elements": 285212672,
+      "output_elements": 142606336,
+      "estimated_peak_live_elements": 998244352,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1930,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.550082117319107,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.7114079988002777,
+          "median": 0.7111999988555908,
+          "p95": 0.7125296205282212,
+          "min": 0.7098240256309509,
+          "max": 0.7200959920883179
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.38404902443289757,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.29576319992542266,
+          "median": 0.2954400032758713,
+          "p95": 0.29672799706459047,
+          "min": 0.29392001032829285,
+          "max": 0.31619200110435486
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.4072569420854553,
+        "p95": 2.401288815268486
+      },
+      "accuracy": {
+        "total_elements": 142606336,
+        "exact_elements": 142606336,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 142606336,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 2994742784
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 4608,
+      "layer_indices": [
+        12
+      ],
+      "active_widths": [
+        4549
+      ],
+      "input_elements": 75497472,
+      "output_elements": 37748736,
+      "estimated_peak_live_elements": 264241152,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1931,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.2524910271167755,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.1982828798890114,
+          "median": 0.1982560008764267,
+          "p95": 0.19925600141286848,
+          "min": 0.19622400403022766,
+          "max": 0.20732800662517548
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.17419317737221718,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.08390272110700607,
+          "median": 0.08342400193214417,
+          "p95": 0.08526720106601715,
+          "min": 0.08256000280380249,
+          "max": 0.10131199657917023
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.376486338280501,
+        "p95": 2.3368422901391686
+      },
+      "accuracy": {
+        "total_elements": 37748736,
+        "exact_elements": 37748736,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 37748736,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 792729600
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 4608,
+      "layer_indices": [
+        12
+      ],
+      "active_widths": [
+        4549
+      ],
+      "input_elements": 301989888,
+      "output_elements": 150994944,
+      "estimated_peak_live_elements": 1056964608,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1932,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.6032198909670115,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.7524742424488068,
+          "median": 0.7522240281105042,
+          "p95": 0.7533616036176682,
+          "min": 0.7510719895362854,
+          "max": 0.7608960270881653
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.39904797449707985,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.3127270400524139,
+          "median": 0.312608003616333,
+          "p95": 0.3131231918931007,
+          "min": 0.31065601110458374,
+          "max": 0.332863986492157
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.4062852499250673,
+        "p95": 2.405959134048632
+      },
+      "accuracy": {
+        "total_elements": 150994944,
+        "exact_elements": 150994944,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 150994944,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 3170904064
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 4736,
+      "layer_indices": [
+        9,
+        10
+      ],
+      "active_widths": [
+        4678,
+        4693
+      ],
+      "input_elements": 77594624,
+      "output_elements": 38797312,
+      "estimated_peak_live_elements": 271581184,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1933,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.2507340870797634,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.20297088027000426,
+          "median": 0.20255999267101288,
+          "p95": 0.2045055992901325,
+          "min": 0.20201599597930908,
+          "max": 0.21238400042057037
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.17202203162014484,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.08790016055107117,
+          "median": 0.08750400319695473,
+          "p95": 0.0890928003937006,
+          "min": 0.08662399649620056,
+          "max": 0.10371199995279312
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.31486543781419,
+        "p95": 2.2954222831297635
+      },
+      "accuracy": {
+        "total_elements": 38797312,
+        "exact_elements": 38797312,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 38797312,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 814749696
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 4736,
+      "layer_indices": [
+        9,
+        10
+      ],
+      "active_widths": [
+        4678,
+        4693
+      ],
+      "input_elements": 310378496,
+      "output_elements": 155189248,
+      "estimated_peak_live_elements": 1086324736,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1934,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.6447070520371199,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.7728038430213928,
+          "median": 0.7724800109863281,
+          "p95": 0.7741216152906418,
+          "min": 0.7712640166282654,
+          "max": 0.7802879810333252
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.42042089626193047,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.3294015991687775,
+          "median": 0.3290880024433136,
+          "p95": 0.3297151982784271,
+          "min": 0.32716798782348633,
+          "max": 0.35257598757743835
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3473356830119934,
+        "p95": 2.3478493540262493
+      },
+      "accuracy": {
+        "total_elements": 155189248,
+        "exact_elements": 155189248,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 155189248,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 3258984960
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 4864,
+      "layer_indices": [
+        11
+      ],
+      "active_widths": [
+        4792
+      ],
+      "input_elements": 79691776,
+      "output_elements": 39845888,
+      "estimated_peak_live_elements": 278921216,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1935,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.2465589679777622,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.20849216103553772,
+          "median": 0.20849599689245224,
+          "p95": 0.20941440016031265,
+          "min": 0.20633600652217865,
+          "max": 0.21689599752426147
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.1697419211268425,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.08824000045657159,
+          "median": 0.08755200356245041,
+          "p95": 0.08913280069828033,
+          "min": 0.08662399649620056,
+          "max": 0.11097600311040878
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.381396066438766,
+        "p95": 2.3494650512463133
+      },
+      "accuracy": {
+        "total_elements": 39845888,
+        "exact_elements": 39845888,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 39845888,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 836769792
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 4864,
+      "layer_indices": [
+        11
+      ],
+      "active_widths": [
+        4792
+      ],
+      "input_elements": 318767104,
+      "output_elements": 159383552,
+      "estimated_peak_live_elements": 1115684864,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1936,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.6801650635898113,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.7936006379127503,
+          "median": 0.7932800054550171,
+          "p95": 0.7943711966276168,
+          "min": 0.7920640110969543,
+          "max": 0.8027840256690979
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.41940202936530113,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.32933631777763367,
+          "median": 0.329039990901947,
+          "p95": 0.3299183905124664,
+          "min": 0.3280639946460724,
+          "max": 0.34694400429725647
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.4108923759708354,
+        "p95": 2.4077808920979216
+      },
+      "accuracy": {
+        "total_elements": 159383552,
+        "exact_elements": 159383552,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 159383552,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 3347065344
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 5120,
+      "layer_indices": [
+        23
+      ],
+      "active_widths": [
+        5008
+      ],
+      "input_elements": 83886080,
+      "output_elements": 41943040,
+      "estimated_peak_live_elements": 293601280,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1937,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.2612252030521631,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.21871487975120543,
+          "median": 0.21872000396251678,
+          "p95": 0.21933440119028091,
+          "min": 0.21648000180721283,
+          "max": 0.22889600694179535
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.17340388149023056,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.09232511952519416,
+          "median": 0.09172799810767174,
+          "p95": 0.09342560358345509,
+          "min": 0.09084799885749817,
+          "max": 0.1111999973654747
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3844410482585685,
+        "p95": 2.34769049144386
+      },
+      "accuracy": {
+        "total_elements": 41943040,
+        "exact_elements": 41943040,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 41943040,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 880809984
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 5120,
+      "layer_indices": [
+        23
+      ],
+      "active_widths": [
+        5008
+      ],
+      "input_elements": 335544320,
+      "output_elements": 167772160,
+      "estimated_peak_live_elements": 1174405120,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1938,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.6563069075345993,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.834515198469162,
+          "median": 0.8341920077800751,
+          "p95": 0.83540960252285,
+          "min": 0.8328319787979126,
+          "max": 0.842303991317749
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.4344708286225796,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.3459814393520355,
+          "median": 0.3455359935760498,
+          "p95": 0.34696479290723803,
+          "min": 0.34463998675346375,
+          "max": 0.3629760146141052
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.4141971409310674,
+        "p95": 2.407764763458865
+      },
+      "accuracy": {
+        "total_elements": 167772160,
+        "exact_elements": 167772160,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 167772160,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 3523226624
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 5248,
+      "layer_indices": [
+        19
+      ],
+      "active_widths": [
+        5218
+      ],
+      "input_elements": 85983232,
+      "output_elements": 42991616,
+      "estimated_peak_live_elements": 300941312,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1939,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.2294731568545103,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.22348032027482986,
+          "median": 0.22305600345134735,
+          "p95": 0.2248240016400814,
+          "min": 0.2221439927816391,
+          "max": 0.2319359928369522
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.1801210455596447,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.09636799916625023,
+          "median": 0.09574399888515472,
+          "p95": 0.09747519716620445,
+          "min": 0.09484799951314926,
+          "max": 0.11523199826478958
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3297126300198077,
+        "p95": 2.3064739356898674
+      },
+      "accuracy": {
+        "total_elements": 42991616,
+        "exact_elements": 42991616,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 42991616,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 902830080
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 5248,
+      "layer_indices": [
+        19
+      ],
+      "active_widths": [
+        5218
+      ],
+      "input_elements": 343932928,
+      "output_elements": 171966464,
+      "estimated_peak_live_elements": 1203765248,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1940,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.6712050419300795,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.8556243216991425,
+          "median": 0.8555840253829956,
+          "p95": 0.85656318962574,
+          "min": 0.853600025177002,
+          "max": 0.8639360070228577
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.4607459995895624,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.363127681016922,
+          "median": 0.3627360016107559,
+          "p95": 0.3640640079975128,
+          "min": 0.3612479865550995,
+          "max": 0.38367998600006104
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3586961911244315,
+        "p95": 2.352781848272109
+      },
+      "accuracy": {
+        "total_elements": 171966464,
+        "exact_elements": 171966464,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 171966464,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 3611307520
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 5376,
+      "layer_indices": [
+        18
+      ],
+      "active_widths": [
+        5339
+      ],
+      "input_elements": 88080384,
+      "output_elements": 44040192,
+      "estimated_peak_live_elements": 308281344,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1941,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.2367430608719587,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.22903552114963532,
+          "median": 0.22892799973487854,
+          "p95": 0.22959840074181553,
+          "min": 0.22726400196552277,
+          "max": 0.23747199773788452
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.18673017621040344,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.09646335974335671,
+          "median": 0.0958239994943142,
+          "p95": 0.0975887980312109,
+          "min": 0.0950080007314682,
+          "max": 0.11376000195741653
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3890465952473856,
+        "p95": 2.3527126614305183
+      },
+      "accuracy": {
+        "total_elements": 44040192,
+        "exact_elements": 44040192,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 44040192,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 924850176
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 5376,
+      "layer_indices": [
+        18
+      ],
+      "active_widths": [
+        5339
+      ],
+      "input_elements": 352321536,
+      "output_elements": 176160768,
+      "estimated_peak_live_elements": 1233125376,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1942,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.687672920525074,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.8759712016582489,
+          "median": 0.8760319948196411,
+          "p95": 0.8769311994314193,
+          "min": 0.8740159869194031,
+          "max": 0.8834879994392395
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.44655497185885906,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.36323712110519407,
+          "median": 0.36288000643253326,
+          "p95": 0.36418078988790514,
+          "min": 0.3616639971733093,
+          "max": 0.3819200098514557
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.414109290373685,
+        "p95": 2.407955674162107
+      },
+      "accuracy": {
+        "total_elements": 176160768,
+        "exact_elements": 176160768,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 176160768,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 3699387904
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 5504,
+      "layer_indices": [
+        17
+      ],
+      "active_widths": [
+        5499
+      ],
+      "input_elements": 90177536,
+      "output_elements": 45088768,
+      "estimated_peak_live_elements": 315621376,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1943,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.23363989405334,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.23358271896839142,
+          "median": 0.23316799849271774,
+          "p95": 0.23507200181484222,
+          "min": 0.23228800296783447,
+          "max": 0.24211199581623077
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.1951940357685089,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.10061503991484642,
+          "median": 0.09993600100278854,
+          "p95": 0.10152159817516804,
+          "min": 0.09913600236177444,
+          "max": 0.11769600212574005
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.333173192373503,
+        "p95": 2.3154876010643846
+      },
+      "accuracy": {
+        "total_elements": 45088768,
+        "exact_elements": 45088768,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 45088768,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 946870272
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 5504,
+      "layer_indices": [
+        17
+      ],
+      "active_widths": [
+        5499
+      ],
+      "input_elements": 360710144,
+      "output_elements": 180355072,
+      "estimated_peak_live_elements": 1262485504,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1944,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.6742050647735596,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.8968435227870941,
+          "median": 0.8966400027275085,
+          "p95": 0.897571188211441,
+          "min": 0.8949120044708252,
+          "max": 0.9088960289955139
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.4697649274021387,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.38006783962249757,
+          "median": 0.37990400195121765,
+          "p95": 0.3805936023592949,
+          "min": 0.3782399892807007,
+          "max": 0.39577600359916687
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3601751972137515,
+        "p95": 2.358345444188785
+      },
+      "accuracy": {
+        "total_elements": 180355072,
+        "exact_elements": 180355072,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 180355072,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 3787468800
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 5632,
+      "layer_indices": [
+        13,
+        20,
+        22
+      ],
+      "active_widths": [
+        5539,
+        5582,
+        5603
+      ],
+      "input_elements": 92274688,
+      "output_elements": 46137344,
+      "estimated_peak_live_elements": 322961408,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1945,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.2377509847283363,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.2392256000638008,
+          "median": 0.2390879988670349,
+          "p95": 0.23949119821190834,
+          "min": 0.23766399919986725,
+          "max": 0.2487040013074875
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.19450299441814423,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.10088384062051774,
+          "median": 0.10024000331759453,
+          "p95": 0.10153919830918312,
+          "min": 0.09904000163078308,
+          "max": 0.12223999947309494
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.385155536253551,
+        "p95": 2.3586083226958956
+      },
+      "accuracy": {
+        "total_elements": 46137344,
+        "exact_elements": 46137344,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 46137344,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 968890368
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 5632,
+      "layer_indices": [
+        13,
+        20,
+        22
+      ],
+      "active_widths": [
+        5539,
+        5582,
+        5603
+      ],
+      "input_elements": 369098752,
+      "output_elements": 184549376,
+      "estimated_peak_live_elements": 1291845632,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1946,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.6770318616181612,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.9168384027481079,
+          "median": 0.9167680144309998,
+          "p95": 0.9176560163497924,
+          "min": 0.9151679873466492,
+          "max": 0.9255040287971497
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.4478220362216234,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.38020736157894136,
+          "median": 0.3800959885120392,
+          "p95": 0.38065760433673856,
+          "min": 0.3781760036945343,
+          "max": 0.3967680037021637
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.411938147571273,
+        "p95": 2.4107124247490734
+      },
+      "accuracy": {
+        "total_elements": 184549376,
+        "exact_elements": 184549376,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 184549376,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 3875549184
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 5760,
+      "layer_indices": [
+        21
+      ],
+      "active_widths": [
+        5658
+      ],
+      "input_elements": 94371840,
+      "output_elements": 47185920,
+      "estimated_peak_live_elements": 330301440,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1947,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.2023739982396364,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.2436089614033699,
+          "median": 0.2433599978685379,
+          "p95": 0.2445328027009964,
+          "min": 0.24246400594711304,
+          "max": 0.25302401185035706
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.16745692119002342,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.10493632048368454,
+          "median": 0.10417599976062775,
+          "p95": 0.10595840215682983,
+          "min": 0.10335999727249146,
+          "max": 0.12345600128173828
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3360466751240465,
+        "p95": 2.3078188961273836
+      },
+      "accuracy": {
+        "total_elements": 47185920,
+        "exact_elements": 47185920,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 47185920,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 990910464
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 5760,
+      "layer_indices": [
+        21
+      ],
+      "active_widths": [
+        5658
+      ],
+      "input_elements": 377487360,
+      "output_elements": 188743680,
+      "estimated_peak_live_elements": 1321205760,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1948,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.6114271711558104,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.9370911991596222,
+          "median": 0.9372319877147675,
+          "p95": 0.9378767907619476,
+          "min": 0.9352319836616516,
+          "max": 0.9450560212135315
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.4786581266671419,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.39683775782585146,
+          "median": 0.3965759873390198,
+          "p95": 0.3976064011454582,
+          "min": 0.3949440121650696,
+          "max": 0.4153279960155487
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.363309977498861,
+        "p95": 2.358807071666937
+      },
+      "accuracy": {
+        "total_elements": 188743680,
+        "exact_elements": 188743680,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 188743680,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 3963630080
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 5888,
+      "layer_indices": [
+        16
+      ],
+      "active_widths": [
+        5875
+      ],
+      "input_elements": 96468992,
+      "output_elements": 48234496,
+      "estimated_peak_live_elements": 337641472,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1949,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.1849179863929749,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.2494438397884369,
+          "median": 0.24934400618076324,
+          "p95": 0.24980959892272947,
+          "min": 0.24793599545955658,
+          "max": 0.25756800174713135
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.16876496374607086,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.10497408002614975,
+          "median": 0.10433599725365639,
+          "p95": 0.10579520091414452,
+          "min": 0.1035199984908104,
+          "max": 0.12483199685811996
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3898176347955036,
+        "p95": 2.361256434736168
+      },
+      "accuracy": {
+        "total_elements": 48234496,
+        "exact_elements": 48234496,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 48234496,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 1012930560
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 5888,
+      "layer_indices": [
+        16
+      ],
+      "active_widths": [
+        5875
+      ],
+      "input_elements": 385875968,
+      "output_elements": 192937984,
+      "estimated_peak_live_elements": 1350565888,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1950,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.6280419658869505,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.9576287972927093,
+          "median": 0.9576320052146912,
+          "p95": 0.9585503816604615,
+          "min": 0.9562559723854065,
+          "max": 0.9654719829559326
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.47808513045310974,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.3969151991605759,
+          "median": 0.3965280055999756,
+          "p95": 0.3970560133457184,
+          "min": 0.39561599493026733,
+          "max": 0.41760000586509705
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.4150425485476736,
+        "p95": 2.4141439732480454
+      },
+      "accuracy": {
+        "total_elements": 192937984,
+        "exact_elements": 192937984,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 192937984,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 4051710464
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 6400,
+      "layer_indices": [
+        14,
+        15
+      ],
+      "active_widths": [
+        6348,
+        6380
+      ],
+      "input_elements": 104857600,
+      "output_elements": 52428800,
+      "estimated_peak_live_elements": 367001600,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1951,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.2700280640274286,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.27000319957733154,
+          "median": 0.2698560059070587,
+          "p95": 0.270321598649025,
+          "min": 0.26841598749160767,
+          "max": 0.2787199914455414
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.19431393593549728,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.11378431975841523,
+          "median": 0.11369600147008896,
+          "p95": 0.11420799791812897,
+          "min": 0.11180800199508667,
+          "max": 0.13171200454235077
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3734872151862985,
+        "p95": 2.366923539302453
+      },
+      "accuracy": {
+        "total_elements": 52428800,
+        "exact_elements": 52428800,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 52428800,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 1101010944
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 6400,
+      "layer_indices": [
+        14,
+        15
+      ],
+      "active_widths": [
+        6348,
+        6380
+      ],
+      "input_elements": 419430400,
+      "output_elements": 209715200,
+      "estimated_peak_live_elements": 1468006400,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1952,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.7573998775333166,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 1.040392315387726,
+          "median": 1.0402239561080933,
+          "p95": 1.040721583366394,
+          "min": 1.0388480424880981,
+          "max": 1.0497599840164185
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.5180418957024813,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.4307692807912826,
+          "median": 0.4307679980993271,
+          "p95": 0.4317296057939529,
+          "min": 0.42876800894737244,
+          "max": 0.44787201285362244
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.414812522512958,
+        "p95": 2.410586555565264
+      },
+      "accuracy": {
+        "total_elements": 209715200,
+        "exact_elements": 209715200,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 209715200,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 4404033024
+    },
+    {
+      "rows": 8192,
+      "aligned_width": 9088,
+      "layer_indices": [
+        0
+      ],
+      "active_widths": [
+        9087
+      ],
+      "input_elements": 148897792,
+      "output_elements": 74448896,
+      "estimated_peak_live_elements": 521142272,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1953,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 1.3465529773384333,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.3776505619287491,
+          "median": 0.37729600071907043,
+          "p95": 0.37869439274072647,
+          "min": 0.3760319948196411,
+          "max": 0.3880000114440918
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.24408497847616673,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.15970303922891615,
+          "median": 0.15915200114250183,
+          "p95": 0.16089919582009315,
+          "min": 0.15833599865436554,
+          "max": 0.17772799730300903
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3706645094663084,
+        "p95": 2.3536127126710906
+      },
+      "accuracy": {
+        "total_elements": 74448896,
+        "exact_elements": 74448896,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 74448896,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 1563432960
+    },
+    {
+      "rows": 32768,
+      "aligned_width": 9088,
+      "layer_indices": [
+        0
+      ],
+      "active_widths": [
+        9087
+      ],
+      "input_elements": 595591168,
+      "output_elements": 297795584,
+      "estimated_peak_live_elements": 2084569088,
+      "max_elements": 3000000000,
+      "status": "measured",
+      "skip_reason": null,
+      "dtype": "bf16",
+      "seed": 1954,
+      "torch": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 3.2001810614019632,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 1.4714297580718994,
+          "median": 1.4715359807014465,
+          "p95": 1.4723087906837464,
+          "min": 1.469472050666809,
+          "max": 1.4794880151748657
+        }
+      },
+      "triton": {
+        "status": "measured",
+        "first_call_wall_milliseconds": 0.7149770390242338,
+        "latency_milliseconds": {
+          "count": 50,
+          "mean": 0.616988159418106,
+          "median": 0.6168320178985596,
+          "p95": 0.6180287748575211,
+          "min": 0.6149119734764099,
+          "max": 0.6326720118522644
+        }
+      },
+      "speedup": {
+        "definition": "torch_latency_divided_by_triton_latency",
+        "median": 2.3856348860014047,
+        "p95": 2.3822657626631853
+      },
+      "accuracy": {
+        "total_elements": 297795584,
+        "exact_elements": 297795584,
+        "exact_element_fraction": 1.0,
+        "finite_error_elements": 297795584,
+        "all_errors_finite": true,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0
+      },
+      "observed_peak_allocated_bytes": 6253717504
+    }
+  ],
+  "aggregate": {
+    "planned_shape_dtype_cases": 54,
+    "torch_measured_cases": 54,
+    "triton_measured_cases": 54,
+    "skipped_cases": 0,
+    "skip_reasons": {},
+    "triton_statuses": {
+      "measured": 54
+    },
+    "torch_shape_median_latency_milliseconds": {
+      "count": 54,
+      "mean": 0.3999528880748484,
+      "median": 0.24635200202465057,
+      "p95": 0.9443719938397407,
+      "min": 0.03566399961709976,
+      "max": 1.4715359807014465
+    },
+    "triton_shape_median_latency_milliseconds": {
+      "count": 54,
+      "mean": 0.16972799995845114,
+      "median": 0.10425599850714207,
+      "p95": 0.39654479920864105,
+      "min": 0.03403199836611748,
+      "max": 0.6168320178985596
+    },
+    "triton_speedup_across_shapes": {
+      "count": 54,
+      "mean": 2.2697062089980085,
+      "median": 2.3669872434825847,
+      "p95": 2.4141400380687688,
+      "min": 1.0396454979741345,
+      "max": 2.4150425485476736
+    },
+    "accuracy": {
+      "total_elements": 4278190080,
+      "exact_elements": 4278190080,
+      "exact_element_fraction": 1.0,
+      "finite_error_elements": 4278190080,
+      "all_errors_finite": true,
+      "max_abs_error": 0.0,
+      "mean_abs_error": 0.0
+    }
+  },
+  "private_raw_source": {
+    "file": "silu_mul_bf16_align128_large_prefill.json",
+    "sha256": "09c7200cdc1a240959927ffd76a1a67740ebd28efaf44de6de65378d56b46f50"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "status": "result_evidence_ready_executor_teardown_pending",
+  "result_source_commit": "8755cf454de011f5996f9158264ca9c7ad3b3318",
+  "branch": "issue19-physical-throughput",
+  "scope": "Issue #19 quality-gated physical BFCL runtime optimization on one B200",
+  "git_evidence": {
+    "root": "results/bfcl/issue19_physical_throughput",
+    "checksum_manifest": "results/bfcl/issue19_physical_throughput/SHA256SUMS",
+    "payload_file_count": 36,
+    "result_preservation_commit": null
+  },
+  "external_evidence": {
+    "wandb_group": "ahm-rimer/prism-bfcl/issue19-physical-throughput",
+    "wandb_artifact": "ahm-rimer/prism-bfcl/issue19-physical-throughput-evidence:v0",
+    "wandb_artifact_digest": "6277f72b33e9998d41b679369f37f2d6",
+    "wandb_receipt": "results/bfcl/issue19_physical_throughput/WANDB_RECEIPT.json"
+  },
+  "private_local_archive": {
+    "receipt": "results/bfcl/issue19_physical_throughput/LOCAL_ARCHIVE_RECEIPT.json",
+    "archive_sha256": "c4ade1a88a32dc8bc49294c4a5e9d7eb910ec275fb547ef2b7d440edd412f128"
+  },
+  "inputs": {
+    "receipt": "results/bfcl/issue19_physical_throughput/MODEL_INPUT_RECEIPT.json",
+    "model_sha256": "d0e78a244b01e0d0cce027f9bc65cea304315f522dc4359de2fc9fc4b5f2fb64",
+    "pair_file_sha256": "f5466f7d1c17744bcfc2b6bc1e1647e2095c98762e5afd6fe7641dfcb6c1276e"
+  },
+  "executor": {
+    "teardown_receipt": "results/bfcl/issue19_physical_throughput/LIUM_TEARDOWN_RECEIPT.json",
+    "teardown_complete": false
+  },
+  "content_boundary": "Git contains sanitized aggregate, per-ID boolean/direction, profiler, environment, and receipt data; raw prompts and raw predictions remain only in the private local archive."
+}
