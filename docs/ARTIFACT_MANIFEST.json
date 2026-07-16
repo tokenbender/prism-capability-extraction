@@ -237,7 +237,7 @@
         "private ModelScope tokenbender/prism-bfcl-mace-140875-physical-restricted-v2",
         "W&B ahm-rimer/prism-bfcl/issue19-physical-throughput-evidence:v0"
       ],
-      "artifact_status": "benchmark_quality_profile_wandb_and_local_preservation_complete_executor_teardown_pending"
+      "artifact_status": "benchmark_quality_profile_wandb_local_preservation_and_executor_teardown_complete"
     },
     {
       "claim": "Historical provenance: function calling improves at fixed k160 substrate",

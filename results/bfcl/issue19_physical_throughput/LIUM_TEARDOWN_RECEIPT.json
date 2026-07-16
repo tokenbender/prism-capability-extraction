@@ -1,5 +1,5 @@
 {
-  "status": "pending_results_preservation_push",
+  "status": "verified_removed",
   "pod": {
     "huid": "swift-hawk-c7",
     "id": "60379f13-8983-4f79-b916-a0e0cb54419d",
@@ -11,7 +11,7 @@
     "scheduled_removal_at": "2026-07-16T10:51:06.182782Z"
   },
   "pre_teardown": {
-    "checked_at": "2026-07-16T07:36:10Z",
+    "checked_at": "2026-07-16T07:43:48.098261Z",
     "pod_status": "RUNNING",
     "active_gpu_processes": 0,
     "active_lium_pods": [
@@ -19,6 +19,18 @@
     ],
     "credential_preflight": "pass; no W&B, Hugging Face, or ModelScope credential copied to the task pod"
   },
-  "teardown_gate": "remove only after the result evidence commit is pushed and verified on the issue19-physical-throughput branch",
+  "results_preservation": {
+    "branch": "issue19-physical-throughput",
+    "commit": "a45e0f05028395cc106aa8e1db8ba027f16ce466",
+    "remote_ref_verified_before_teardown": true
+  },
+  "teardown": {
+    "remove_response_success": true,
+    "remove_response_message": "Node successfully unrented",
+    "verified_at": "2026-07-16T07:43:48.916542Z",
+    "target_absent": true,
+    "active_lium_pods_after": [],
+    "only_task_owned_pod_modified": true
+  },
   "scope": "Only swift-hawk-c7 is task-owned; no other pod is authorized for modification."
 }
