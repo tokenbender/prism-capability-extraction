@@ -98,6 +98,12 @@ def main() -> None:
     parser.add_argument("--decode-steps", type=int, default=32)
     parser.add_argument("--warmup", type=int, default=1)
     parser.add_argument("--repeats", type=int, default=5)
+    parser.add_argument(
+        "--phase-repeats",
+        type=int,
+        default=1,
+        help="separate prefill/decode passes; primary end-to-end repeats use --repeats",
+    )
     parser.add_argument("--limit", type=int)
     parser.add_argument("--enable-thinking", action="store_true")
     parser.add_argument(
@@ -113,8 +119,8 @@ def main() -> None:
         parser.error("width alignment requires --mlp-implementation packed_gate_up")
     if args.batch_size <= 0 or args.max_new_tokens <= 0:
         parser.error("batch size and max new tokens must be positive")
-    if args.warmup < 0 or args.repeats <= 0:
-        parser.error("warmup must be nonnegative and repeats must be positive")
+    if args.warmup < 0 or args.repeats <= 0 or args.phase_repeats <= 0:
+        parser.error("warmup must be nonnegative and repeat counts must be positive")
 
     device = torch.device(args.device)
     torch.cuda.set_device(device)
@@ -365,7 +371,7 @@ def main() -> None:
     warmup_measurements = [run_generation_once() for _ in range(args.warmup)]
     generation_measurements = [run_generation_once() for _ in range(args.repeats)]
     run_phase_once()
-    phase_measurements = [run_phase_once() for _ in range(args.repeats)]
+    phase_measurements = [run_phase_once() for _ in range(args.phase_repeats)]
     batch_latency_measurements = run_batch_latency_once()
 
     report = {
@@ -385,6 +391,7 @@ def main() -> None:
             "decode_steps": args.decode_steps,
             "warmup": args.warmup,
             "repeats": args.repeats,
+            "phase_repeats": args.phase_repeats,
             "enable_thinking": args.enable_thinking,
             "bfcl_canonicalization_prompt": args.bfcl_canonicalization_prompt,
             "tokenizer_fix_mistral_regex": False,
