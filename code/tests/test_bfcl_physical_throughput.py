@@ -11,7 +11,9 @@ SCRIPT_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
 
 from benchmark_bfcl_physical_throughput import (  # noqa: E402
+    CompiledDecodeCudaTimer,
     accepted_generation_tokens,
+    counter_delta,
     percentile,
     summarize,
     validate_compile_layering,
@@ -56,6 +58,39 @@ def test_summary_supports_batch_latency_receipts() -> None:
     assert result["median"] == pytest.approx(11.5)
     assert result["p95"] == pytest.approx(16.25)
     assert result["min"] == 10.0
+
+
+def test_compiled_decode_timer_summarizes_device_slots() -> None:
+    class FakeEvent:
+        def __init__(self, timestamp_ms: float) -> None:
+            self.timestamp_ms = timestamp_ms
+
+        def elapsed_time(self, other: "FakeEvent") -> float:
+            return other.timestamp_ms - self.timestamp_ms
+
+    timer = CompiledDecodeCudaTimer(lambda: None)
+    timer.records = [  # type: ignore[assignment]
+        (FakeEvent(1.0), FakeEvent(3.0), 64),
+        (FakeEvent(4.0), FakeEvent(7.0), 64),
+    ]
+
+    assert timer.summarize_since(0) == {
+        "calls": 2,
+        "input_slots": 128,
+        "device_seconds": pytest.approx(0.005),
+        "input_slots_per_second": pytest.approx(25_600.0),
+    }
+    assert timer.summarize_since(1)["input_slots"] == 64
+    with pytest.raises(ValueError, match="out of range"):
+        timer.summarize_since(3)
+
+
+def test_counter_delta_records_measurement_only_changes() -> None:
+    assert counter_delta(None, {"unique_graphs": 2}) is None
+    assert counter_delta(
+        {"calls_captured": 100, "unique_graphs": 2},
+        {"calls_captured": 100, "unique_graphs": 2, "new": 0},
+    ) == {"calls_captured": 0, "new": 0, "unique_graphs": 0}
 
 
 def test_generation_compile_can_be_explicitly_disabled_for_static_cache() -> None:

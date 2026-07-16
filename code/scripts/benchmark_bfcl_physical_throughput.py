@@ -78,6 +78,32 @@ def summarize(values: list[float]) -> dict[str, float]:
     }
 
 
+def observe_dynamo_stats() -> dict[str, int] | None:
+    """Return stable integer Dynamo counters when the installed Torch exposes them."""
+
+    try:
+        from torch._dynamo.utils import counters
+
+        return {
+            str(key): int(value)
+            for key, value in dict(counters.get("stats", {})).items()
+            if isinstance(value, int) and not isinstance(value, bool)
+        }
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return None
+
+
+def counter_delta(
+    before: dict[str, int] | None, after: dict[str, int] | None
+) -> dict[str, int] | None:
+    if before is None or after is None:
+        return None
+    return {
+        key: after.get(key, 0) - before.get(key, 0)
+        for key in sorted(set(before) | set(after))
+    }
+
+
 def accepted_generation_tokens(
     sequences: torch.Tensor,
     *,
@@ -96,6 +122,57 @@ def accepted_generation_tokens(
                 break
         total += count
     return total
+
+
+class CompiledDecodeCudaTimer:
+    """Measure device time and input slots inside an existing compiled call.
+
+    Transformers keeps the prompt prefill eager and routes later StaticCache
+    decode forwards through ``model._compiled_call``.  Wrapping that already
+    compiled callable with CUDA events measures the candidate-specific decode
+    device work without synchronizing every token or changing generation.
+    """
+
+    def __init__(self, compiled_call: Any) -> None:
+        if not callable(compiled_call):
+            raise ValueError("compiled decode timer requires a callable")
+        self.compiled_call = compiled_call
+        self.records: list[tuple[torch.cuda.Event, torch.cuda.Event, int]] = []
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        input_ids = kwargs.get("input_ids")
+        if not isinstance(input_ids, torch.Tensor):
+            raise RuntimeError(
+                "compiled decode timing expected tensor input_ids in keyword arguments"
+            )
+        start = torch.cuda.Event(enable_timing=True)
+        end = torch.cuda.Event(enable_timing=True)
+        start.record()
+        output = self.compiled_call(*args, **kwargs)
+        end.record()
+        self.records.append((start, end, int(input_ids.numel())))
+        return output
+
+    def mark(self) -> int:
+        return len(self.records)
+
+    def summarize_since(self, mark: int) -> dict[str, float | int]:
+        if mark < 0 or mark > len(self.records):
+            raise ValueError("compiled decode timing mark is out of range")
+        selected = self.records[mark:]
+        device_milliseconds = sum(
+            float(start.elapsed_time(end)) for start, end, _ in selected
+        )
+        input_slots = sum(slots for _, _, slots in selected)
+        device_seconds = device_milliseconds / 1000.0
+        return {
+            "calls": len(selected),
+            "input_slots": input_slots,
+            "device_seconds": device_seconds,
+            "input_slots_per_second": (
+                input_slots / device_seconds if device_seconds > 0.0 else 0.0
+            ),
+        }
 
 
 def main() -> None:
@@ -269,6 +346,8 @@ def main() -> None:
         generation_kwargs["cache_implementation"] = args.cache_implementation
     generation_kwargs.update(generation_compile_kwargs)
 
+    compiled_decode_timer: CompiledDecodeCudaTimer | None = None
+
     def run_generation_once() -> dict[str, float | int]:
         examples = sum(item["examples"] for item in encoded_batch_stats)
         useful_prompt_tokens = sum(
@@ -279,6 +358,9 @@ def main() -> None:
         )
         generated_slots = 0
         generated_sequences: list[tuple[torch.Tensor, int]] = []
+        decode_timer_mark = (
+            compiled_decode_timer.mark() if compiled_decode_timer is not None else None
+        )
         torch.cuda.reset_peak_memory_stats(device)
         started = time.perf_counter()
         with torch.inference_mode():
@@ -299,7 +381,7 @@ def main() -> None:
             )
             for sequences, prompt_width in generated_sequences
         )
-        return {
+        measurement: dict[str, float | int] = {
             "elapsed_seconds": elapsed,
             "examples": examples,
             "useful_prompt_tokens": useful_prompt_tokens,
@@ -313,6 +395,30 @@ def main() -> None:
             "peak_allocated_bytes": int(torch.cuda.max_memory_allocated(device)),
             "peak_reserved_bytes": int(torch.cuda.max_memory_reserved(device)),
         }
+        if compiled_decode_timer is not None and decode_timer_mark is not None:
+            decode = compiled_decode_timer.summarize_since(decode_timer_mark)
+            accounting_delta = generated_slots - (
+                int(decode["input_slots"]) + examples
+            )
+            if accounting_delta != 0:
+                raise RuntimeError(
+                    "compiled decode slot accounting mismatch: "
+                    f"generated_slots={generated_slots}, "
+                    f"compiled_input_slots={decode['input_slots']}, "
+                    f"prefill_output_slots={examples}"
+                )
+            measurement.update(
+                {
+                    "compiled_decode_calls": decode["calls"],
+                    "compiled_decode_input_slots": decode["input_slots"],
+                    "compiled_decode_device_seconds": decode["device_seconds"],
+                    "compiled_decode_input_slots_per_second": decode[
+                        "input_slots_per_second"
+                    ],
+                    "compiled_decode_slot_accounting_delta": accounting_delta,
+                }
+            )
+        return measurement
 
     def run_phase_once() -> dict[str, float | int]:
         prefill_seconds = 0.0
@@ -328,6 +434,19 @@ def main() -> None:
                 position_ids = attention_mask.long().cumsum(-1) - 1
                 position_ids.masked_fill_(attention_mask == 0, 1)
                 cache_position = torch.arange(prompt_width, device=input_ids.device)
+                if args.cache_implementation == "static":
+                    from transformers import StaticCache
+
+                    phase_cache = StaticCache(
+                        config=model.config,
+                        max_cache_len=prompt_width + args.decode_steps,
+                    )
+                else:
+                    phase_cache = None
+
+                prefill_kwargs: dict[str, Any] = {}
+                if phase_cache is not None:
+                    prefill_kwargs["past_key_values"] = phase_cache
 
                 torch.cuda.synchronize()
                 started = time.perf_counter()
@@ -339,6 +458,7 @@ def main() -> None:
                     use_cache=True,
                     logits_to_keep=1,
                     return_dict=True,
+                    **prefill_kwargs,
                 )
                 torch.cuda.synchronize()
                 prefill_seconds += time.perf_counter() - started
@@ -439,7 +559,17 @@ def main() -> None:
 
     warmup_measurements = [run_generation_once() for _ in range(args.warmup)]
     compile_observation_after_warmup = observe_generation_compile_state(model)
-    generation_measurements = [run_generation_once() for _ in range(args.repeats)]
+    dynamo_stats_after_warmup = observe_dynamo_stats()
+    compiled_call = getattr(model, "_compiled_call", None)
+    if callable(compiled_call):
+        compiled_decode_timer = CompiledDecodeCudaTimer(compiled_call)
+        model._compiled_call = compiled_decode_timer
+    try:
+        generation_measurements = [run_generation_once() for _ in range(args.repeats)]
+    finally:
+        if compiled_decode_timer is not None:
+            model._compiled_call = compiled_decode_timer.compiled_call
+    dynamo_stats_after_measurement = observe_dynamo_stats()
     compile_observation_after_measurement = observe_generation_compile_state(model)
     run_phase_once()
     phase_measurements = [run_phase_once() for _ in range(args.phase_repeats)]
@@ -487,20 +617,47 @@ def main() -> None:
         "generation_compile_observation": {
             "after_warmup": compile_observation_after_warmup,
             "after_measurement": compile_observation_after_measurement,
+            "dynamo_stats_after_warmup": dynamo_stats_after_warmup,
+            "dynamo_stats_after_measurement": dynamo_stats_after_measurement,
+            "dynamo_stats_measurement_delta": counter_delta(
+                dynamo_stats_after_warmup, dynamo_stats_after_measurement
+            ),
         },
         "after_load_memory": after_load,
         "warmup_measurements": warmup_measurements,
         "generation_measurements": generation_measurements,
         "phase_measurements": phase_measurements,
         "phase_measurement_contract": {
-            "execution_path": "manual_model_forward",
-            "cache_implementation": "model_default_dynamic",
-            "generation_compile": "not_used",
-            "note": (
-                "phase metrics do not exercise StaticCache or Transformers "
-                "generation compilation; end-to-end and profiler receipts own "
-                "those candidate settings"
-            ),
+            "prefill": {
+                "execution_path": "manual_eager_model_forward_with_candidate_cache",
+                "candidate_model_settings": "used",
+                "cache_implementation": args.cache_implementation,
+                "generation_compile": "not_applicable",
+                "note": (
+                    "this constructs the requested cache implementation and times "
+                    "the same eager prefill path, attention, MLP, activation, and "
+                    "alignment candidate"
+                ),
+            },
+            "manual_decode_control": {
+                "execution_path": "manual_model_forward",
+                "cache_implementation": args.cache_implementation,
+                "generation_compile": "not_used",
+                "note": (
+                    "this control is not the StaticCache compiled-decode result"
+                ),
+            },
+            "candidate_compiled_decode": {
+                "execution_path": "transformers_model_compiled_call",
+                "timing_scope": "summed_cuda_event_device_time",
+                "accounting": "input_token_slots",
+                "host_scheduling_included": False,
+                "available": compiled_decode_timer is not None,
+                "note": (
+                    "paired CUDA events wrap each already-compiled decode call; "
+                    "the primary end-to-end metric retains all host/runtime costs"
+                ),
+            },
         },
         "batch_latency_measurements": batch_latency_measurements,
         "summary": {
@@ -526,6 +683,69 @@ def main() -> None:
                 "decode_milliseconds_per_step",
             )
         },
+        "compiled_decode_summary": (
+            {
+                key.removeprefix("compiled_decode_"): summarize(
+                    [float(row[key]) for row in generation_measurements]
+                )
+                for key in (
+                    "compiled_decode_calls",
+                    "compiled_decode_input_slots",
+                    "compiled_decode_device_seconds",
+                    "compiled_decode_input_slots_per_second",
+                )
+            }
+            if compiled_decode_timer is not None
+            else None
+        ),
+        "compiled_decode_instrumentation": (
+            {
+                "status": "pass",
+                "timing_scope": "summed_cuda_event_device_time",
+                "host_scheduling_included": False,
+                "slot_accounting": "generated_slots_equals_compiled_input_slots_plus_one_prefill_output_per_example",
+                "all_slot_accounting_deltas_zero": all(
+                    int(row["compiled_decode_slot_accounting_delta"]) == 0
+                    for row in generation_measurements
+                ),
+                "uninstrumented_steady_warmup_seconds": (
+                    statistics.median(
+                        [
+                            float(row["elapsed_seconds"])
+                            for row in warmup_measurements[1:]
+                        ]
+                    )
+                    if len(warmup_measurements) > 1
+                    else None
+                ),
+                "instrumented_end_to_end_median_seconds": statistics.median(
+                    [float(row["elapsed_seconds"]) for row in generation_measurements]
+                ),
+                "estimated_instrumentation_overhead_percent": (
+                    100.0
+                    * (
+                        statistics.median(
+                            [
+                                float(row["elapsed_seconds"])
+                                for row in generation_measurements
+                            ]
+                        )
+                        / statistics.median(
+                            [
+                                float(row["elapsed_seconds"])
+                                for row in warmup_measurements[1:]
+                            ]
+                        )
+                        - 1.0
+                    )
+                    if len(warmup_measurements) > 1
+                    else None
+                ),
+                "primary_claim_uses_uninstrumented_report": True,
+            }
+            if compiled_decode_timer is not None
+            else None
+        ),
         "batch_latency_summary": {
             "batches": len(batch_latency_measurements),
             "elapsed_milliseconds": summarize(
