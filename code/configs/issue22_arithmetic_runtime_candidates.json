@@ -1,0 +1,99 @@
+{
+  "schema_version": "prism_arithmetic_runtime_candidates_v1",
+  "purpose": "Diversity-first cheap sweep before full-workload finalist verification",
+  "candidates": [
+    {
+      "name": "dense_parent_eager_dynamic",
+      "role": "dense_parent",
+      "model_kind": "dense",
+      "attention_implementation": "eager"
+    },
+    {
+      "name": "dense_parent_sdpa_static_auto",
+      "role": "dense_parent",
+      "model_kind": "dense",
+      "attention_implementation": "sdpa",
+      "cache_implementation": "static"
+    },
+    {
+      "name": "dense_parent_sdpa_outer_reduce_dynamic",
+      "role": "dense_parent",
+      "model_kind": "dense",
+      "attention_implementation": "sdpa",
+      "outer_compile_mode": "reduce-overhead"
+    },
+    {
+      "name": "physical_sdpa_separate_dynamic",
+      "role": "optimized_physical",
+      "model_kind": "physical",
+      "attention_implementation": "sdpa"
+    },
+    {
+      "name": "physical_sdpa_packed1_dynamic_torch",
+      "role": "optimized_physical",
+      "model_kind": "physical",
+      "attention_implementation": "sdpa",
+      "mlp_implementation": "packed_gate_up",
+      "width_alignment": 1
+    },
+    {
+      "name": "physical_sdpa_packed16_dynamic_torch",
+      "role": "optimized_physical",
+      "model_kind": "physical",
+      "attention_implementation": "sdpa",
+      "mlp_implementation": "packed_gate_up",
+      "width_alignment": 16
+    },
+    {
+      "name": "physical_sdpa_packed64_dynamic_torch",
+      "role": "optimized_physical",
+      "model_kind": "physical",
+      "attention_implementation": "sdpa",
+      "mlp_implementation": "packed_gate_up",
+      "width_alignment": 64
+    },
+    {
+      "name": "physical_sdpa_packed256_dynamic_torch",
+      "role": "optimized_physical",
+      "model_kind": "physical",
+      "attention_implementation": "sdpa",
+      "mlp_implementation": "packed_gate_up",
+      "width_alignment": 256
+    },
+    {
+      "name": "physical_sdpa_packed16_dynamic_triton",
+      "role": "optimized_physical",
+      "model_kind": "physical",
+      "attention_implementation": "sdpa",
+      "mlp_implementation": "packed_gate_up",
+      "activation_implementation": "triton",
+      "width_alignment": 16
+    },
+    {
+      "name": "physical_sdpa_packed64_dynamic_hybrid",
+      "role": "optimized_physical",
+      "model_kind": "physical",
+      "attention_implementation": "sdpa",
+      "mlp_implementation": "packed_gate_up",
+      "activation_implementation": "hybrid",
+      "width_alignment": 64
+    },
+    {
+      "name": "physical_sdpa_packed64_outer_reduce_dynamic",
+      "role": "optimized_physical",
+      "model_kind": "physical",
+      "attention_implementation": "sdpa",
+      "mlp_implementation": "packed_gate_up",
+      "width_alignment": 64,
+      "outer_compile_mode": "reduce-overhead"
+    },
+    {
+      "name": "physical_eager_packed64_dynamic_torch",
+      "role": "optimized_physical",
+      "model_kind": "physical",
+      "attention_implementation": "eager",
+      "mlp_implementation": "packed_gate_up",
+      "width_alignment": 64
+    }
+  ]
+}
