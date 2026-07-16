@@ -14,12 +14,14 @@ SCRIPT_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
 
 from load_bfcl_physical_bundle import (  # noqa: E402
+    DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS,
     PackedPhysicalQwenMLP,
     PhysicalQwenMLP,
     configure_mlp_runtime,
     install_physical_mlps,
     probe_triton_activation_runtime,
     reference_parity,
+    validate_activation_runtime_settings,
     validate_packed_mlp,
     validate_triton_silu_mul_input,
 )
@@ -236,6 +238,183 @@ def test_triton_selector_is_lazy_and_receipted(monkeypatch: pytest.MonkeyPatch) 
     assert packed._triton_silu_and_mul is sentinel_kernel
     assert receipt["requested_activation_implementation"] == "triton"
     assert receipt["active_activation_implementation"] == "triton"
+
+
+def test_hybrid_selector_routes_only_large_flattened_rows_to_triton(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    torch.manual_seed(17)
+    physical = PhysicalQwenMLP(DummyMLP(), intermediate_size=3)
+    triton_calls: list[tuple[int, ...]] = []
+
+    def sentinel_kernel(gate_up: torch.Tensor) -> torch.Tensor:
+        triton_calls.append(tuple(gate_up.shape))
+        gate, up = gate_up.chunk(2, dim=-1)
+        return torch.nn.functional.silu(gate) * up
+
+    monkeypatch.setattr(
+        physical_loader,
+        "_load_triton_silu_and_mul",
+        lambda: sentinel_kernel,
+    )
+    monkeypatch.setattr(
+        physical_loader,
+        "validate_triton_silu_mul_input",
+        lambda gate_up, *, expected_width: None,
+    )
+    packed = PackedPhysicalQwenMLP(
+        physical,
+        width_alignment=1,
+        activation_implementation="hybrid",
+        hybrid_activation_threshold_rows=6,
+    )
+
+    small = torch.randn(1, 5, 4)
+    large = torch.randn(2, 3, 4)
+    small_gate_up = packed.gate_up_proj(small)
+    small_gate, small_up = small_gate_up.chunk(2, dim=-1)
+    small_expected = packed.down_proj(
+        torch.nn.functional.silu(small_gate) * small_up
+    )
+    large_gate_up = packed.gate_up_proj(large)
+    large_gate, large_up = large_gate_up.chunk(2, dim=-1)
+    large_expected = packed.down_proj(
+        torch.nn.functional.silu(large_gate) * large_up
+    )
+
+    torch.testing.assert_close(packed(small), small_expected)
+    assert triton_calls == []
+    torch.testing.assert_close(packed(large), large_expected)
+    assert triton_calls == [(2, 3, 6)]
+
+
+def test_hybrid_selector_is_lazy_atomic_and_receipted(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    model = DummyModel(layers=1)
+    metadata = {
+        "isolation": {
+            "kept_total": 3,
+            "kept_per_layer": {"0": 3},
+        }
+    }
+    widths = install_physical_mlps(model, metadata)
+    sentinel_kernel = lambda gate_up: gate_up[..., : gate_up.shape[-1] // 2]
+    monkeypatch.setattr(
+        physical_loader,
+        "_load_triton_silu_and_mul",
+        lambda: sentinel_kernel,
+    )
+
+    receipt = configure_mlp_runtime(
+        model,
+        widths,
+        implementation="packed_gate_up",
+        activation_implementation="hybrid",
+        width_alignment=16,
+    )
+
+    packed = model.model.layers[0].mlp
+    assert isinstance(packed, PackedPhysicalQwenMLP)
+    assert packed.activation_implementation == "hybrid"
+    assert packed._triton_silu_and_mul is sentinel_kernel
+    assert (
+        packed.hybrid_activation_threshold_rows
+        == DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS
+    )
+    assert (
+        receipt["requested_hybrid_activation_threshold_rows"]
+        == DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS
+    )
+    assert (
+        receipt["active_hybrid_activation_threshold_rows"]
+        == DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS
+    )
+    assert receipt["activation_dispatch"] == {
+        "mode": "hybrid_row_threshold",
+        "flattened_rows": "product_of_all_dimensions_except_last",
+        "torch_when_rows_below": DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS,
+        "triton_when_rows_at_least": DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS,
+    }
+
+    with pytest.raises(RuntimeError, match="requires loading the model on CUDA"):
+        probe_triton_activation_runtime(model)
+
+
+def test_hybrid_small_row_path_remains_fullgraph_compilable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    physical = PhysicalQwenMLP(DummyMLP(), intermediate_size=3)
+
+    def forbidden_kernel(gate_up: torch.Tensor) -> torch.Tensor:
+        raise AssertionError(f"unexpected Triton call for shape {tuple(gate_up.shape)}")
+
+    monkeypatch.setattr(
+        physical_loader,
+        "_load_triton_silu_and_mul",
+        lambda: forbidden_kernel,
+    )
+    packed = PackedPhysicalQwenMLP(
+        physical,
+        width_alignment=1,
+        activation_implementation="hybrid",
+    )
+    inputs = torch.randn(2, 3, 4)
+    expected = packed(inputs)
+
+    compiled = torch.compile(packed, backend="eager", fullgraph=True)
+    torch.testing.assert_close(compiled(inputs), expected)
+
+
+@pytest.mark.parametrize(
+    ("implementation", "threshold", "message"),
+    [
+        ("hybrid", 0, "must be positive"),
+        ("torch", 1024, "only meaningful"),
+        ("triton", 4096, "only meaningful"),
+    ],
+)
+def test_hybrid_threshold_rejects_ambiguous_settings(
+    implementation: str,
+    threshold: int,
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        validate_activation_runtime_settings(
+            activation_implementation=implementation,
+            hybrid_activation_threshold_rows=threshold,
+        )
+
+
+def test_hybrid_missing_dependency_preserves_canonical_modules(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    model = DummyModel(layers=2)
+    metadata = {
+        "isolation": {
+            "kept_total": 7,
+            "kept_per_layer": {"0": 2, "1": 5},
+        }
+    }
+    widths = install_physical_mlps(model, metadata)
+    original_modules = [layer.mlp for layer in model.model.layers]
+
+    def unavailable() -> None:
+        raise RuntimeError(
+            "activation implementation 'hybrid' requires the optional Triton package"
+        )
+
+    monkeypatch.setattr(physical_loader, "_load_triton_silu_and_mul", unavailable)
+
+    with pytest.raises(RuntimeError, match="requires the optional Triton package"):
+        configure_mlp_runtime(
+            model,
+            widths,
+            implementation="packed_gate_up",
+            activation_implementation="hybrid",
+            width_alignment=16,
+        )
+    assert [layer.mlp for layer in model.model.layers] == original_modules
 
 
 def test_triton_selector_reports_missing_optional_dependency(

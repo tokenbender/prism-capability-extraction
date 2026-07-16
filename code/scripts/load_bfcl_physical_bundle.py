@@ -32,8 +32,11 @@ from bfcl_direct_qwen3 import (
 SUPPORTED_FORMAT = "qwen_physical_mlp_substrate_v1"
 SUPPORTED_ATTENTION_IMPLEMENTATIONS = ("eager", "sdpa", "flash_attention_2")
 SUPPORTED_MLP_IMPLEMENTATIONS = ("separate", "packed_gate_up")
-SUPPORTED_ACTIVATION_IMPLEMENTATIONS = ("torch", "triton")
+SUPPORTED_ACTIVATION_IMPLEMENTATIONS = ("torch", "triton", "hybrid")
 SUPPORTED_WIDTH_ALIGNMENTS = (1, 16, 64, 128, 256)
+# Conservative crossover from the Issue #19 B200 BF16 row sweep.  Keeping it
+# configurable makes the hardware-derived choice explicit in every receipt.
+DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS = 2048
 
 
 def add_generation_compile_arguments(parser: argparse.ArgumentParser) -> None:
@@ -150,12 +153,37 @@ def _load_triton_silu_and_mul() -> Callable[[torch.Tensor], torch.Tensor]:
         missing = exc.name or ""
         if missing == "triton" or missing.startswith("triton."):
             raise RuntimeError(
-                "activation implementation 'triton' requires the optional Triton "
-                "package; install a CUDA-compatible Triton build or select "
+                "Triton-backed activation requires the optional Triton package; "
+                "install a CUDA-compatible Triton build or select "
                 "--activation-implementation torch"
             ) from exc
         raise
     return triton_silu_and_mul
+
+
+def validate_activation_runtime_settings(
+    *,
+    activation_implementation: str,
+    hybrid_activation_threshold_rows: int,
+) -> None:
+    """Reject ambiguous activation settings before any module is replaced."""
+
+    if activation_implementation not in SUPPORTED_ACTIVATION_IMPLEMENTATIONS:
+        raise ValueError(
+            f"unsupported activation implementation {activation_implementation!r}; "
+            f"expected one of {SUPPORTED_ACTIVATION_IMPLEMENTATIONS}"
+        )
+    if hybrid_activation_threshold_rows <= 0:
+        raise ValueError("hybrid activation threshold rows must be positive")
+    if (
+        activation_implementation != "hybrid"
+        and hybrid_activation_threshold_rows
+        != DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS
+    ):
+        raise ValueError(
+            "a non-default hybrid activation threshold is only meaningful when "
+            "activation_implementation='hybrid'"
+        )
 
 
 def validate_triton_silu_mul_input(
@@ -264,6 +292,9 @@ class PackedPhysicalQwenMLP(nn.Module):
         original: PhysicalQwenMLP,
         width_alignment: int,
         activation_implementation: str = "torch",
+        hybrid_activation_threshold_rows: int = (
+            DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS
+        ),
     ):
         super().__init__()
         if not isinstance(original, PhysicalQwenMLP):
@@ -275,16 +306,18 @@ class PackedPhysicalQwenMLP(nn.Module):
                 f"unsupported width alignment {width_alignment}; "
                 f"expected one of {SUPPORTED_WIDTH_ALIGNMENTS}"
             )
-        if activation_implementation not in SUPPORTED_ACTIVATION_IMPLEMENTATIONS:
-            raise ValueError(
-                f"unsupported activation implementation {activation_implementation!r}; "
-                f"expected one of {SUPPORTED_ACTIVATION_IMPLEMENTATIONS}"
-            )
+        validate_activation_runtime_settings(
+            activation_implementation=activation_implementation,
+            hybrid_activation_threshold_rows=hybrid_activation_threshold_rows,
+        )
 
         self.hidden_size = int(original.hidden_size)
         self.intermediate_size = int(original.intermediate_size)
         self.width_alignment = int(width_alignment)
         self.activation_implementation = activation_implementation
+        self.hybrid_activation_threshold_rows = int(
+            hybrid_activation_threshold_rows
+        )
         self.aligned_intermediate_size = (
             (self.intermediate_size + self.width_alignment - 1)
             // self.width_alignment
@@ -292,10 +325,11 @@ class PackedPhysicalQwenMLP(nn.Module):
         )
         self.act_fn = original.act_fn
         self._triton_silu_and_mul = None
-        if self.activation_implementation == "triton":
+        if self.activation_implementation in ("triton", "hybrid"):
             if not _is_silu_activation(self.act_fn):
                 raise ValueError(
-                    "activation implementation 'triton' requires a SiLU activation"
+                    f"activation implementation {self.activation_implementation!r} "
+                    "requires a SiLU activation"
                 )
             self._triton_silu_and_mul = _load_triton_silu_and_mul()
         device = original.gate_proj.weight.device
@@ -347,6 +381,15 @@ class PackedPhysicalQwenMLP(nn.Module):
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
         gate_up = self.gate_up_proj(hidden_states)
         if self.activation_implementation == "torch":
+            use_triton = False
+        elif self.activation_implementation == "triton":
+            use_triton = True
+        else:
+            flattened_rows = gate_up.numel() // gate_up.shape[-1]
+            use_triton = (
+                flattened_rows >= self.hybrid_activation_threshold_rows
+            )
+        if not use_triton:
             gate, up = gate_up.chunk(2, dim=-1)
             activated = self.act_fn(gate) * up
         else:
@@ -367,7 +410,7 @@ def probe_triton_activation_runtime(model: nn.Module) -> dict[str, Any]:
         layer.mlp
         for layer in decoder_layers(model)
         if isinstance(layer.mlp, PackedPhysicalQwenMLP)
-        and layer.mlp.activation_implementation == "triton"
+        and layer.mlp.activation_implementation in ("triton", "hybrid")
     ]
     if not selected:
         return {"status": "not_requested", "layers": 0, "unique_widths": []}
@@ -375,7 +418,7 @@ def probe_triton_activation_runtime(model: nn.Module) -> dict[str, Any]:
     device = selected[0].gate_up_proj.weight.device
     if device.type != "cuda":
         raise RuntimeError(
-            "activation implementation 'triton' requires loading the model on CUDA"
+            "Triton-backed activation requires loading the model on CUDA"
         )
     widths = sorted({module.aligned_intermediate_size for module in selected})
     dtype = selected[0].gate_up_proj.weight.dtype
@@ -408,13 +451,24 @@ def probe_triton_activation_runtime(model: nn.Module) -> dict[str, Any]:
         torch.cuda.synchronize(device)
     except Exception as exc:
         raise RuntimeError(
-            "Triton activation CUDA probe failed before evaluation; rerun with "
-            "--activation-implementation torch"
+            "Triton-backed activation CUDA probe failed before evaluation; rerun "
+            "with --activation-implementation torch"
         ) from exc
     return {
         "status": "pass",
         "layers": len(selected),
         "unique_widths": widths,
+        "activation_implementations": sorted(
+            {module.activation_implementation for module in selected}
+        ),
+        "hybrid_activation_threshold_rows": (
+            selected[0].hybrid_activation_threshold_rows
+            if any(
+                module.activation_implementation == "hybrid"
+                for module in selected
+            )
+            else None
+        ),
         "dtype": str(dtype),
         "device": str(device),
         "probe": "zero_input_jit_launch_per_unique_width",
@@ -494,6 +548,9 @@ def configure_mlp_runtime(
     *,
     implementation: str = "separate",
     activation_implementation: str = "torch",
+    hybrid_activation_threshold_rows: int = (
+        DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS
+    ),
     width_alignment: int = 1,
     allow_fallback: bool = False,
 ) -> dict[str, Any]:
@@ -509,11 +566,10 @@ def configure_mlp_runtime(
             f"unsupported width alignment {width_alignment}; "
             f"expected one of {SUPPORTED_WIDTH_ALIGNMENTS}"
         )
-    if activation_implementation not in SUPPORTED_ACTIVATION_IMPLEMENTATIONS:
-        raise ValueError(
-            f"unsupported activation implementation {activation_implementation!r}; "
-            f"expected one of {SUPPORTED_ACTIVATION_IMPLEMENTATIONS}"
-        )
+    validate_activation_runtime_settings(
+        activation_implementation=activation_implementation,
+        hybrid_activation_threshold_rows=hybrid_activation_threshold_rows,
+    )
     if implementation == "separate" and width_alignment != 1:
         raise ValueError("width alignment is only meaningful for packed_gate_up")
     if implementation == "separate" and activation_implementation != "torch":
@@ -526,6 +582,14 @@ def configure_mlp_runtime(
         "active_implementation": "separate",
         "requested_activation_implementation": activation_implementation,
         "active_activation_implementation": "torch",
+        "requested_hybrid_activation_threshold_rows": (
+            hybrid_activation_threshold_rows
+        ),
+        "active_hybrid_activation_threshold_rows": None,
+        "activation_dispatch": {
+            "mode": "torch_only",
+            "flattened_rows": "product_of_all_dimensions_except_last",
+        },
         "requested_width_alignment": width_alignment,
         "active_width_alignment": 1,
         "fallback_allowed": allow_fallback,
@@ -558,6 +622,9 @@ def configure_mlp_runtime(
                 source,
                 width_alignment,
                 activation_implementation=activation_implementation,
+                hybrid_activation_threshold_rows=(
+                    hybrid_activation_threshold_rows
+                ),
             )
             validations.append(validate_packed_mlp(source, packed))
             replacements.append(packed)
@@ -588,6 +655,26 @@ def configure_mlp_runtime(
         {
             "active_implementation": "packed_gate_up",
             "active_activation_implementation": activation_implementation,
+            "active_hybrid_activation_threshold_rows": (
+                hybrid_activation_threshold_rows
+                if activation_implementation == "hybrid"
+                else None
+            ),
+            "activation_dispatch": (
+                {
+                    "mode": "hybrid_row_threshold",
+                    "flattened_rows": "product_of_all_dimensions_except_last",
+                    "torch_when_rows_below": hybrid_activation_threshold_rows,
+                    "triton_when_rows_at_least": (
+                        hybrid_activation_threshold_rows
+                    ),
+                }
+                if activation_implementation == "hybrid"
+                else {
+                    "mode": f"{activation_implementation}_only",
+                    "flattened_rows": "product_of_all_dimensions_except_last",
+                }
+            ),
             "active_width_alignment": width_alignment,
             "validation": {
                 "status": "pass",
@@ -643,6 +730,9 @@ def load_physical_bundle(
     attention_implementation: str = "eager",
     mlp_implementation: str = "separate",
     activation_implementation: str = "torch",
+    hybrid_activation_threshold_rows: int = (
+        DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS
+    ),
     width_alignment: int = 1,
     allow_mlp_fallback: bool = False,
 ) -> tuple[nn.Module, Any, dict[str, Any]]:
@@ -659,6 +749,10 @@ def load_physical_bundle(
             f"unsupported attention implementation {attention_implementation!r}; "
             f"expected one of {SUPPORTED_ATTENTION_IMPLEMENTATIONS}"
         )
+    validate_activation_runtime_settings(
+        activation_implementation=activation_implementation,
+        hybrid_activation_threshold_rows=hybrid_activation_threshold_rows,
+    )
     metadata = read_bundle_metadata(bundle)
     generation_config_path = bundle / "generation_config.json"
     if not generation_config_path.is_file():
@@ -728,6 +822,7 @@ def load_physical_bundle(
         widths,
         implementation=mlp_implementation,
         activation_implementation=activation_implementation,
+        hybrid_activation_threshold_rows=hybrid_activation_threshold_rows,
         width_alignment=width_alignment,
         allow_fallback=allow_mlp_fallback,
     )
@@ -780,6 +875,9 @@ def load_physical_bundle(
         "mlp_implementation": mlp_runtime["active_implementation"],
         "activation_implementation": mlp_runtime[
             "active_activation_implementation"
+        ],
+        "hybrid_activation_threshold_rows": mlp_runtime[
+            "active_hybrid_activation_threshold_rows"
         ],
         "mlp_runtime": mlp_runtime,
         "layers": len(widths),
@@ -874,6 +972,7 @@ def evaluate(args: argparse.Namespace) -> None:
         attention_implementation=args.attention_implementation,
         mlp_implementation=args.mlp_implementation,
         activation_implementation=args.activation_implementation,
+        hybrid_activation_threshold_rows=args.hybrid_activation_threshold_rows,
         width_alignment=args.width_alignment,
         allow_mlp_fallback=args.allow_mlp_fallback,
     )
@@ -987,6 +1086,7 @@ def load_check(args: argparse.Namespace) -> None:
         attention_implementation=args.attention_implementation,
         mlp_implementation=args.mlp_implementation,
         activation_implementation=args.activation_implementation,
+        hybrid_activation_threshold_rows=args.hybrid_activation_threshold_rows,
         width_alignment=args.width_alignment,
         allow_mlp_fallback=args.allow_mlp_fallback,
     )
@@ -1018,7 +1118,19 @@ def add_runtime_arguments(parser: argparse.ArgumentParser) -> None:
         "--activation-implementation",
         choices=SUPPORTED_ACTIVATION_IMPLEMENTATIONS,
         default="torch",
-        help="pointwise activation for packed_gate_up; Triton is optional",
+        help=(
+            "pointwise activation for packed_gate_up; hybrid keeps small rows on "
+            "Torch and uses optional Triton only for large rows"
+        ),
+    )
+    parser.add_argument(
+        "--hybrid-activation-threshold-rows",
+        type=int,
+        default=DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS,
+        help=(
+            "flattened row count where the hybrid selector starts using Triton "
+            f"(default: {DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS})"
+        ),
     )
     parser.add_argument(
         "--width-alignment",

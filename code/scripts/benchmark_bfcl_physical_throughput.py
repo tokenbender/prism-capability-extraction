@@ -15,10 +15,13 @@ import torch
 
 from bfcl_direct_qwen3 import messages_for_generation, read_records
 from load_bfcl_physical_bundle import (
+    DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS,
+    SUPPORTED_ACTIVATION_IMPLEMENTATIONS,
     add_generation_compile_arguments,
     build_generation_compile_settings,
     load_physical_bundle,
     observe_generation_compile_state,
+    validate_activation_runtime_settings,
 )
 
 
@@ -113,8 +116,17 @@ def main() -> None:
     )
     parser.add_argument(
         "--activation-implementation",
-        choices=("torch", "triton"),
+        choices=SUPPORTED_ACTIVATION_IMPLEMENTATIONS,
         default="torch",
+    )
+    parser.add_argument(
+        "--hybrid-activation-threshold-rows",
+        type=int,
+        default=DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS,
+        help=(
+            "flattened row count where hybrid switches from Torch to Triton "
+            f"(default: {DEFAULT_HYBRID_ACTIVATION_THRESHOLD_ROWS})"
+        ),
     )
     parser.add_argument("--width-alignment", type=int, default=1)
     parser.add_argument("--compile-mode", choices=COMPILE_MODES, default="none")
@@ -147,12 +159,20 @@ def main() -> None:
         args.mlp_implementation == "separate"
         and args.activation_implementation != "torch"
     ):
-        parser.error("Triton activation requires --mlp-implementation packed_gate_up")
+        parser.error(
+            "non-Torch activation requires --mlp-implementation packed_gate_up"
+        )
     if args.batch_size <= 0 or args.max_new_tokens <= 0:
         parser.error("batch size and max new tokens must be positive")
     if args.warmup < 0 or args.repeats <= 0 or args.phase_repeats <= 0:
         parser.error("warmup must be nonnegative and repeat counts must be positive")
     try:
+        validate_activation_runtime_settings(
+            activation_implementation=args.activation_implementation,
+            hybrid_activation_threshold_rows=(
+                args.hybrid_activation_threshold_rows
+            ),
+        )
         validate_compile_layering(
             outer_compile_mode=args.compile_mode,
             cache_implementation=args.cache_implementation,
@@ -180,6 +200,7 @@ def main() -> None:
         attention_implementation=args.attention_implementation,
         mlp_implementation=args.mlp_implementation,
         activation_implementation=args.activation_implementation,
+        hybrid_activation_threshold_rows=args.hybrid_activation_threshold_rows,
         width_alignment=args.width_alignment,
     )
     torch.cuda.synchronize()
@@ -430,6 +451,11 @@ def main() -> None:
             "attention_implementation": args.attention_implementation,
             "mlp_implementation": args.mlp_implementation,
             "activation_implementation": args.activation_implementation,
+            "hybrid_activation_threshold_rows": (
+                args.hybrid_activation_threshold_rows
+                if args.activation_implementation == "hybrid"
+                else None
+            ),
             "width_alignment": args.width_alignment,
             "compile_mode": args.compile_mode,
             "cache_implementation": args.cache_implementation,
