@@ -33,6 +33,15 @@ def _is_cuda_event(event: Any) -> bool:
     return "cuda" in str(getattr(event, "device_type", "")).lower()
 
 
+def _is_profiler_annotation(name: str) -> bool:
+    """Exclude profiler ranges and runtime markers from CUDA kernel counts."""
+
+    return (
+        name in {"physical_bfcl_generate", "Command Buffer Full"}
+        or name.startswith("## Call CompiledFxGraph ")
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bundle", type=Path, required=True)
@@ -174,7 +183,12 @@ def main() -> None:
     for event in cuda_events:
         name = str(getattr(event, "name", getattr(event, "key", "unknown")))
         lowered = name.lower()
-        if "memcpy" in lowered or "memset" in lowered or name == "[memory]":
+        if (
+            "memcpy" in lowered
+            or "memset" in lowered
+            or name == "[memory]"
+            or _is_profiler_annotation(name)
+        ):
             continue
         item = kernel_totals[name]
         item["count"] = int(item["count"]) + 1
