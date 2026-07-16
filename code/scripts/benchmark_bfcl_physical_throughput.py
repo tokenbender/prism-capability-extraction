@@ -149,6 +149,7 @@ def main() -> None:
         raise ValueError("benchmark selection is empty")
 
     encoded_batches: list[dict[str, torch.Tensor]] = []
+    encoded_batch_stats: list[dict[str, int]] = []
     input_device = model.get_input_embeddings().weight.device
     for start in range(0, len(rows), args.batch_size):
         batch_rows = rows[start : start + args.batch_size]
@@ -166,10 +167,16 @@ def main() -> None:
             )
             for row in batch_rows
         ]
-        encoded_batches.append(
-            tokenizer.pad(encoded_items, padding=True, return_tensors="pt").to(
-                input_device
-            )
+        encoded = tokenizer.pad(
+            encoded_items, padding=True, return_tensors="pt"
+        ).to(input_device)
+        encoded_batches.append(encoded)
+        encoded_batch_stats.append(
+            {
+                "examples": int(encoded["input_ids"].shape[0]),
+                "useful_prompt_tokens": int(encoded["attention_mask"].sum().item()),
+                "padded_prompt_tokens": int(encoded["input_ids"].numel()),
+            }
         )
 
     eos_ids = model.generation_config.eos_token_id
@@ -188,11 +195,15 @@ def main() -> None:
         generation_kwargs["cache_implementation"] = args.cache_implementation
 
     def run_generation_once() -> dict[str, float | int]:
-        examples = 0
-        useful_prompt_tokens = 0
-        padded_prompt_tokens = 0
+        examples = sum(item["examples"] for item in encoded_batch_stats)
+        useful_prompt_tokens = sum(
+            item["useful_prompt_tokens"] for item in encoded_batch_stats
+        )
+        padded_prompt_tokens = sum(
+            item["padded_prompt_tokens"] for item in encoded_batch_stats
+        )
         generated_slots = 0
-        accepted_tokens = 0
+        generated_sequences: list[tuple[torch.Tensor, int]] = []
         torch.cuda.reset_peak_memory_stats(device)
         started = time.perf_counter()
         with torch.inference_mode():
@@ -201,17 +212,18 @@ def main() -> None:
                 sequences = output.sequences
                 batch = int(sequences.shape[0])
                 prompt_width = int(encoded["input_ids"].shape[-1])
-                examples += batch
-                useful_prompt_tokens += int(encoded["attention_mask"].sum().item())
-                padded_prompt_tokens += int(encoded["input_ids"].numel())
                 generated_slots += int((sequences.shape[-1] - prompt_width) * batch)
-                accepted_tokens += accepted_generation_tokens(
-                    sequences,
-                    prompt_width=prompt_width,
-                    eos_token_ids=eos_token_ids,
-                )
+                generated_sequences.append((sequences, prompt_width))
         torch.cuda.synchronize()
         elapsed = time.perf_counter() - started
+        accepted_tokens = sum(
+            accepted_generation_tokens(
+                sequences,
+                prompt_width=prompt_width,
+                eos_token_ids=eos_token_ids,
+            )
+            for sequences, prompt_width in generated_sequences
+        )
         return {
             "elapsed_seconds": elapsed,
             "examples": examples,
