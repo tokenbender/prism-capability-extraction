@@ -34,6 +34,7 @@ def attempt(
     role: str,
     *,
     batch_size: int = 16,
+    examples_eps: tuple[float, float] = (11.0, 13.0),
     correct_eps: tuple[float, float] = (10.0, 12.0),
     generated_tps: tuple[float, float] = (25.0, 30.0),
     generated_slot_tps: tuple[float, float] = (30.0, 35.0),
@@ -91,7 +92,7 @@ def attempt(
             "generated_token_slots_per_second": stats(
                 *generated_slot_tps
             ),
-            "examples_per_second": stats(11.0, 13.0),
+            "examples_per_second": stats(*examples_eps),
             "elapsed_seconds": stats(150.0, 160.0),
             "accuracy": stats(accuracy, accuracy),
             "peak_allocated_bytes": stats(1000.0, 1200.0),
@@ -127,18 +128,21 @@ def test_comparison_preserves_failures_gates_quality_and_selects_winner() -> Non
     dense = attempt(
         "dense",
         "dense_parent",
+        examples_eps=(22.0, 24.0),
         correct_eps=(20.0, 22.0),
         generated_tps=(45.0, 48.0),
     )
     canonical = attempt(
         "canonical",
         "canonical_physical",
+        examples_eps=(11.0, 13.0),
         correct_eps=(10.0, 12.0),
         generated_tps=(25.0, 28.0),
     )
     winner = attempt(
         "packed",
         "optimized_physical",
+        examples_eps=(33.0, 36.0),
         correct_eps=(30.0, 34.0),
         generated_tps=(70.0, 76.0),
         latency=(30.0, 42.0),
@@ -146,6 +150,7 @@ def test_comparison_preserves_failures_gates_quality_and_selects_winner() -> Non
     quality_failed = attempt(
         "wrong-fast",
         "optimized_physical",
+        examples_eps=(1500.0, 1600.0),
         correct_eps=(1000.0, 1200.0),
         quality_pass=False,
     )
@@ -166,6 +171,7 @@ def test_comparison_preserves_failures_gates_quality_and_selects_winner() -> Non
 
     assert result["fastest_quality_passing"]["name"] == "packed"
     assert result["fastest_optimized_physical"]["name"] == "packed"
+    assert result["fastest_quality_passing"]["median_examples_per_second"] == 33.0
     assert result["quality_gate_failures"] == 1
     assert result["attempt_status_counts"] == {
         "pass": 4,
@@ -196,6 +202,7 @@ def test_winners_are_selected_separately_for_each_batch_size() -> None:
                 "packed",
                 "optimized_physical",
                 batch_size=8,
+                examples_eps=(16.0, 17.0),
                 correct_eps=(15.0, 16.0),
             ),
         ),
@@ -205,6 +212,7 @@ def test_winners_are_selected_separately_for_each_batch_size() -> None:
                 "packed",
                 "optimized_physical",
                 batch_size=32,
+                examples_eps=(36.0, 38.0),
                 correct_eps=(35.0, 37.0),
             ),
         ),

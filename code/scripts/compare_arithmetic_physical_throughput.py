@@ -241,8 +241,7 @@ def _eligible(normalized: dict[str, Any]) -> bool:
     return bool(
         normalized["status"] == "pass"
         and normalized["quality_gate_pass"] is True
-        and normalized["metrics"]["correct_examples_per_second"]["median"]
-        is not None
+        and normalized["metrics"]["examples_per_second"]["median"] is not None
     )
 
 
@@ -349,9 +348,7 @@ def _best_for_role_and_batch(
         return None
     return max(
         eligible,
-        key=lambda attempt: attempt["metrics"][
-            "correct_examples_per_second"
-        ]["median"],
+        key=lambda attempt: attempt["metrics"]["examples_per_second"]["median"],
     )
 
 
@@ -364,6 +361,9 @@ def _winner_summary(attempt: dict[str, Any] | None) -> dict[str, Any] | None:
         "batch_size": attempt["batch_size"],
         "source": attempt["source"],
         "source_index": attempt["source_index"],
+        "median_examples_per_second": attempt["metrics"][
+            "examples_per_second"
+        ]["median"],
         "median_correct_examples_per_second": attempt["metrics"][
             "correct_examples_per_second"
         ]["median"],
@@ -419,7 +419,7 @@ def compare_attempts(
         max(
             eligible,
             key=lambda attempt: attempt["metrics"][
-                "correct_examples_per_second"
+                "examples_per_second"
             ]["median"],
         )
         if eligible
@@ -434,7 +434,7 @@ def compare_attempts(
         max(
             optimized,
             key=lambda attempt: attempt["metrics"][
-                "correct_examples_per_second"
+                "examples_per_second"
             ]["median"],
         )
         if optimized
@@ -451,7 +451,7 @@ def compare_attempts(
             max(
                 batch_attempts,
                 key=lambda attempt: attempt["metrics"][
-                    "correct_examples_per_second"
+                    "examples_per_second"
                 ]["median"],
             )
             if batch_attempts

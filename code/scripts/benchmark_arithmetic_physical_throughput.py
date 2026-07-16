@@ -1039,14 +1039,15 @@ def select_fastest(attempts: Sequence[dict[str, Any]]) -> dict[str, Any] | None:
         return None
     winner = max(
         eligible,
-        key=lambda attempt: attempt["summary"][
-            "correct_examples_per_second"
-        ]["median"],
+        key=lambda attempt: attempt["summary"]["examples_per_second"]["median"],
     )
     return {
         "candidate": winner["candidate"]["name"],
         "role": winner["candidate"]["role"],
         "batch_size": winner["batch_size"],
+        "median_examples_per_second": winner["summary"][
+            "examples_per_second"
+        ]["median"],
         "median_correct_examples_per_second": winner["summary"][
             "correct_examples_per_second"
         ]["median"],

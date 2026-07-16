@@ -407,6 +407,7 @@ def test_fastest_selection_excludes_quality_failures_and_failed_candidates() -> 
             "batch_size": 64,
             "quality_gate": {"pass": False, "accuracy": 0.2},
             "summary": {
+                "examples_per_second": {"median": 2000.0},
                 "correct_examples_per_second": {"median": 1000.0},
                 "generated_tokens_per_second": {"median": 2000.0},
             },
@@ -423,8 +424,20 @@ def test_fastest_selection_excludes_quality_failures_and_failed_candidates() -> 
             "batch_size": 32,
             "quality_gate": {"pass": True, "accuracy": 0.91},
             "summary": {
+                "examples_per_second": {"median": 35.0},
                 "correct_examples_per_second": {"median": 30.0},
                 "generated_tokens_per_second": {"median": 70.0},
+            },
+        },
+        {
+            "status": "pass",
+            "candidate": {"name": "more-correct-slower", "role": "dense_parent"},
+            "batch_size": 64,
+            "quality_gate": {"pass": True, "accuracy": 0.99},
+            "summary": {
+                "examples_per_second": {"median": 34.0},
+                "correct_examples_per_second": {"median": 33.0},
+                "generated_tokens_per_second": {"median": 68.0},
             },
         },
     ]
@@ -433,6 +446,7 @@ def test_fastest_selection_excludes_quality_failures_and_failed_candidates() -> 
     assert winner is not None
     assert winner["candidate"] == "winner"
     assert winner["batch_size"] == 32
+    assert winner["median_examples_per_second"] == 35.0
 
 
 def test_failed_candidates_are_classified_and_jsonl_is_incremental(
