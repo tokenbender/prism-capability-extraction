@@ -184,7 +184,7 @@ def branch_worker(args: argparse.Namespace, config: Mapping[str, Any], spec: Map
     if result_path.exists():
         return json.loads(result_path.read_text())
     branch_dir.mkdir(parents=True, exist_ok=True)
-    ledger = RunLedger(branch_dir, args.deadline_seconds)
+    ledger = RunLedger(branch_dir / "ledger", args.deadline_seconds)
     splits = build_pair_splits(PAIR_SPLIT_SEED)
     round_config = config["round"]
     selection = config["selection"]
@@ -490,7 +490,6 @@ def coordinator(args: argparse.Namespace, config: dict[str, Any]) -> dict[str, A
     require_coordinator_args(args)
     if args.device_count != int(config["execution"]["device_count"]):
         raise ValueError("device count differs from frozen contract")
-    args.output_dir.mkdir(parents=True, exist_ok=True)
     ledger = RunLedger(args.output_dir, args.deadline_seconds)
     write_json(args.output_dir / "config.json", config)
     seed_all(args.seed)
@@ -760,8 +759,8 @@ def self_check(config: Mapping[str, Any], args: argparse.Namespace) -> dict[str,
 def main() -> None:
     args = parse_args()
     config = load_config(args.config)
-    args.output_dir.mkdir(parents=True, exist_ok=True)
     if args.self_check:
+        args.output_dir.mkdir(parents=True, exist_ok=True)
         print(json.dumps(self_check(config, args), indent=2, sort_keys=True), flush=True)
         return
     load_runtime_dependencies()
@@ -786,6 +785,7 @@ def main() -> None:
     try:
         result = coordinator(args, config)
     except BaseException as error:
+        args.output_dir.mkdir(parents=True, exist_ok=True)
         write_json(
             args.output_dir / "failure.json",
             {
