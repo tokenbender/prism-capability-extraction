@@ -51,6 +51,12 @@
     "minimum_overall_recovery": 0.9,
     "minimum_per_carry_class_recovery": 0.85,
     "minimum_dense_correct_vs_round_zero_screen": 461,
+    "expected_round_zero_control": {
+      "dense_correct": 464,
+      "masked_correct": 380,
+      "rows": 500,
+      "screen_builder_purpose": "sealed_screen"
+    },
     "selection_surface": "A budget must pass both search-only calibration and the already-open development screen. Select the smallest passing budget no larger than the parent budget.",
     "stop_condition": "Stop at the first round where the repaired dense model violates the dense floor or no candidate at or below the parent budget passes both recovery gates."
   },

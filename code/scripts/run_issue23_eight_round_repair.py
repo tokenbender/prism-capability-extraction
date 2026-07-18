@@ -214,7 +214,7 @@ def run(args: argparse.Namespace, config: dict[str, Any], ledger: RunLedger) -> 
         splits["screen"],
         int(round_config["development_screen_rows"]),
         seed=args.seed,
-        purpose="development_screen",
+        purpose=str(selection_config["expected_round_zero_control"]["screen_builder_purpose"]),
     )
     write_jsonl(ledger.output_dir / "development_screen_records.jsonl", development_records)
     split_receipt = {
@@ -292,6 +292,22 @@ def run(args: argparse.Namespace, config: dict[str, Any], ledger: RunLedger) -> 
         "per_carry_class_recovery": round_zero_per_class,
     }
     write_json(round_zero_dir / "summary.json", round_zero)
+    expected_control = selection_config["expected_round_zero_control"]
+    observed_control = {
+        "dense_correct": int(round_zero_dense["correct"]),
+        "masked_correct": int(round_zero_masked["correct"]),
+        "rows": int(round_zero_dense["n"]),
+    }
+    expected_counts = {
+        "dense_correct": int(expected_control["dense_correct"]),
+        "masked_correct": int(expected_control["masked_correct"]),
+        "rows": int(expected_control["rows"]),
+    }
+    if observed_control != expected_counts:
+        raise RuntimeError(
+            f"round-zero control mismatch: observed {observed_control}, "
+            f"expected {expected_counts}"
+        )
     ledger.finish(
         "round_0_control",
         budget=current_budget,
