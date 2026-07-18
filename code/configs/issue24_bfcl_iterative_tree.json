@@ -1,0 +1,94 @@
+{
+  "schema_version": "prism_bfcl_issue24_iterative_tree_config_v1",
+  "issue": 24,
+  "objective": "Run twenty failure-diversified zero-isolated repair-SFT branches from the Issue 12 incumbent and preserve the best model-mask checkpoint.",
+  "contract": {
+    "base_model": "Qwen/Qwen3-8B",
+    "base_model_revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "artifact_data_revision": "1aacefc5825a48400497f4d638090da967fcba74",
+    "training_data_revision": "303db0bddcfb04bebaf07ab4a4dc4c089240c545",
+    "root_adapter_repo": "TokenBender/circuit-discovery",
+    "root_adapter_path": "bfcl/issue6_tree_search_v1/run/branches/b007/unmasked_r32/adapter",
+    "root_mask_bundle": "bfcl/issue12_recursive_coactivation_mace_v1_bundle/issue12_recursive_coactivation_mace_v1_artifacts.tgz",
+    "root_mask_member_suffix": "candidate_masks/category_repair_java_r500_protect_tail_b140875_p10000.npz",
+    "root_mask_budget": 140875,
+    "root_mask_selected_sha1": "7492d1944be3320c59a49eaf2b57189badd3524a",
+    "total_mlp_channels": 442368,
+    "eval_rows": 1007,
+    "historical_dense_correct": 664,
+    "historical_root_masked_correct": 600,
+    "intervention": "zero unselected MLP intermediate channels at every down_proj input; no donor activations",
+    "scorer": "BFCL normalized exact with canonicalization prompt",
+    "terminal_fraction": 0.3,
+    "split_seed": 240724,
+    "terminal_scored_only_after_tree_frozen": true,
+    "trained_branch_attempts": 20,
+    "continue_after_exhausted_wave": true
+  },
+  "search": {
+    "parallel_branches": 8,
+    "beam_width": 3,
+    "attribution_rows": 128,
+    "calibration_rows": 128,
+    "calibration_promotions": 3,
+    "shrink_deltas": [1000, 2000, 4000, 8000, 12000],
+    "swap_counts": [1000, 2000],
+    "swap_shrink": {"add": 1000, "remove": 3000},
+    "minimum_budget": 90000,
+    "profiles": [
+      "conservative_nearmiss",
+      "bucket_balanced",
+      "teacher_ranked",
+      "schema_stratified",
+      "compression_biased",
+      "hardcase_replay",
+      "epsilon_repair",
+      "pareto_trim"
+    ],
+    "winner_order": [
+      "quality_gate",
+      "smallest_budget",
+      "highest_development_masked_correct",
+      "highest_development_recovery",
+      "highest_parent_retention",
+      "lowest_branch_index"
+    ]
+  },
+  "training": {
+    "max_seq_length": 1024,
+    "epochs": 1.0,
+    "batch_size": 1,
+    "grad_accum": 8,
+    "learning_rate": 0.0002,
+    "lora_rank": 32,
+    "lora_alpha": 64,
+    "lora_dropout": 0.0,
+    "masked_kl_beta": 1.0,
+    "ce_beta": 0.2,
+    "unmasked_kl_beta": 0.05,
+    "seed_base": 240724
+  },
+  "gates": {
+    "minimum_development_recovery": 0.9,
+    "minimum_calibration_recovery": 0.88,
+    "minimum_dense_retention_of_root": 0.98,
+    "minimum_category_dense_retention_of_root": 0.95,
+    "category_recovery_tolerance_below_root": 0.02,
+    "category_recovery_tolerance_below_parent": 0.02,
+    "same_budget_minimum_masked_correct_gain": 1,
+    "category_uniform_target": 0.9
+  },
+  "evaluation": {
+    "batch_size": 8,
+    "max_new_tokens": 512,
+    "dtype": "bfloat16",
+    "thinking": false,
+    "bfcl_canonicalization_prompt": true,
+    "normalized": true
+  },
+  "artifacts": {
+    "repository": "TokenBender/circuit-discovery",
+    "path": "bfcl/issue24_iterative_sft_tree_v1",
+    "exclude": ["merged model checkpoints", "base model cache", "secrets", "Python caches"]
+  }
+}
