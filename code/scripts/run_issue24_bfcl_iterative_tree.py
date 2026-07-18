@@ -754,7 +754,29 @@ def run_worker(args: argparse.Namespace, config: Mapping[str, Any], spec: Mappin
         "category_uniform_target_pass": bool(selected) and all(float(value) >= uniform_target for value in selected["category_recovery"].values()),
     }
     write_json(summary_path, summary)
-    append_event(args.output_dir, {"stage": "branch_complete", "branch_id": branch_id, "accepted": accepted, "budget": checkpoint["budget"] if checkpoint else parent["budget"]})
+    if not accepted and merged_model.exists():
+        shutil.rmtree(merged_model)
+    append_event(args.output_dir, {
+        "stage": "branch_complete",
+        "branch_id": branch_id,
+        "accepted": accepted,
+        "budget": checkpoint["budget"] if checkpoint else parent["budget"],
+        "merged_model_retained": accepted,
+    })
+
+
+def prune_rejected_merged_models(output_dir: Path) -> list[str]:
+    removed: list[str] = []
+    for summary in branch_summaries(output_dir):
+        if summary.get("accepted"):
+            continue
+        merged_model = output_dir / "branches" / str(summary["branch_id"]) / "train" / "merged"
+        if merged_model.exists():
+            shutil.rmtree(merged_model)
+            removed.append(str(summary["branch_id"]))
+    if removed:
+        append_event(output_dir, {"stage": "rejected_merged_models_removed", "branches": removed})
+    return removed
 
 
 def terminal_guard(output_dir: Path, config: Mapping[str, Any]) -> None:
@@ -839,6 +861,7 @@ def run_tree(args: argparse.Namespace, config: Mapping[str, Any]) -> dict[str, A
     args.output_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(args.config, args.output_dir / "config.json")
     prepare_root(args, config)
+    prune_rejected_merged_models(args.output_dir)
     incomplete = incomplete_worker_specs(args.output_dir, config)
     if incomplete:
         resume_rounds = sorted({int(spec["round"]) for spec in incomplete})
