@@ -1,0 +1,80 @@
+{
+  "schema_version": "prism_arithmetic_issue23_best_checkpoint_tree_config_v1",
+  "issue": 23,
+  "objective": "Continue from the accepted R1 model-mask checkpoint and complete a failure-driven, parent-preserving iterative SFT tree without regressing the incumbent.",
+  "contract": {
+    "base_model": "TokenBender/circuit-discovery@f75ca2f123ce6aaca0e8096918df1ddb34b5d546:checkpoints/checkpoint-b",
+    "tokenizer": "Qwen/Qwen2.5-Math-1.5B@4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2",
+    "root_checkpoint": "TokenBender/circuit-discovery@7a44ce26f513e68b3cb92eea0b5f22cca100dd67:issue23_eight_round_run_corrected/run/round_01/{adapter,selected_mask.npz}",
+    "root_round": 1,
+    "target_round": 8,
+    "root_budget": 150000,
+    "intervention": "At every MLP down_proj input, multiply every unselected channel by zero on every forward; no donor activations; attention, embeddings, norms, residuals, and selected channels remain live.",
+    "scorer": "strict first-line integer exact match",
+    "recovery": "masked_correct / dense_correct on the same records and same repaired model",
+    "pair_split_seed": 23071826,
+    "pair_splits": {
+      "search": 4100,
+      "development_screen": 2000,
+      "terminal_holdout": 2000
+    },
+    "terminal_holdout_rows": 4000,
+    "terminal_holdout_policy": "Keep the terminal holdout unopened until the tree reaches round 8 or exhausts every predeclared repair branch at a depth. Freeze the incumbent before one terminal evaluation of R0, R1, and the winner on all 2,000 pairs in compact and spaced formats."
+  },
+  "round": {
+    "repair_branches": 3,
+    "mining_rows": 512,
+    "attribution_rows": 512,
+    "calibration_rows": 512,
+    "development_screen_rows": 500,
+    "training_base_rows": 2048,
+    "failure_repair_rows": 512,
+    "training": {
+      "steps": 100,
+      "batch_size": 64,
+      "learning_rate": 0.0002,
+      "weight_decay": 0.0,
+      "lora_rank": 32,
+      "lora_alpha": 64,
+      "use_rslora": true,
+      "ce_beta": 1.0,
+      "kl_beta": 0.05,
+      "kl_surface": "prompt",
+      "masked_forward": false
+    },
+    "attribution": {
+      "method": "ReLP",
+      "batch_size": 32,
+      "objective": "teacher-forced gold-answer log probability",
+      "fresh_after_every_merge": true
+    }
+  },
+  "selection": {
+    "budgets_ascending": [126661, 140000, 150000],
+    "retention_fractions": [1.0, 0.995, 0.99, 0.975, 0.95],
+    "evaluate_global_topk_control": true,
+    "global_topk_control_is_eligible": false,
+    "minimum_overall_recovery": 0.9,
+    "minimum_per_carry_class_recovery": 0.85,
+    "minimum_dense_correct_vs_round_zero_screen": 461,
+    "minimum_same_budget_masked_gain": 1,
+    "expected_root_control": {
+      "dense_correct": 474,
+      "masked_correct": 440,
+      "rows": 500,
+      "screen_builder_purpose": "sealed_screen"
+    },
+    "candidate_space": "For each repaired branch, evaluate the unchanged parent, parent-only shrink, and bounded score-ranked swaps that retain 99.5%, 99%, 97.5%, or 95% of the candidate budget from the parent. Global top-k is diagnostic only.",
+    "acceptance": "A child must pass calibration and development recovery/class gates. At the parent budget it must also improve masked development correct by at least one. A smaller passing child is a valid size-quality frontier improvement.",
+    "winner_order": "smallest budget, then highest development masked correct, highest calibration masked correct, highest parent retention, lowest branch index",
+    "exhaustion": "If no eligible child from any of the three failure-driven repair branches passes, retain and freeze the incumbent; the predeclared tree is exhausted at that depth."
+  },
+  "artifacts": {
+    "save_each_branch_adapter": true,
+    "save_every_candidate_mask": true,
+    "save_predictions": true,
+    "large_artifact_repository": "TokenBender/circuit-discovery",
+    "large_artifact_path": "circuit-shotting/artifacts/issue23/best_checkpoint_tree_v1",
+    "teardown": "Only after immutable upload listing and local/remote SHA-256 verification."
+  }
+}
