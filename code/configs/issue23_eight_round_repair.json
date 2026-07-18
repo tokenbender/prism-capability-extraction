@@ -1,0 +1,65 @@
+{
+  "schema_version": "prism_arithmetic_issue23_eight_round_config_v1",
+  "issue": 23,
+  "objective": "Run eight alternating unmasked repair-SFT and fresh-ReLP mask-selection rounds, shrinking the zero-isolated arithmetic substrate while preserving behavior.",
+  "contract": {
+    "model": "TokenBender/circuit-discovery@f75ca2f123ce6aaca0e8096918df1ddb34b5d546:checkpoints/checkpoint-b",
+    "tokenizer": "Qwen/Qwen2.5-Math-1.5B@4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2",
+    "seed_mask": "TokenBender/circuit-discovery@4b9fb53fef92550042d8576fe011e99270fdca8b:composed_union.full.npz#mlp_rel_0.001",
+    "intervention": "At every MLP down_proj input, multiply every unselected channel by zero; attention, embeddings, norms, residuals, and selected channels remain live; no donor activations.",
+    "scorer": "strict first-line integer exact match",
+    "recovery": "masked_correct / dense_correct on the same records and same repaired model",
+    "pair_split_seed": 23071826,
+    "pair_splits": {
+      "search": 4100,
+      "development_screen": 2000,
+      "terminal_holdout": 2000
+    },
+    "rounds": 8,
+    "terminal_holdout_policy": "Do not generate or score holdout records until all eight round decisions are frozen. At terminal evaluation, score all 2,000 pairs in compact and spaced formats, producing 4,000 prompt rows."
+  },
+  "round": {
+    "mining_rows": 512,
+    "attribution_rows": 512,
+    "calibration_rows": 512,
+    "development_screen_rows": 500,
+    "training_base_rows": 2048,
+    "failure_repair_rows": 512,
+    "training": {
+      "steps": 100,
+      "batch_size": 64,
+      "learning_rate": 0.0002,
+      "weight_decay": 0.0,
+      "lora_rank": 32,
+      "lora_alpha": 64,
+      "use_rslora": true,
+      "ce_beta": 1.0,
+      "kl_beta": 0.05,
+      "kl_surface": "prompt",
+      "masked_forward": false
+    },
+    "attribution": {
+      "method": "ReLP",
+      "batch_size": 32,
+      "objective": "teacher-forced gold-answer log probability",
+      "fresh_after_every_merge": true
+    }
+  },
+  "selection": {
+    "budgets_ascending": [126661, 140000, 150000, 160000, 170000, 180000, 190000, 202923],
+    "monotone_nonincreasing_budget": true,
+    "minimum_overall_recovery": 0.9,
+    "minimum_per_carry_class_recovery": 0.85,
+    "minimum_dense_correct_vs_round_zero_screen": 461,
+    "selection_surface": "A budget must pass both search-only calibration and the already-open development screen. Select the smallest passing budget no larger than the parent budget.",
+    "stop_condition": "Stop at the first round where the repaired dense model violates the dense floor or no candidate at or below the parent budget passes both recovery gates."
+  },
+  "artifacts": {
+    "save_each_round_adapter": true,
+    "save_each_round_mask": true,
+    "save_predictions": true,
+    "large_artifact_repository": "TokenBender/circuit-discovery",
+    "large_artifact_path": "circuit-shotting/artifacts/issue23/eight_round_repair_v1",
+    "teardown": "Only after immutable upload listing and SHA-256 verification."
+  }
+}
