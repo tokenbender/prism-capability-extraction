@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run Issue #24's twenty-branch zero-isolated BFCL repair-SFT tree."""
+"""Run Issue #24's twenty-round zero-isolated BFCL repair-SFT tree."""
 
 from __future__ import annotations
 
@@ -19,8 +19,8 @@ from typing import Any, Iterable, Mapping, Sequence
 
 import numpy as np
 
-SCHEMA_VERSION = "prism_bfcl_issue24_iterative_tree_v1"
-CONFIG_SCHEMA_VERSION = "prism_bfcl_issue24_iterative_tree_config_v1"
+SCHEMA_VERSION = "prism_bfcl_issue24_iterative_tree_v2"
+CONFIG_SCHEMA_VERSION = "prism_bfcl_issue24_iterative_tree_config_v2"
 CODE_ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = CODE_ROOT / "scripts"
 BFCL = SCRIPTS / "bfcl_direct_qwen3.py"
@@ -49,14 +49,23 @@ def load_config(path: Path) -> dict[str, Any]:
     if config.get("schema_version") != CONFIG_SCHEMA_VERSION:
         raise ValueError(f"unexpected config schema: {config.get('schema_version')}")
     contract = config["contract"]
-    if contract["trained_branch_attempts"] != 20:
-        raise ValueError("Issue #24 requires exactly twenty trained branch attempts")
-    if not contract["continue_after_exhausted_wave"]:
-        raise ValueError("tree must continue after a wave has no accepted child")
+    rounds = int(contract["rounds"])
+    branches_per_round = int(contract["branches_per_round"])
+    trained_branch_attempts = int(contract["trained_branch_attempts"])
+    if rounds != 20:
+        raise ValueError("Issue #24 requires exactly twenty literal rounds")
+    if branches_per_round != 8:
+        raise ValueError("Issue #24 requires exactly eight branches per round")
+    if trained_branch_attempts != rounds * branches_per_round:
+        raise ValueError("trained branch budget must equal rounds times branches per round")
+    if int(config["search"]["parallel_branches"]) != branches_per_round:
+        raise ValueError("parallel branch count must match branches_per_round")
+    if not contract["continue_after_exhausted_round"]:
+        raise ValueError("tree must continue after a round has no accepted child")
     if not contract["terminal_scored_only_after_tree_frozen"]:
         raise ValueError("terminal holdout must remain sealed until tree freeze")
-    if config["search"]["parallel_branches"] < 1 or config["search"]["beam_width"] < 1:
-        raise ValueError("parallel_branches and beam_width must be positive")
+    if config["search"]["beam_width"] < 1:
+        raise ValueError("beam_width must be positive")
     return config
 
 
@@ -408,23 +417,32 @@ def eligible_checkpoints(output_dir: Path) -> list[dict[str, Any]]:
     return sorted([root, *accepted], key=checkpoint_key)
 
 
-def plan_wave(output_dir: Path, config: Mapping[str, Any]) -> list[dict[str, Any]]:
+def plan_round(output_dir: Path, config: Mapping[str, Any]) -> list[dict[str, Any]]:
     completed = branch_summaries(output_dir)
-    target = int(config["contract"]["trained_branch_attempts"])
+    contract = config["contract"]
+    target = int(contract["trained_branch_attempts"])
+    branches_per_round = int(contract["branches_per_round"])
     remaining = target - len(completed)
     if remaining <= 0:
         return []
-    parallel = min(int(config["search"]["parallel_branches"]), remaining)
+    if remaining < branches_per_round:
+        raise RuntimeError(f"partial round allocation is forbidden: {remaining} branches remain")
+    next_index = max((int(row["branch_index"]) for row in completed), default=0) + 1
+    if (next_index - 1) % branches_per_round:
+        raise RuntimeError(f"round boundary is incomplete before branch {next_index}")
+    round_index = ((next_index - 1) // branches_per_round) + 1
+    if round_index > int(contract["rounds"]):
+        raise RuntimeError(f"planned round {round_index} exceeds frozen round budget")
     beam = eligible_checkpoints(output_dir)[: int(config["search"]["beam_width"])]
     profiles = list(config["search"]["profiles"])
     specs: list[dict[str, Any]] = []
-    next_index = len(completed) + 1
-    for offset in range(parallel):
+    for offset in range(branches_per_round):
         parent = beam[offset % len(beam)]
         profile = profiles[(next_index + offset - 1) % len(profiles)]
         specs.append({
             "branch_id": f"b{next_index + offset:03d}",
             "branch_index": next_index + offset,
+            "round": round_index,
             "parent_id": parent["checkpoint_id"],
             "parent_checkpoint": parent,
             "depth": int(parent["depth"]) + 1,
@@ -432,6 +450,55 @@ def plan_wave(output_dir: Path, config: Mapping[str, Any]) -> list[dict[str, Any
             "seed": int(config["training"]["seed_base"]) + (next_index + offset) * 1009,
         })
     return specs
+
+
+def incomplete_worker_specs(output_dir: Path, config: Mapping[str, Any]) -> list[dict[str, Any]]:
+    branches_per_round = int(config["contract"]["branches_per_round"])
+    specs: list[dict[str, Any]] = []
+    for spec_path in sorted((output_dir / "branches").glob("b*/worker_spec.json")):
+        if (spec_path.parent / "branch_summary.json").exists():
+            continue
+        spec = json.loads(spec_path.read_text())
+        expected_round = ((int(spec["branch_index"]) - 1) // branches_per_round) + 1
+        if int(spec.get("round", expected_round)) != expected_round:
+            raise RuntimeError(f"worker {spec['branch_id']} has inconsistent round identity")
+        spec["round"] = expected_round
+        specs.append(spec)
+    return specs
+
+
+def run_parallel_specs(args: argparse.Namespace, specs: Sequence[Mapping[str, Any]]) -> None:
+    processes: list[tuple[Mapping[str, Any], subprocess.Popen[str]]] = []
+    for offset, spec in enumerate(specs):
+        branch_dir = args.output_dir / "branches" / str(spec["branch_id"])
+        spec_path = branch_dir / "worker_spec.json"
+        write_json(spec_path, spec)
+        env = dict(os.environ)
+        env["CUDA_VISIBLE_DEVICES"] = str(offset % args.device_count)
+        command = [
+            sys.executable,
+            str(Path(__file__).resolve()),
+            "--config",
+            str(args.config),
+            "--output-dir",
+            str(args.output_dir),
+            "--worker-spec",
+            str(spec_path),
+        ]
+        log_path = branch_dir / "worker.log"
+        log_handle = log_path.open("a", encoding="utf-8")
+        process = subprocess.Popen(command, env=env, stdout=log_handle, stderr=subprocess.STDOUT, text=True)
+        process._issue24_log_handle = log_handle  # type: ignore[attr-defined]
+        processes.append((spec, process))
+    failures: list[dict[str, Any]] = []
+    for spec, process in processes:
+        return_code = process.wait()
+        process._issue24_log_handle.close()  # type: ignore[attr-defined]
+        if return_code != 0:
+            failures.append({"branch_id": spec["branch_id"], "return_code": return_code})
+    if failures:
+        append_event(args.output_dir, {"stage": "substantive_failure", "failures": failures})
+        raise RuntimeError(f"branch round failed; preserved state: {failures}")
 
 
 def candidate_receipt(*, candidate: Mapping[str, Any], dense_summary: Mapping[str, Any], dense_categories: Mapping[str, Any], masked_summary: Mapping[str, Any], masked_categories: Mapping[str, Any], parent: Mapping[str, Any], root: Mapping[str, Any], config: Mapping[str, Any], calibration: bool) -> dict[str, Any]:
@@ -672,6 +739,7 @@ def run_worker(args: argparse.Namespace, config: Mapping[str, Any], spec: Mappin
         "branch_index": int(spec["branch_index"]),
         "parent_id": parent["checkpoint_id"],
         "depth": int(spec["depth"]),
+        "round": int(spec.get("round", ((int(spec["branch_index"]) - 1) // int(config["contract"]["branches_per_round"])) + 1)),
         "profile": spec["profile"],
         "seed": spec["seed"],
         "accepted": accepted,
@@ -690,10 +758,20 @@ def run_worker(args: argparse.Namespace, config: Mapping[str, Any], spec: Mappin
 
 
 def terminal_guard(output_dir: Path, config: Mapping[str, Any]) -> None:
-    completed = len(branch_summaries(output_dir))
-    required = int(config["contract"]["trained_branch_attempts"])
-    if completed != required:
-        raise RuntimeError(f"terminal holdout sealed: {completed}/{required} branches complete")
+    summaries = branch_summaries(output_dir)
+    contract = config["contract"]
+    required = int(contract["trained_branch_attempts"])
+    if len(summaries) != required:
+        raise RuntimeError(f"terminal holdout sealed: {len(summaries)}/{required} branches complete")
+    branches_per_round = int(contract["branches_per_round"])
+    rounds = int(contract["rounds"])
+    round_counts: dict[int, int] = defaultdict(int)
+    for summary in summaries:
+        round_index = int(summary.get("round", ((int(summary["branch_index"]) - 1) // branches_per_round) + 1))
+        round_counts[round_index] += 1
+    expected = {round_index: branches_per_round for round_index in range(1, rounds + 1)}
+    if dict(round_counts) != expected:
+        raise RuntimeError(f"terminal holdout sealed: incomplete round ledger {dict(round_counts)}")
 
 
 def finalize(args: argparse.Namespace, config: Mapping[str, Any]) -> dict[str, Any]:
@@ -761,45 +839,39 @@ def run_tree(args: argparse.Namespace, config: Mapping[str, Any]) -> dict[str, A
     args.output_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(args.config, args.output_dir / "config.json")
     prepare_root(args, config)
+    incomplete = incomplete_worker_specs(args.output_dir, config)
+    if incomplete:
+        resume_rounds = sorted({int(spec["round"]) for spec in incomplete})
+        if len(resume_rounds) != 1:
+            raise RuntimeError(f"incomplete workers span multiple rounds: {resume_rounds}")
+        append_event(args.output_dir, {
+            "stage": "round_resume",
+            "round": resume_rounds[0],
+            "branches": [spec["branch_id"] for spec in incomplete],
+        })
+        run_parallel_specs(args, incomplete)
+        append_event(args.output_dir, {
+            "stage": "round_resume_complete",
+            "round": resume_rounds[0],
+            "branches_completed": len(branch_summaries(args.output_dir)),
+        })
     while len(branch_summaries(args.output_dir)) < int(config["contract"]["trained_branch_attempts"]):
-        specs = plan_wave(args.output_dir, config)
+        specs = plan_round(args.output_dir, config)
         if not specs:
-            raise RuntimeError("planner returned no branches before the fixed budget completed")
-        wave_index = len(list((args.output_dir / "plans").glob("wave_*.json"))) + 1
-        plan_path = args.output_dir / "plans" / f"wave_{wave_index:02d}.json"
-        write_json(plan_path, specs)
-        processes: list[tuple[dict[str, Any], subprocess.Popen[str]]] = []
-        for offset, spec in enumerate(specs):
-            branch_dir = args.output_dir / "branches" / spec["branch_id"]
-            spec_path = branch_dir / "worker_spec.json"
-            write_json(spec_path, spec)
-            env = dict(os.environ)
-            env["CUDA_VISIBLE_DEVICES"] = str(offset % args.device_count)
-            command = [
-                sys.executable,
-                str(Path(__file__).resolve()),
-                "--config",
-                str(args.config),
-                "--output-dir",
-                str(args.output_dir),
-                "--worker-spec",
-                str(spec_path),
-            ]
-            log_path = branch_dir / "worker.log"
-            log_handle = log_path.open("w", encoding="utf-8")
-            process = subprocess.Popen(command, env=env, stdout=log_handle, stderr=subprocess.STDOUT, text=True)
-            process._issue24_log_handle = log_handle  # type: ignore[attr-defined]
-            processes.append((spec, process))
-        failures: list[dict[str, Any]] = []
-        for spec, process in processes:
-            return_code = process.wait()
-            process._issue24_log_handle.close()  # type: ignore[attr-defined]
-            if return_code != 0:
-                failures.append({"branch_id": spec["branch_id"], "return_code": return_code})
-        if failures:
-            append_event(args.output_dir, {"stage": "substantive_failure", "failures": failures})
-            raise RuntimeError(f"branch wave failed; preserved state: {failures}")
-        append_event(args.output_dir, {"stage": "wave_complete", "wave": wave_index, "branches_completed": len(branch_summaries(args.output_dir))})
+            raise RuntimeError("planner returned no branches before the fixed round budget completed")
+        round_index = int(specs[0]["round"])
+        plan_path = args.output_dir / "plans" / f"round_{round_index:02d}.json"
+        if plan_path.exists():
+            if json.loads(plan_path.read_text()) != specs:
+                raise RuntimeError(f"round {round_index} plan changed across resume")
+        else:
+            write_json(plan_path, specs)
+        run_parallel_specs(args, specs)
+        append_event(args.output_dir, {
+            "stage": "round_complete",
+            "round": round_index,
+            "branches_completed": len(branch_summaries(args.output_dir)),
+        })
     return finalize(args, config)
 
 
@@ -831,27 +903,84 @@ def self_check(args: argparse.Namespace, config: Mapping[str, Any]) -> None:
             "development_recovery": 0.9,
         }
         write_json(output / "root" / "checkpoint.json", mock_checkpoint)
-        planned_counts: list[int] = []
-        completed = 0
-        while completed < 20:
-            specs = plan_wave(output, config)
+        resume_branch = output / "branches" / "b001"
+        resume_spec = {
+            "branch_id": "b001",
+            "branch_index": 1,
+            "parent_id": "root",
+            "parent_checkpoint": mock_checkpoint,
+            "depth": 1,
+            "profile": "conservative_nearmiss",
+            "seed": 1,
+        }
+        write_json(resume_branch / "worker_spec.json", resume_spec)
+        restored = incomplete_worker_specs(output, config)
+        if len(restored) != 1 or restored[0]["round"] != 1:
+            raise AssertionError(f"incomplete worker was not restored: {restored}")
+        write_json(resume_branch / "branch_summary.json", {
+            "accepted": False,
+            "branch_id": "b001",
+            "branch_index": 1,
+            "checkpoint": None,
+            "round": 1,
+        })
+        planned_counts = [1]
+        planned_rounds = [1]
+        completed = 1
+        while completed < int(config["contract"]["trained_branch_attempts"]):
+            if completed % int(config["contract"]["branches_per_round"]):
+                start = completed + 1
+                stop = int(config["contract"]["branches_per_round"]) + 1
+                specs = []
+                for branch_index in range(start, stop):
+                    specs.append({
+                        "branch_id": f"b{branch_index:03d}",
+                        "branch_index": branch_index,
+                        "round": 1,
+                        "parent_id": "root",
+                        "parent_checkpoint": mock_checkpoint,
+                        "depth": 1,
+                        "profile": "conservative_nearmiss",
+                        "seed": branch_index,
+                    })
+            else:
+                specs = plan_round(output, config)
             planned_counts.append(len(specs))
+            planned_rounds.append(int(specs[0]["round"]))
             for spec in specs:
                 branch_dir = output / "branches" / spec["branch_id"]
-                write_json(branch_dir / "branch_summary.json", {"accepted": False, "branch_id": spec["branch_id"], "branch_index": spec["branch_index"], "checkpoint": None})
+                write_json(branch_dir / "branch_summary.json", {
+                    "accepted": False,
+                    "branch_id": spec["branch_id"],
+                    "branch_index": spec["branch_index"],
+                    "checkpoint": None,
+                    "round": spec["round"],
+                })
             completed += len(specs)
-            if completed < 20:
+            if completed < int(config["contract"]["trained_branch_attempts"]):
                 try:
                     terminal_guard(output, config)
                 except RuntimeError:
                     pass
                 else:
                     raise AssertionError(f"terminal guard opened after only {completed} branches")
-        if completed != 20 or planned_counts != [8, 8, 4]:
-            raise AssertionError(f"unexpected fixed-budget plan: completed={completed}, waves={planned_counts}")
+        expected_counts = [1, 7, *([8] * 19)]
+        expected_rounds = [1, 1, *list(range(2, 21))]
+        if completed != 160 or planned_counts != expected_counts or planned_rounds != expected_rounds:
+            raise AssertionError(
+                f"unexpected fixed-round plan: completed={completed}, counts={planned_counts}, rounds={planned_rounds}"
+            )
         terminal_guard(output, config)
-        write_json(args.output_dir / "self_check.json", {"status": "pass", "candidate_count": len(candidates), "wave_sizes": planned_counts, "branches": completed})
-        print(json.dumps({"status": "pass", "candidate_count": len(candidates), "wave_sizes": planned_counts, "branches": completed}, indent=2))
+        result = {
+            "status": "pass",
+            "candidate_count": len(candidates),
+            "round_sizes": planned_counts,
+            "rounds": planned_rounds,
+            "branches": completed,
+            "resume_round": restored[0]["round"],
+        }
+        write_json(args.output_dir / "self_check.json", result)
+        print(json.dumps(result, indent=2))
 
 
 def main() -> None:

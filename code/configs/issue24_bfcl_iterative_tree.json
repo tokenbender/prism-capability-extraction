@@ -1,7 +1,7 @@
 {
-  "schema_version": "prism_bfcl_issue24_iterative_tree_config_v1",
+  "schema_version": "prism_bfcl_issue24_iterative_tree_config_v2",
   "issue": 24,
-  "objective": "Run twenty failure-diversified zero-isolated repair-SFT branches from the Issue 12 incumbent and preserve the best model-mask checkpoint.",
+  "objective": "Run twenty literal rounds of eight parallel failure-diversified zero-isolated repair-SFT branches from the Issue 12 incumbent and preserve the best model-mask checkpoint.",
   "contract": {
     "base_model": "Qwen/Qwen3-8B",
     "base_model_revision": "b968826d9c46dd6066d109eabc6255188de91218",
@@ -22,8 +22,10 @@
     "terminal_fraction": 0.3,
     "split_seed": 240724,
     "terminal_scored_only_after_tree_frozen": true,
-    "trained_branch_attempts": 20,
-    "continue_after_exhausted_wave": true
+    "rounds": 20,
+    "branches_per_round": 8,
+    "trained_branch_attempts": 160,
+    "continue_after_exhausted_round": true
   },
   "search": {
     "parallel_branches": 8,
@@ -88,7 +90,7 @@
   },
   "artifacts": {
     "repository": "TokenBender/circuit-discovery",
-    "path": "bfcl/issue24_iterative_sft_tree_v1",
+    "path": "bfcl/issue24_iterative_sft_tree_20_round_v2",
     "exclude": ["merged model checkpoints", "base model cache", "secrets", "Python caches"]
   }
 }
