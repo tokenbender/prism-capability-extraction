@@ -1,0 +1,92 @@
+{
+  "schema_version": "prism_arithmetic_issue23_round20_config_v1",
+  "issue": 23,
+  "objective": "Continue the accepted arithmetic R8 model-mask checkpoint through literal rounds R9-R20 with eight parallel failure-diversified repair branches per round.",
+  "contract": {
+    "base_model": "TokenBender/circuit-discovery@f75ca2f123ce6aaca0e8096918df1ddb34b5d546:checkpoints/checkpoint-b",
+    "tokenizer": "Qwen/Qwen2.5-Math-1.5B@4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2",
+    "root_artifact": "TokenBender/circuit-discovery:dataset/circuit-shotting/artifacts/issue23/best_checkpoint_tree_full_r8_v2/issue23_best_checkpoint_tree_full_r8.tar.gz",
+    "root_artifact_sha256": "cf7ae4c98eb053bd3edc0d12b5a97611b59998296f72ae2d8c437db672644dfe",
+    "root_round": 8,
+    "target_round": 20,
+    "root_budget": 126661,
+    "intervention": "At every MLP down_proj input, multiply every unselected channel by zero on every forward; no donor activations; attention, embeddings, norms, residuals, and selected channels remain live.",
+    "scorer": "strict first-line integer exact match",
+    "recovery": "masked_correct / dense_correct on the same records and same repaired model",
+    "pair_split_seed": 23071826,
+    "pair_splits": {
+      "search": 4100,
+      "development_screen": 2000,
+      "terminal_holdout": 2000
+    },
+    "terminal_holdout_rows": 4000,
+    "terminal_holdout_policy": "The R8 holdout was previously opened. Freeze the same 2,000 pairs and compact/spaced records, exclude them from all R9-R20 training and selection, and evaluate R8 plus the frozen R20 winner exactly once after the tree is frozen. Report this as a reused fixed evaluation set, not a newly sealed holdout.",
+    "expected_r8_terminal_control": {
+      "dense_correct": 3988,
+      "masked_correct": 3928,
+      "rows": 4000
+    }
+  },
+  "round": {
+    "repair_branches": 8,
+    "mining_rows": 512,
+    "attribution_rows": 512,
+    "calibration_rows": 512,
+    "development_screen_rows": 500,
+    "training_base_rows": 2048,
+    "failure_repair_rows": 512,
+    "training": {
+      "steps": 100,
+      "batch_size": 64,
+      "learning_rate": 0.0002,
+      "weight_decay": 0.0,
+      "lora_rank": 32,
+      "lora_alpha": 64,
+      "use_rslora": true,
+      "ce_beta": 1.0,
+      "kl_beta": 0.05,
+      "kl_surface": "prompt",
+      "masked_forward": false
+    },
+    "attribution": {
+      "method": "ReLP",
+      "batch_size": 32,
+      "objective": "teacher-forced gold-answer log probability",
+      "fresh_after_every_merge": true
+    }
+  },
+  "selection": {
+    "budgets_ascending": [110000, 120000, 126661],
+    "retention_fractions": [1.0, 0.995, 0.99],
+    "evaluate_global_topk_control": true,
+    "global_topk_control_is_eligible": false,
+    "minimum_overall_recovery": 0.9,
+    "minimum_per_carry_class_recovery": 0.85,
+    "minimum_dense_correct_vs_round_zero_screen": 497,
+    "minimum_same_budget_masked_gain": 1,
+    "continue_after_exhausted_depth": true,
+    "expected_root_control": {
+      "dense_correct": 499,
+      "masked_correct": 498,
+      "rows": 500,
+      "screen_builder_purpose": "sealed_screen"
+    },
+    "candidate_space": "For each repaired branch, evaluate the unchanged parent, parent-only shrink, and bounded score-ranked swaps at 110,000, 120,000, and 126,661 channels retaining 100%, 99.5%, or 99% of each candidate budget from the parent. Global top-k is diagnostic only.",
+    "acceptance": "A child must pass calibration and development recovery/class gates and score at least 497/500 dense on development. At the parent budget it must improve masked development correct by at least one. A smaller passing child is a valid size-quality frontier improvement.",
+    "winner_order": "smallest budget, then highest development masked correct, highest calibration masked correct, highest parent retention, lowest branch index",
+    "exhaustion": "If no eligible child from any of eight failure-driven repair branches passes at a depth, retain the incumbent unchanged and continue fresh failure-diversified repair branches at every remaining depth through R20."
+  },
+  "execution": {
+    "device_count": 8,
+    "parallel_branches": 8,
+    "stop_on_first_worker_failure": true
+  },
+  "artifacts": {
+    "save_each_branch_adapter": true,
+    "save_every_candidate_mask": true,
+    "save_predictions": true,
+    "large_artifact_repository": "TokenBender/circuit-discovery",
+    "large_artifact_path": "circuit-shotting/artifacts/issue23/round20_continuation_v1",
+    "teardown": "Only after immutable upload listing and local/remote SHA-256 verification."
+  }
+}
