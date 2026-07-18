@@ -1,0 +1,12 @@
+{
+  "schema_version": "prism_arithmetic_issue23_artifact_receipt_v1",
+  "repository": "TokenBender/circuit-discovery",
+  "repository_type": "dataset",
+  "revision": "f6a4dc37c9bf831e8716b68fca79fba560609757",
+  "path": "circuit-shotting/artifacts/issue23/halfhour_repair_pilot/issue23_run.tar.gz",
+  "url": "https://huggingface.co/datasets/TokenBender/circuit-discovery/blob/f6a4dc37c9bf831e8716b68fca79fba560609757/circuit-shotting/artifacts/issue23/halfhour_repair_pilot/issue23_run.tar.gz",
+  "sha256": "842aa72da22b411a2cb2ed564d09102be9624e33c5219ec506050088a23b02c8",
+  "size_bytes": 141955957,
+  "local_download_sha256_verified_against_remote": true,
+  "pod_removed_after_preservation": true
+}

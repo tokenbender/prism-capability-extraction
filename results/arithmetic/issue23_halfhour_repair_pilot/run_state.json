@@ -1,0 +1,15 @@
+{
+  "completed_stages": [
+    "freeze_data",
+    "load_model",
+    "r0_controls",
+    "repair_sft",
+    "fresh_relp",
+    "r1_gate",
+    "complete"
+  ],
+  "elapsed_s": 26.331122509000124,
+  "remaining_s": 1393.668877350996,
+  "schema_version": "prism_arithmetic_issue23_halfhour_pilot_v1",
+  "stage": "complete"
+}

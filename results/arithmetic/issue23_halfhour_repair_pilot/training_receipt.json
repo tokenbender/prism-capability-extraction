@@ -1,0 +1,16 @@
+{
+  "base_rows": 2048,
+  "base_unique_pairs": 1024,
+  "repair_rows": 512,
+  "repair_unique_pairs": 77,
+  "search_only": true,
+  "total_rows": 2560,
+  "variants": [
+    "canonical",
+    "canonical_spaced",
+    "compact",
+    "question",
+    "sum",
+    "words"
+  ]
+}

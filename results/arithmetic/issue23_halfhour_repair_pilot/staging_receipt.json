@@ -1,0 +1,8 @@
+{
+  "data_revision": "4b9fb53fef92550042d8576fe011e99270fdca8b",
+  "mask": "/root/issue23_inputs/data_repo/circuit-shotting/artifacts/pod_logs/steed-medium/full/qwen25_math_1p5b_2digit_max_recovery_v1/position_adacs_lora_r32_beta005/composed_union.full.npz",
+  "model": "/root/issue23_inputs/model_repo/checkpoints/checkpoint-b",
+  "model_revision": "f75ca2f123ce6aaca0e8096918df1ddb34b5d546",
+  "tokenizer": "/root/issue23_inputs/tokenizer_repo",
+  "tokenizer_revision": "4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2"
+}
