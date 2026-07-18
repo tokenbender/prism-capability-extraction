@@ -43,7 +43,7 @@ fi
 if [[ ! -x "${PYTHON}" ]]; then
   python3 -m venv --system-site-packages "${REPO_ROOT}/.venv"
 fi
-"${PYTHON}" -m pip install -U pip setuptools wheel
+"${PYTHON}" -m pip install -U pip 'setuptools<82' wheel
 "${PYTHON}" -m pip install \
   'transformers==4.57.6' \
   'peft>=0.19.1' \

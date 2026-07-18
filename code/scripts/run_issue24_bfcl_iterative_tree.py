@@ -86,6 +86,7 @@ def sha256_file(path: Path) -> str:
 
 def append_event(output_dir: Path, event: Mapping[str, Any]) -> None:
     path = output_dir / "events.jsonl"
+    path.parent.mkdir(parents=True, exist_ok=True)
     payload = {"time": time.time(), **dict(event)}
     with path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(payload, sort_keys=True) + "\n")
