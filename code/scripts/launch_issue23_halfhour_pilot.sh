@@ -22,7 +22,7 @@ nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader \
   | tee "${RUN_ROOT}/setup/gpu_identity.csv"
 git -C "${REPO_ROOT}" rev-parse HEAD | tee "${RUN_ROOT}/setup/git_commit.txt"
 
-python -m pip install --quiet --upgrade \
+python -m pip install --break-system-packages --quiet --upgrade \
   'transformers==4.57.6' \
   'peft==0.19.1' \
   'huggingface-hub>=0.34,<1.0' \
