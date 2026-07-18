@@ -21,6 +21,7 @@ mkdir -p "${RUN_ROOT}/setup" "${INPUT_ROOT}"
 printf '%s\n' "${STARTED_EPOCH}" > "${RUN_ROOT}/setup/started_epoch.txt"
 
 cd "${REPO_ROOT}"
+export PYTHONPATH="${REPO_ROOT}/code:${PYTHONPATH:-}"
 ACTUAL_COMMIT="$(git rev-parse HEAD)"
 if [[ "${ACTUAL_COMMIT}" != "${EXPECTED_COMMIT}" ]]; then
   echo "commit mismatch: ${ACTUAL_COMMIT} != ${EXPECTED_COMMIT}" >&2
