@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 REPO_ROOT="${REPO_ROOT:-/root/prism-capability-extraction}"
 INPUT_ROOT="${INPUT_ROOT:-/root/issue23_best_tree_inputs}"
-RUN_ROOT="${RUN_ROOT:-/root/issue23_best_checkpoint_tree}"
+RUN_ROOT="${RUN_ROOT:-/root/issue23_best_checkpoint_tree_full_r8}"
 MODEL_REVISION="${MODEL_REVISION:-f75ca2f123ce6aaca0e8096918df1ddb34b5d546}"
 DATA_REVISION="${DATA_REVISION:-4b9fb53fef92550042d8576fe011e99270fdca8b}"
 TOKENIZER_REVISION="${TOKENIZER_REVISION:-4a83ca6e4526a4f2da3aa259ec36c259f66b2ab2}"

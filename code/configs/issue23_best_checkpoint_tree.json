@@ -1,5 +1,5 @@
 {
-  "schema_version": "prism_arithmetic_issue23_best_checkpoint_tree_config_v1",
+  "schema_version": "prism_arithmetic_issue23_best_checkpoint_tree_config_v2",
   "issue": 23,
   "objective": "Continue from the accepted R1 model-mask checkpoint and complete a failure-driven, parent-preserving iterative SFT tree without regressing the incumbent.",
   "contract": {
@@ -58,6 +58,7 @@
     "minimum_per_carry_class_recovery": 0.85,
     "minimum_dense_correct_vs_round_zero_screen": 461,
     "minimum_same_budget_masked_gain": 1,
+    "continue_after_exhausted_depth": true,
     "expected_root_control": {
       "dense_correct": 474,
       "masked_correct": 440,
@@ -67,14 +68,14 @@
     "candidate_space": "For each repaired branch, evaluate the unchanged parent, parent-only shrink, and bounded score-ranked swaps that retain 99.5%, 99%, 97.5%, or 95% of the candidate budget from the parent. Global top-k is diagnostic only.",
     "acceptance": "A child must pass calibration and development recovery/class gates. At the parent budget it must also improve masked development correct by at least one. A smaller passing child is a valid size-quality frontier improvement.",
     "winner_order": "smallest budget, then highest development masked correct, highest calibration masked correct, highest parent retention, lowest branch index",
-    "exhaustion": "If no eligible child from any of the three failure-driven repair branches passes, retain and freeze the incumbent; the predeclared tree is exhausted at that depth."
+    "exhaustion": "If no eligible child from any of the three failure-driven repair branches passes at a depth, retain the incumbent unchanged, record the exhausted depth, and continue fresh failure-diversified repair branches at every remaining depth through R8."
   },
   "artifacts": {
     "save_each_branch_adapter": true,
     "save_every_candidate_mask": true,
     "save_predictions": true,
     "large_artifact_repository": "TokenBender/circuit-discovery",
-    "large_artifact_path": "circuit-shotting/artifacts/issue23/best_checkpoint_tree_v1",
+    "large_artifact_path": "circuit-shotting/artifacts/issue23/best_checkpoint_tree_full_r8_v2",
     "teardown": "Only after immutable upload listing and local/remote SHA-256 verification."
   }
 }

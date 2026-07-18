@@ -42,8 +42,8 @@ from scripts.run_issue23_halfhour_pilot import (  # noqa: E402
     write_jsonl,
 )
 
-SCHEMA_VERSION = "prism_arithmetic_issue23_best_checkpoint_tree_v1"
-CONFIG_SCHEMA_VERSION = "prism_arithmetic_issue23_best_checkpoint_tree_config_v1"
+SCHEMA_VERSION = "prism_arithmetic_issue23_best_checkpoint_tree_v2"
+CONFIG_SCHEMA_VERSION = "prism_arithmetic_issue23_best_checkpoint_tree_config_v2"
 
 
 def parse_args() -> argparse.Namespace:
@@ -75,6 +75,8 @@ def load_config(path: Path) -> dict[str, Any]:
     target_round = int(contract["target_round"])
     if root_round != 1 or target_round != 8:
         raise ValueError("Issue #23 tree contract must continue R1 through R8")
+    if config["selection"].get("continue_after_exhausted_depth") is not True:
+        raise ValueError("Issue #23 corrected contract must attempt every depth through R8")
     budgets = [int(value) for value in config["selection"]["budgets_ascending"]]
     if budgets != sorted(set(budgets)):
         raise ValueError("selection budgets must be unique and ascending")
@@ -496,8 +498,11 @@ def run(args: argparse.Namespace, config: dict[str, Any], ledger: RunLedger) -> 
     current_chain = root_chain
     current_screen_masked_correct = int(root_masked["correct"])
     termination = "target_round_reached"
+    last_attempted_round = root_round
+    exhausted_depths: list[int] = []
 
     for depth in range(root_round + 1, target_round + 1):
+        last_attempted_round = depth
         ledger.require_time(f"round_{depth}_tree", 600)
         depth_dir = ledger.output_dir / f"round_{depth:02d}"
         depth_dir.mkdir()
@@ -681,25 +686,25 @@ def run(args: argparse.Namespace, config: dict[str, Any], ledger: RunLedger) -> 
             torch.cuda.empty_cache()
 
         if not passing_children:
-            termination = f"tree_exhausted_before_round_{depth}"
-            exhaustion = {
+            exhausted_depths.append(depth)
+            retained = {
                 "round": depth,
-                "status": "exhausted",
+                "status": "incumbent_retained",
                 "incumbent_round": current_round,
                 "incumbent_budget": current_budget,
                 "incumbent_masked_correct": current_screen_masked_correct,
                 "branches": branch_summaries,
             }
-            write_json(depth_dir / "summary.json", exhaustion)
-            progress.append(exhaustion)
+            write_json(depth_dir / "summary.json", retained)
+            progress.append(retained)
             write_json(ledger.output_dir / "progress.json", progress)
             ledger.finish(
-                f"round_{depth}_tree_exhausted",
+                f"round_{depth}_incumbent_retained",
                 incumbent_round=current_round,
                 incumbent_budget=current_budget,
                 incumbent_masked_correct=current_screen_masked_correct,
             )
-            break
+            continue
 
         winner = min(passing_children, key=winner_key)
         selected_mask_path = depth_dir / "selected_mask.npz"
@@ -753,6 +758,9 @@ def run(args: argparse.Namespace, config: dict[str, Any], ledger: RunLedger) -> 
             recovery=float(winner["development_gate"]["overall"]),
             operator=winner["operator"],
         )
+
+    if exhausted_depths:
+        termination = "target_round_reached_after_exhausted_depths"
 
     ledger.require_time("terminal_holdout", 240)
     holdout_records = evaluation_records(
@@ -808,6 +816,8 @@ def run(args: argparse.Namespace, config: dict[str, Any], ledger: RunLedger) -> 
     terminal = {
         "tree_termination": termination,
         "winner_round": current_round,
+        "last_attempted_round": last_attempted_round,
+        "exhausted_depths": exhausted_depths,
         "rows": len(holdout_records),
         "pairs": len(splits["holdout"]),
         "r0": r0_terminal,
@@ -835,6 +845,8 @@ def run(args: argparse.Namespace, config: dict[str, Any], ledger: RunLedger) -> 
         "tree_termination": termination,
         "root_round": root_round,
         "winner_round": current_round,
+        "last_attempted_round": last_attempted_round,
+        "exhausted_depths": exhausted_depths,
         "target_round": target_round,
         "root_budget": root_budget,
         "winner_budget": current_budget,
@@ -847,6 +859,8 @@ def run(args: argparse.Namespace, config: dict[str, Any], ledger: RunLedger) -> 
         "complete",
         termination=termination,
         winner_round=current_round,
+        last_attempted_round=last_attempted_round,
+        exhausted_depths=exhausted_depths,
         winner_budget=current_budget,
         terminal_pass=winner_pass,
     )
