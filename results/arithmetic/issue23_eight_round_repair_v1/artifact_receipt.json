@@ -1,0 +1,21 @@
+{
+  "schema_version": "prism_arithmetic_issue23_eight_round_artifact_receipt_v1",
+  "repository": "TokenBender/circuit-discovery",
+  "repository_type": "dataset",
+  "base_path": "circuit-shotting/artifacts/issue23/eight_round_repair_v1",
+  "verified_via_remote_listing": true,
+  "files": [
+    {
+      "path": "circuit-shotting/artifacts/issue23/eight_round_repair_v1/issue23_eight_round_run_corrected.tar.gz",
+      "size_bytes": 276177155,
+      "sha256": "5cdc4731c793e0e45b9c5fe0939fe0ef037ea57347f68d9e18f548f6d1f4ce1a",
+      "commit": "7a44ce26f513e68b3cb92eea0b5f22cca100dd67"
+    },
+    {
+      "path": "circuit-shotting/artifacts/issue23/eight_round_repair_v1/issue23_eight_round_screen_mismatch_partial.tar.gz",
+      "size_bytes": 138740451,
+      "sha256": "b164a29ec9f9f04011ac7d00502eaa95f40112f09f6f2900c1faf63ec0ab8267",
+      "commit": "9850928f6b110353d277f98a618f17ee66a9a2d1"
+    }
+  ]
+}

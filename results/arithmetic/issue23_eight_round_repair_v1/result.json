@@ -1,0 +1,60 @@
+{
+  "schema_version": "prism_arithmetic_issue23_eight_round_result_v1",
+  "issue": 23,
+  "status": "stopped_at_predeclared_round_2_gate",
+  "source_commit": "8cbffcffa1891eb1a90493278fe1fb0b5a3e7165",
+  "model_revision": "f75ca2f123ce6aaca0e8096918df1ddb34b5d546",
+  "data_revision": "4b9fb53fef92550042d8576fe011e99270fdca8b",
+  "screen_contract": {
+    "purpose": "sealed_screen",
+    "rows": 500,
+    "round_0_dense_correct": 464,
+    "round_0_masked_correct": 380,
+    "round_0_mask_budget": 202923
+  },
+  "accepted_rounds": [
+    {
+      "round": 1,
+      "parent_budget": 202923,
+      "selected_budget": 150000,
+      "budget_fraction_of_250880": 0.5978954081632653,
+      "development_dense_correct": 474,
+      "development_masked_correct": 440,
+      "development_recovery": 0.9282700421940928,
+      "masked_correct_gain_vs_round_0": 60,
+      "selected_mask_sha256": "00e4225c29be5649c79d6a095b401ddb808b6d4694882fc4c2fa703e5cd7fa55"
+    }
+  ],
+  "stop_round": {
+    "round": 2,
+    "reason": "No candidate at or below the 150000-channel parent budget passed both calibration and development recovery gates.",
+    "dense_calibration_correct": 496,
+    "dense_calibration_rows": 512,
+    "dense_development_correct": 485,
+    "dense_development_rows": 500,
+    "largest_candidate": {
+      "budget": 150000,
+      "calibration_masked_correct": 342,
+      "calibration_masked_rows": 512,
+      "calibration_recovery": 0.6895161290322581,
+      "development_masked_correct": 328,
+      "development_masked_rows": 500,
+      "development_recovery": 0.6762886597938145,
+      "minimum_calibration_class_recovery": 0.34710743801652894,
+      "minimum_development_class_recovery": 0.48695652173913045
+    }
+  },
+  "rounds_3_through_8": "not_run_after_predeclared_stop_condition",
+  "terminal_holdout": {
+    "rows": 2000,
+    "scored": false,
+    "reason": "Contract permits one terminal evaluation only after all eight rounds complete; Round 2 stopped the run."
+  },
+  "main_artifact": {
+    "repository": "TokenBender/circuit-discovery",
+    "path": "circuit-shotting/artifacts/issue23/eight_round_repair_v1/issue23_eight_round_run_corrected.tar.gz",
+    "size_bytes": 276177155,
+    "sha256": "5cdc4731c793e0e45b9c5fe0939fe0ef037ea57347f68d9e18f548f6d1f4ce1a",
+    "commit": "7a44ce26f513e68b3cb92eea0b5f22cca100dd67"
+  }
+}
