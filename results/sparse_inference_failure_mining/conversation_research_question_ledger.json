@@ -1,0 +1,82 @@
+[
+  {
+    "stage": 1,
+    "query": "Mine LocalLLaMA, X, GitHub, Hugging Face, and other sources for real failure patterns in quantization and pruning.",
+    "shift": "Established an empirical complaint census rather than a paper-only survey."
+  },
+  {
+    "stage": 2,
+    "query": "Do not stop at 250; treat 250 as a minimum and continue until the source surface is meaningfully exhausted.",
+    "shift": "Separated a corpus-size gate from an honest source-exhaustion gate."
+  },
+  {
+    "stage": 3,
+    "query": "How should we dig through the corpus, and what is the first high-value queue?",
+    "shift": "Moved from collection to failure matrices and silent wrong-output cases."
+  },
+  {
+    "stage": 4,
+    "query": "Given our focus on local-model agentic capability extraction, how should we use these failures?",
+    "shift": "Reframed complaints as deployment-conditioned tests for an extracted agentic substrate."
+  },
+  {
+    "stage": 5,
+    "query": "What is actually relevant to us, where should we start, and why?",
+    "shift": "Demanded prioritization by research leverage rather than complaint volume."
+  },
+  {
+    "stage": 6,
+    "query": "What understanding does the collected corpus produce, beyond generic advice to test multi-turn behavior?",
+    "shift": "Forced corpus-derived mechanisms and evidence limits to replace generic evaluation advice."
+  },
+  {
+    "stage": 7,
+    "query": "Explain the result from zero priors, in human terms.",
+    "shift": "Distinguished smooth intelligence loss from conditional system instability and closed-loop amplification."
+  },
+  {
+    "stage": 8,
+    "query": "Is the observed pattern that coherence collapses abruptly rather than tool selection or instruction following degrading smoothly?",
+    "shift": "Identified capability stability margin and discontinuous failure boundaries as a first insight."
+  },
+  {
+    "stage": 9,
+    "query": "What is a second, genuinely different insight?",
+    "shift": "Identified selective capability preservation: a target benchmark may stay healthy while unmeasured capabilities disappear."
+  },
+  {
+    "stage": 10,
+    "query": "What calibration data do quantizers and model uploaders actually use?",
+    "shift": "Exposed partial disclosure: method defaults may be public while exact artifact mixtures are usually not reproducible."
+  },
+  {
+    "stage": 11,
+    "query": "Are these errors predictable, synthetically generable, and programmatically verifiable?",
+    "shift": "Separated trigger discovery, observability, and oracle clarity."
+  },
+  {
+    "stage": 12,
+    "query": "If enough failure trajectories are mapped, can their verifiers constrain precision allocation, qualify the artifact, and provide RL rewards?",
+    "shift": "Formed the central proposal: the failure atlas becomes an executable compression and robustness objective."
+  },
+  {
+    "stage": 13,
+    "query": "Which quantization families can use such calibration cases, in both the complaint corpus and recent research?",
+    "shift": "Mapped dynamic/imatrix, task-aware mixed precision, saliency preservation, learned rounding, low-bit floats, KV quantization, and QAT."
+  },
+  {
+    "stage": 14,
+    "query": "List the methods one by one and provide papers or technical reading for each.",
+    "shift": "Produced an initial bibliography, but mixed algorithms, formats, encodings, and training regimes."
+  },
+  {
+    "stage": 15,
+    "query": "Can the questions and final result be enriched or improved?",
+    "shift": "Established that the useful deliverable is a method-to-verifier research map, novelty boundary, and falsifiable experiment rather than a flat catalog."
+  },
+  {
+    "stage": 16,
+    "query": "Research the idea thoroughly and collect the full question evolution from this context.",
+    "shift": "Current deliverable."
+  }
+]

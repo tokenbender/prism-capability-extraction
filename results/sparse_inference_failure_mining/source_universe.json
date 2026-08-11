@@ -1,0 +1,178 @@
+{
+  "status": "active_census",
+  "as_of": "2026-08-08",
+  "goal": {
+    "minimum_deduplicated_incident_lineages": 250,
+    "stopping_condition": "Continue until every source family has been queried with its full complaint vocabulary and two consecutive discovery waves add no new qualifying incident lineage.",
+    "unit": "One underlying complaint lineage, with all duplicate and corroborating URLs attached.",
+    "purpose": "Capture what users require from compressed local models, what they did not receive, where the first divergence occurred, and whether the concern remains unaddressed."
+  },
+  "source_families": [
+    {
+      "id": "model_uploads",
+      "minimum": 70,
+      "surfaces": [
+        "Hugging Face model discussions",
+        "Hugging Face pull requests",
+        "model-card revisions",
+        "file replacement and reupload commits",
+        "quant-provider announcements and replies"
+      ],
+      "providers": [
+        "unsloth",
+        "bartowski",
+        "mradermacher",
+        "QuantFactory",
+        "lmstudio-community",
+        "mlx-community",
+        "TheBloke historical uploads",
+        "MaziyarPanahi",
+        "prism-ml Bonsai",
+        "official model-publisher quant uploads"
+      ]
+    },
+    {
+      "id": "quantizers_converters_kernels",
+      "minimum": 50,
+      "repositories": [
+        "ModelCloud/GPTQModel",
+        "AutoGPTQ/AutoGPTQ",
+        "casper-hansen/AutoAWQ",
+        "mit-han-lab/llm-awq",
+        "bitsandbytes-foundation/bitsandbytes",
+        "mobiusml/hqq",
+        "intel/auto-round",
+        "pytorch/ao",
+        "huggingface/optimum-quanto",
+        "vllm-project/llm-compressor",
+        "neuralmagic/compressed-tensors",
+        "microsoft/BitBLAS",
+        "IST-DASLab/marlin",
+        "turboderp/exllamav2",
+        "Cornell-RelaxML/quip-sharp",
+        "VAHE1994/AQLM",
+        "SparseGPT",
+        "Wanda",
+        "REAP",
+        "PrismML-Eng/Bonsai-demo"
+      ]
+    },
+    {
+      "id": "inference_serving",
+      "minimum": 55,
+      "repositories": [
+        "ggml-org/llama.cpp",
+        "vllm-project/vllm",
+        "sgl-project/sglang",
+        "huggingface/transformers",
+        "huggingface/text-generation-inference",
+        "NVIDIA/TensorRT-LLM",
+        "mlc-ai/mlc-llm",
+        "turboderp/exllamav2",
+        "theroyallab/tabbyAPI",
+        "LostRuins/koboldcpp",
+        "ollama/ollama",
+        "abetlen/llama-cpp-python",
+        "ml-explore/mlx-lm",
+        "mudler/LocalAI"
+      ]
+    },
+    {
+      "id": "downstream_applications",
+      "minimum": 25,
+      "repositories": [
+        "oobabooga/text-generation-webui",
+        "open-webui/open-webui",
+        "SillyTavern/SillyTavern",
+        "Mintplex-Labs/anything-llm",
+        "LM Studio community",
+        "agent and tool-calling frameworks",
+        "structured-output and grammar integrations"
+      ]
+    },
+    {
+      "id": "community_web",
+      "minimum": 35,
+      "surfaces": [
+        "r/LocalLLaMA",
+        "r/MachineLearning",
+        "r/Oobabooga",
+        "runtime and hardware subreddits",
+        "X/Twitter",
+        "Hacker News via Algolia",
+        "Stack Exchange",
+        "public Discourse forums",
+        "publicly indexed Discord archives",
+        "release-thread replies",
+        "technical blog and video comments with recoverable configurations"
+      ]
+    },
+    {
+      "id": "controlled_evaluations",
+      "minimum": 15,
+      "surfaces": [
+        "primary papers",
+        "OpenReview discussions",
+        "benchmark repository issues",
+        "evaluation harness issues",
+        "model-card benchmark corrections"
+      ]
+    }
+  ],
+  "complaint_vocabulary": [
+    "gibberish",
+    "garbage output",
+    "nonsense",
+    "hallucination",
+    "repetition",
+    "looping",
+    "broken tool call",
+    "invalid JSON",
+    "wrong language",
+    "lost multilingual",
+    "bad code",
+    "math regression",
+    "long-context failure",
+    "second-turn failure",
+    "cache corruption",
+    "chat-template mismatch",
+    "tokenizer mismatch",
+    "failed to load",
+    "illegal memory access",
+    "shape mismatch",
+    "unsupported quant",
+    "slower than FP16",
+    "no speedup",
+    "more memory than expected",
+    "out of memory",
+    "tensor-parallel failure",
+    "multi-user failure",
+    "CPU-offload failure",
+    "CUDA ROCm Vulkan Metal difference",
+    "bad upload",
+    "re-uploaded",
+    "withdrawn weights",
+    "redownload required"
+  ],
+  "required_lineage_fields": [
+    "primary_source_url",
+    "corroborating_source_urls",
+    "published_at",
+    "model_and_exact_file",
+    "provider",
+    "optimization_recipe",
+    "runtime_and_version",
+    "hardware_and_topology",
+    "workload_task_domain",
+    "state_and_context",
+    "verbatim_complaint",
+    "normalized_unmet_requirement",
+    "observed_failure",
+    "baseline_or_control",
+    "resolution_status",
+    "resolution",
+    "attention_receipt",
+    "evidence_receipt",
+    "missing_information"
+  ]
+}

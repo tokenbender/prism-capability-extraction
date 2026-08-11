@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="410" viewBox="0 0 960 410" role="img" aria-labelledby="title desc">
+<title id="title">Most reports prove breakage, not cause</title>
+<desc id="desc">Independent counts within the 101-record tool-calling cohort</desc>
+<rect width="960" height="410" rx="18" fill="#FFFDF8"/>
+<rect x="0.5" y="0.5" width="959" height="409" rx="17.5" fill="none" stroke="#D8D2C5"/>
+<text x="48" y="52" fill="#17202A" font-family="system-ui, sans-serif" font-size="25" font-weight="750">Most reports prove breakage, not cause</text>
+<text x="48" y="79" fill="#5D6873" font-family="system-ui, sans-serif" font-size="14">Independent counts within the 101-record tool-calling cohort</text>
+<text x="48" y="138" fill="#17202A" font-family="system-ui, sans-serif" font-size="15">Demonstrated or verified</text>
+<rect x="390" y="118" width="486" height="28" rx="6" fill="#EEEAE1"/>
+<rect x="390" y="118" width="265" height="28" rx="6" fill="#7C3AED"/>
+<text x="892" y="138" fill="#17202A" font-family="system-ui, sans-serif" font-size="15" font-weight="700">55</text>
+<text x="48" y="186" fill="#17202A" font-family="system-ui, sans-serif" font-size="15">Mechanism confirmed</text>
+<rect x="390" y="166" width="486" height="28" rx="6" fill="#EEEAE1"/>
+<rect x="390" y="166" width="67" height="28" rx="6" fill="#2563EB"/>
+<text x="892" y="186" fill="#17202A" font-family="system-ui, sans-serif" font-size="15" font-weight="700">14</text>
+<text x="48" y="234" fill="#17202A" font-family="system-ui, sans-serif" font-size="15">Unresolved</text>
+<rect x="390" y="214" width="486" height="28" rx="6" fill="#EEEAE1"/>
+<rect x="390" y="214" width="207" height="28" rx="6" fill="#0891B2"/>
+<text x="892" y="234" fill="#17202A" font-family="system-ui, sans-serif" font-size="15" font-weight="700">43</text>
+<text x="48" y="282" fill="#17202A" font-family="system-ui, sans-serif" font-size="15">Exact model file missing</text>
+<rect x="390" y="262" width="486" height="28" rx="6" fill="#EEEAE1"/>
+<rect x="390" y="262" width="245" height="28" rx="6" fill="#0F766E"/>
+<text x="892" y="282" fill="#17202A" font-family="system-ui, sans-serif" font-size="15" font-weight="700">51</text>
+<text x="48" y="330" fill="#17202A" font-family="system-ui, sans-serif" font-size="15">Single-source lineage</text>
+<rect x="390" y="310" width="486" height="28" rx="6" fill="#EEEAE1"/>
+<rect x="390" y="310" width="438" height="28" rx="6" fill="#CA8A04"/>
+<text x="892" y="330" fill="#17202A" font-family="system-ui, sans-serif" font-size="15" font-weight="700">91</text>
+<text x="48" y="382" fill="#5D6873" font-family="system-ui, sans-serif" font-size="13">Counts overlap. Strong evidence of failure does not imply a confirmed mechanism.</text>
+</svg>

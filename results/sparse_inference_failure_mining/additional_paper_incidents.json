@@ -1,0 +1,549 @@
+{
+  "status": "normalized_candidates",
+  "as_of": "2026-08-08",
+  "count": 11,
+  "incidents": [
+    {
+      "id": 0,
+      "include": true,
+      "exclusion_reason": "",
+      "model": "OPT, BLOOM, GLM, MT-NLG, Llama-1/2, Falcon, Mistral, Mixtral",
+      "exact_file": "",
+      "optimization": "W8A8 post-training quantization with SmoothQuant",
+      "runtime_hardware": "",
+      "requirement_domains": [
+        "general_generation",
+        "throughput",
+        "memory_fit"
+      ],
+      "complaint_or_finding": "Existing quantization methods are described as unable to preserve accuracy and hardware efficiency simultaneously because activations are harder to quantize than weights.",
+      "observed_failure": "Quantizing LLM activations creates an accuracy-versus-hardware-efficiency conflict attributed in the study to activation outliers.",
+      "baseline_or_control": "Existing quantization methods",
+      "resolution_status": "mitigated",
+      "resolution": "SmoothQuant applies a mathematically equivalent transformation that migrates quantization difficulty from activations to weights; the study reports W8A8 inference with negligible accuracy loss, up to 1.56x speedup, and 2x memory reduction.",
+      "missing_information": [
+        "Specific failing prior methods",
+        "Quantified accuracy loss for the stated failure",
+        "Runtime and hardware used for the failure comparison"
+      ],
+      "incident_key": "llm-w8a8-activation-outlier-accuracy-efficiency-conflict",
+      "method_family": "activation-and-weight post-training quantization",
+      "primary_pattern": "outlier_sensitivity",
+      "secondary_patterns": [
+        "task_selective_quality"
+      ],
+      "failure_surfaces": [
+        "activation quantization",
+        "accuracy",
+        "hardware efficiency"
+      ],
+      "evidence_class": "claim_only",
+      "mechanism_status": "source_hypothesis",
+      "mechanism": "Activation outliers make activations difficult to quantize; SmoothQuant transfers that difficulty to weights offline.",
+      "discriminating_test": "Evaluate W8A8 and uncompressed weights under the same runtime/config, then compare W8A8 outputs with a mathematically equivalent high-precision transformed execution.",
+      "source": {
+        "id": 0,
+        "title": "SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models",
+        "query_title": "SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models",
+        "published_at": "2022-11-18",
+        "year": 2022,
+        "url": "https://doi.org/10.48550/arxiv.2211.10438",
+        "cited_by_count": 99,
+        "abstract": "Large language models (LLMs) show excellent performance but are compute- and memory-intensive. Quantization can reduce memory and accelerate inference. However, existing methods cannot maintain accuracy and hardware efficiency at the same time. We propose SmoothQuant, a training-free, accuracy-preserving, and general-purpose post-training quantization (PTQ) solution to enable 8-bit weight, 8-bit activation (W8A8) quantization for LLMs. Based on the fact that weights are easy to quantize while activations are not, SmoothQuant smooths the activation outliers by offline migrating the quantization difficulty from activations to weights with a mathematically equivalent transformation. SmoothQuant enables an INT8 quantization of both weights and activations for all the matrix multiplications in LLMs, including OPT, BLOOM, GLM, MT-NLG, Llama-1/2, Falcon, Mistral, and Mixtral models. We demonstrate up to 1.56x speedup and 2x memory reduction for LLMs with negligible loss in accuracy. SmoothQuant enables serving 530B LLM within a single node. Our work offers a turn-key solution that reduces hardware costs and democratizes LLMs. Code is available at https://github.com/mit-han-lab/smoothquant."
+      }
+    },
+    {
+      "id": 1,
+      "include": true,
+      "exclusion_reason": "",
+      "model": "GPT, OPT",
+      "exact_file": "",
+      "optimization": "GPTQ one-shot weight quantization to 3-bit, 4-bit, 2-bit, or ternary precision",
+      "runtime_hardware": "NVIDIA A100; NVIDIA A6000",
+      "requirement_domains": [
+        "model_loading",
+        "memory_fit",
+        "throughput",
+        "general_generation"
+      ],
+      "complaint_or_finding": "Prior compression techniques are described as having limited applicability and performance at GPT-model scale, while uncompressed large-model inference may require multiple GPUs.",
+      "observed_failure": "Large GPT-model inference can exceed a single GPU's capacity, and existing compression approaches are reported not to scale adequately in applicability or performance.",
+      "baseline_or_control": "Uncompressed baseline; previously proposed one-shot quantization methods",
+      "resolution_status": "mitigated",
+      "resolution": "GPTQ is reported to quantize a 175B-parameter model to 3 or 4 bits with negligible accuracy degradation, permit single-GPU generative inference, and provide end-to-end speedups over FP16.",
+      "missing_information": [
+        "Specific prior compression methods exhibiting the limitation",
+        "Concrete failure measurements for prior methods",
+        "Exact 175B model identity",
+        "Hardware for the single-GPU 175B execution"
+      ],
+      "incident_key": "gpt-opt-compression-scale-applicability-performance-limit",
+      "method_family": "one-shot weight-only post-training quantization",
+      "primary_pattern": "memory_representation",
+      "secondary_patterns": [
+        "support_fragmentation",
+        "decode_economics"
+      ],
+      "failure_surfaces": [
+        "single-GPU memory fit",
+        "compression scalability",
+        "inference performance"
+      ],
+      "evidence_class": "claim_only",
+      "mechanism_status": "unknown",
+      "mechanism": "",
+      "discriminating_test": "Run the same quantized checkpoint and uncompressed baseline with identical generation settings in the target runtime, then compare the quantized checkpoint with a reference GPTQ execution.",
+      "source": {
+        "id": 1,
+        "title": "GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers",
+        "query_title": "GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers",
+        "published_at": "2022-10-31",
+        "year": 2022,
+        "url": "https://doi.org/10.48550/arxiv.2210.17323",
+        "cited_by_count": 135,
+        "abstract": "Generative Pre-trained Transformer models, known as GPT or OPT, set themselves apart through breakthrough performance across complex language modelling tasks, but also by their extremely high computational and storage costs. Specifically, due to their massive size, even inference for large, highly-accurate GPT models may require multiple performant GPUs, which limits the usability of such models. While there is emerging work on relieving this pressure via model compression, the applicability and performance of existing compression techniques is limited by the scale and complexity of GPT models. In this paper, we address this challenge, and propose GPTQ, a new one-shot weight quantization method based on approximate second-order information, that is both highly-accurate and highly-efficient. Specifically, GPTQ can quantize GPT models with 175 billion parameters in approximately four GPU hours, reducing the bitwidth down to 3 or 4 bits per weight, with negligible accuracy degradation relative to the uncompressed baseline. Our method more than doubles the compression gains relative to previously-proposed one-shot quantization methods, preserving accuracy, allowing us for the first time to execute an 175 billion-parameter model inside a single GPU for generative inference. Moreover, we also show that our method can still provide reasonable accuracy in the extreme quantization regime, in which weights are quantized to 2-bit or even ternary quantization levels. We show experimentally that these improvements can be leveraged for end-to-end inference speedups over FP16, of around 3.25x when using high-end GPUs (NVIDIA A100) and 4.5x when using more cost-effective ones (NVIDIA A6000). The implementation is available at https://github.com/IST-DASLab/gptq."
+      }
+    },
+    {
+      "id": 2,
+      "include": true,
+      "exclusion_reason": "",
+      "model": "LLaMA",
+      "exact_file": "",
+      "optimization": "SqueezeLLM 3-bit sensitivity-based non-uniform dense-and-sparse post-training quantization",
+      "runtime_hardware": "NVIDIA A6000 GPU",
+      "requirement_domains": [
+        "general_generation",
+        "throughput",
+        "memory_fit"
+      ],
+      "complaint_or_finding": "Earlier low-precision quantization approaches showed notable quality degradation, and single-batch LLM generation was found to be memory-bandwidth-bound rather than compute-bound.",
+      "observed_failure": "Prior quantization leaves a perplexity gap from FP16, while single-batch generation performance is constrained by memory bandwidth.",
+      "baseline_or_control": "FP16 baseline; state-of-the-art methods at the same memory requirement",
+      "resolution_status": "mitigated",
+      "resolution": "SqueezeLLM stores outliers and sensitive weights in a sparse format and uses sensitivity-based non-uniform precision; at 3 bits it reportedly reduces the FP16 perplexity gap by up to 2.1x versus state-of-the-art methods at equal memory and reaches up to 2.3x baseline speed on an A6000.",
+      "missing_information": [
+        "Names of compared state-of-the-art methods",
+        "Exact LLaMA sizes for each result",
+        "Absolute perplexity values",
+        "Batch-one baseline implementation"
+      ],
+      "incident_key": "llama-3bit-quantization-perplexity-gap-sensitive-outliers",
+      "method_family": "dense-and-sparse post-training quantization",
+      "primary_pattern": "outlier_sensitivity",
+      "secondary_patterns": [
+        "decode_economics",
+        "task_selective_quality"
+      ],
+      "failure_surfaces": [
+        "perplexity",
+        "single-batch inference speed",
+        "memory bandwidth"
+      ],
+      "evidence_class": "demonstrated",
+      "mechanism_status": "confirmed",
+      "mechanism": "The study identifies memory bandwidth as the main single-batch generation bottleneck and treats outlier and sensitive weight values separately to limit quantization degradation.",
+      "discriminating_test": "Measure perplexity for FP16 and the same 3-bit weights in one runtime/config, then reproduce the 3-bit result with the study's reference quantization and inference path.",
+      "source": {
+        "id": 2,
+        "title": "SqueezeLLM: Dense-and-Sparse Quantization",
+        "query_title": "SqueezeLLM: Dense-and-Sparse Quantization",
+        "published_at": "2023-06-13",
+        "year": 2023,
+        "url": "https://doi.org/10.48550/arxiv.2306.07629",
+        "cited_by_count": 24,
+        "abstract": "Generative Large Language Models (LLMs) have demonstrated remarkable results for a wide range of tasks. However, deploying these models for inference has been a significant challenge due to their unprecedented resource requirements. This has forced existing deployment frameworks to use multi-GPU inference pipelines, which are often complex and costly, or to use smaller and less performant models. In this work, we demonstrate that the main bottleneck for generative inference with LLMs is memory bandwidth, rather than compute, specifically for single batch inference. While quantization has emerged as a promising solution by representing weights with reduced precision, previous efforts have often resulted in notable performance degradation. To address this, we introduce SqueezeLLM, a post-training quantization framework that not only enables lossless compression to ultra-low precisions of up to 3-bit, but also achieves higher quantization performance under the same memory constraint. Our framework incorporates two novel ideas: (i) sensitivity-based non-uniform quantization, which searches for the optimal bit precision assignment based on second-order information; and (ii) the Dense-and-Sparse decomposition that stores outliers and sensitive weight values in an efficient sparse format. When applied to the LLaMA models, our 3-bit quantization significantly reduces the perplexity gap from the FP16 baseline by up to 2.1x as compared to the state-of-the-art methods with the same memory requirement. Furthermore, when deployed on an A6000 GPU, our quantized models achieve up to 2.3x speedup compared to the baseline. Our code is available at https://github.com/SqueezeAILab/SqueezeLLM."
+      }
+    },
+    {
+      "id": 3,
+      "include": true,
+      "exclusion_reason": "",
+      "model": "LLaMA, Falcon",
+      "exact_file": "",
+      "optimization": "SpQR sparse-quantized 3-4-bit weight representation with higher-precision outliers",
+      "runtime_hardware": "24 GB consumer GPU",
+      "requirement_domains": [
+        "general_generation",
+        "memory_fit",
+        "throughput"
+      ],
+      "complaint_or_finding": "Conventional 3-4-bit weight quantization is reported to cause moderate-to-high accuracy loss, especially for 1-10B models intended for edge deployment.",
+      "observed_failure": "Quantization of all weights to 3-4 bits produces disproportionately large quantization errors and accuracy loss in smaller LLMs.",
+      "baseline_or_control": "16-bit baselines; previous 3-4-bit quantization methods at similar compression levels",
+      "resolution_status": "mitigated",
+      "resolution": "SpQR isolates outlier weights and stores them at higher precision while compressing other weights to 3-4 bits; the study reports under 1% relative perplexity loss for LLaMA and Falcon, more than 4x memory compression, and faster inference than 16-bit baselines at similar accuracy.",
+      "missing_information": [
+        "Specific conventional quantization methods behind the reported loss",
+        "Absolute accuracy or perplexity losses for 1-10B models",
+        "Exact consumer GPU model",
+        "Exact model sizes for each controlled result"
+      ],
+      "incident_key": "llama-falcon-3-4bit-accuracy-loss-outlier-weights",
+      "method_family": "sparse-quantized weight compression",
+      "primary_pattern": "outlier_sensitivity",
+      "secondary_patterns": [
+        "task_selective_quality",
+        "memory_representation"
+      ],
+      "failure_surfaces": [
+        "quantization error",
+        "perplexity",
+        "edge-deployment quality"
+      ],
+      "evidence_class": "demonstrated",
+      "mechanism_status": "confirmed",
+      "mechanism": "Outlier weights cause particularly large quantization errors when compressed uniformly to 3-4 bits.",
+      "discriminating_test": "Compare 3-4-bit outputs and perplexity with a 16-bit baseline under identical runtime/config, then repeat while restoring only identified outlier weights to higher precision.",
+      "source": {
+        "id": 3,
+        "title": "SpQR: A Sparse-Quantized Representation for Near-Lossless LLM Weight Compression",
+        "query_title": "SpQR: A Sparse-Quantized Representation for Near-Lossless LLM Weight Compression",
+        "published_at": "2023-06-05",
+        "year": 2023,
+        "url": "https://doi.org/10.48550/arxiv.2306.03078",
+        "cited_by_count": 26,
+        "abstract": "Recent advances in large language model (LLM) pretraining have led to high-quality LLMs with impressive abilities. By compressing such LLMs via quantization to 3-4 bits per parameter, they can fit into memory-limited devices such as laptops and mobile phones, enabling personalized use. However, quantization down to 3-4 bits per parameter usually leads to moderate-to-high accuracy losses, especially for smaller models in the 1-10B parameter range, which are well-suited for edge deployments. To address this accuracy issue, we introduce the Sparse-Quantized Representation (SpQR), a new compressed format and quantization technique which enables for the first time near-lossless compression of LLMs across model scales, while reaching similar compression levels to previous methods. SpQR works by identifying and isolating outlier weights, which cause particularly-large quantization errors, and storing them in higher precision, while compressing all other weights to 3-4 bits, and achieves relative accuracy losses of less than 1% in perplexity for highly-accurate LLaMA and Falcon LLMs. This makes it possible to run 33B parameter LLM on a single 24 GB consumer GPU without any performance degradation at 15% speedup thus making powerful LLMs available to consumer without any downsides. SpQR comes with efficient algorithms for both encoding weights into its format, as well as decoding them efficiently at runtime. Specifically, we provide an efficient GPU inference algorithm for SpQR which yields faster inference than 16-bit baselines at similar accuracy, while enabling memory compression gains of more than 4x."
+      }
+    },
+    {
+      "id": 7,
+      "include": true,
+      "exclusion_reason": "",
+      "model": "LLaMA; LLaMA-2",
+      "exact_file": "",
+      "optimization": "Wanda pruning; magnitude pruning; pruning methods using weight reconstruction or retraining",
+      "runtime_hardware": "",
+      "requirement_domains": [
+        "general_generation"
+      ],
+      "complaint_or_finding": "The study reports that magnitude pruning preserves benchmark performance less effectively than Wanda, while other existing pruning approaches may require unaffordable retraining or computationally expensive second-order reconstruction.",
+      "observed_failure": "In the reported language-benchmark evaluation, magnitude pruning performed worse than Wanda; the abstract does not quantify the gap.",
+      "baseline_or_control": "Magnitude pruning is the established baseline; methods involving intensive weight updates are an additional explicit comparison.",
+      "resolution_status": "mitigated",
+      "resolution": "Wanda uses per-output weight magnitude multiplied by corresponding input activations and requires neither retraining nor weight updates; the study reports that it outperforms magnitude pruning and is competitive with intensive weight-update methods.",
+      "missing_information": [
+        "Benchmark names and per-task results",
+        "Sparsity levels",
+        "Magnitude-pruning performance values",
+        "Wanda performance values",
+        "Runtime and hardware",
+        "Whether any residual quality loss remains relative to the dense model"
+      ],
+      "incident_key": "llama-magnitude-pruning-benchmark-recovery-gap",
+      "method_family": "pruning",
+      "primary_pattern": "pruning_recovery_gap",
+      "secondary_patterns": [],
+      "failure_surfaces": [
+        "language_benchmark_quality",
+        "pruning_cost"
+      ],
+      "evidence_class": "demonstrated",
+      "mechanism_status": "unknown",
+      "mechanism": "",
+      "discriminating_test": "Evaluate the dense and pruned weights with the same model, benchmark, runtime, and configuration; check whether the deficit follows the pruned representation.",
+      "source": {
+        "id": 7,
+        "title": "A Simple and Effective Pruning Approach for Large Language Models",
+        "query_title": "A Simple and Effective Pruning Approach for Large Language Models",
+        "published_at": "2023-06-20",
+        "year": 2023,
+        "url": "https://doi.org/10.48550/arxiv.2306.11695",
+        "cited_by_count": 53,
+        "abstract": "As their size increases, Large Languages Models (LLMs) are natural candidates for network pruning methods: approaches that drop a subset of network weights while striving to preserve performance. Existing methods, however, require either retraining, which is rarely affordable for billion-scale LLMs, or solving a weight reconstruction problem reliant on second-order information, which may also be computationally expensive. In this paper, we introduce a novel, straightforward yet effective pruning method, termed Wanda (Pruning by Weights and activations), designed to induce sparsity in pretrained LLMs. Motivated by the recent observation of emergent large magnitude features in LLMs, our approach prunes weights with the smallest magnitudes multiplied by the corresponding input activations, on a per-output basis. Notably, Wanda requires no retraining or weight update, and the pruned LLM can be used as is. We conduct a thorough evaluation of our method Wanda on LLaMA and LLaMA-2 across various language benchmarks. Wanda significantly outperforms the established baseline of magnitude pruning and performs competitively against recent method involving intensive weight update. Code is available at https://github.com/locuslab/wanda."
+      }
+    },
+    {
+      "id": 8,
+      "include": true,
+      "exclusion_reason": "",
+      "model": "LLMs",
+      "exact_file": "",
+      "optimization": "Retraining-free unstructured pruning; FLAP structured pruning; LLM-Pruner; structured extension of Wanda",
+      "runtime_hardware": "Specific hardware support is required for acceleration by the cited unstructured approaches; no hardware is named.",
+      "requirement_domains": [
+        "throughput",
+        "memory_fit",
+        "general_generation"
+      ],
+      "complaint_or_finding": "The study identifies a deployment limitation: most retraining-free LLM pruning is unstructured and needs specific hardware support to produce acceleration.",
+      "observed_failure": "Unstructured sparsity does not by itself provide generally available inference acceleration; acceleration depends on specific hardware support.",
+      "baseline_or_control": "FLAP is explicitly compared with LLM-Pruner and the structured-pruning extension of Wanda and is reported to outperform them on language benchmarks.",
+      "resolution_status": "mitigated",
+      "resolution": "FLAP uses structured pruning to reduce storage and enhance inference speed, with adaptive structure search and added bias terms intended to mitigate performance loss, without retraining.",
+      "missing_information": [
+        "Models evaluated",
+        "Benchmark names and scores",
+        "Pruning ratios",
+        "Named runtime and hardware",
+        "Measured storage reduction and inference speedup",
+        "Residual loss relative to dense models"
+      ],
+      "incident_key": "llms-unstructured-pruning-acceleration-hardware-support",
+      "method_family": "pruning",
+      "primary_pattern": "support_fragmentation",
+      "secondary_patterns": [
+        "pruning_recovery_gap"
+      ],
+      "failure_surfaces": [
+        "inference_acceleration",
+        "hardware_compatibility",
+        "language_benchmark_quality"
+      ],
+      "evidence_class": "demonstrated",
+      "mechanism_status": "confirmed",
+      "mechanism": "The abstract attributes the acceleration limitation to unstructured pruning requiring specific hardware support.",
+      "discriminating_test": "Run dense, unstructured-pruned, and structured-pruned versions under the same runtime and hardware; test whether the slowdown follows sparse-kernel support rather than the model weights.",
+      "source": {
+        "id": 8,
+        "title": "Fluctuation-Based Adaptive Structured Pruning for Large Language Models",
+        "query_title": "FLAP: Fluctuation-based Adaptive Structured Pruning for Large Language Models",
+        "published_at": "2024-03-24",
+        "year": 2024,
+        "url": "https://doi.org/10.1609/aaai.v38i10.28960",
+        "cited_by_count": 38,
+        "abstract": "Network Pruning is a promising way to address the huge computing resource demands of the deployment and inference of Large Language Models (LLMs). Retraining-free is important for LLMs' pruning methods. However, almost all of the existing retraining-free pruning approaches for LLMs focus on unstructured pruning, which requires specific hardware support for acceleration. In this paper, we propose a novel retraining-free structured pruning framework for LLMs, named FLAP (FLuctuation-based Adaptive Structured Pruning). It is hardware-friendly by effectively reducing storage and enhancing inference speed. For effective structured pruning of LLMs, we highlight three critical elements that demand the utmost attention: formulating structured importance metrics, adaptively searching the global compressed model, and implementing compensation mechanisms to mitigate performance loss. First, FLAP determines whether the output feature map is easily recoverable when a column of weight is removed, based on the fluctuation pruning metric. Then it standardizes the importance scores to adaptively determine the global compressed model structure. At last, FLAP adds additional bias terms to recover the output feature maps using the baseline values. We thoroughly evaluate our approach on a variety of language benchmarks. Without any retraining, our method significantly outperforms the state-of-the-art methods, including LLM-Pruner and the extension of Wanda in structured pruning. The code is released at https://github.com/CASIA-IVA-Lab/FLAP."
+      }
+    },
+    {
+      "id": 9,
+      "include": true,
+      "exclusion_reason": "",
+      "model": "Phi-2",
+      "exact_file": "",
+      "optimization": "SliceGPT post-training sparsification by deleting rows and columns; up to 25% parameter removal",
+      "runtime_hardware": "",
+      "requirement_domains": [
+        "general_generation",
+        "memory_fit",
+        "throughput"
+      ],
+      "complaint_or_finding": "At the reported compression setting, sliced Phi-2 retained only 90% of the dense model's zero-shot task performance, unlike the 99% retention reported for the larger listed models.",
+      "observed_failure": "With up to 25% of parameters removed, Phi-2 achieved 90% of dense-model zero-shot task performance, a reported 10-percentage-point retention deficit relative to the dense control.",
+      "baseline_or_control": "The dense Phi-2 model's zero-shot task performance is the explicit 100% reference.",
+      "resolution_status": "unresolved",
+      "resolution": "",
+      "missing_information": [
+        "Exact Phi-2 parameter-removal percentage associated with 90% retention",
+        "Zero-shot tasks and individual scores",
+        "Runtime and hardware used for the Phi-2 quality evaluation",
+        "Whether lower compression restores the lost performance",
+        "Variance or statistical uncertainty"
+      ],
+      "incident_key": "phi-2-slicegpt-zero-shot-quality-loss",
+      "method_family": "structured pruning",
+      "primary_pattern": "task_selective_quality",
+      "secondary_patterns": [
+        "pruning_recovery_gap"
+      ],
+      "failure_surfaces": [
+        "zero_shot_task_quality"
+      ],
+      "evidence_class": "demonstrated",
+      "mechanism_status": "unknown",
+      "mechanism": "",
+      "discriminating_test": "Evaluate dense and sliced Phi-2 in the same runtime, tokenizer, prompts, and configuration; then load the same sliced weights in an independent compatible runtime to see whether the deficit follows the representation.",
+      "source": {
+        "id": 9,
+        "title": "SliceGPT: Compress Large Language Models by Deleting Rows and Columns",
+        "query_title": "SliceGPT: Compress Large Language Models by Deleting Rows and Columns",
+        "published_at": "2024-01-26",
+        "year": 2024,
+        "url": "https://doi.org/10.48550/arxiv.2401.15024",
+        "cited_by_count": 8,
+        "abstract": "Large language models have become the cornerstone of natural language processing, but their use comes with substantial costs in terms of compute and memory resources. Sparsification provides a solution to alleviate these resource constraints, and recent works have shown that trained models can be sparsified post-hoc. Existing sparsification techniques face challenges as they need additional data structures and offer constrained speedup with current hardware. In this paper we present SliceGPT, a new post-training sparsification scheme which replaces each weight matrix with a smaller (dense) matrix, reducing the embedding dimension of the network. Through extensive experimentation, we show that SliceGPT can remove up to 25% of the model parameters (including embeddings) for LLAMA2-70B, OPT 66B and Phi-2 models while maintaining 99%, 99% and 90% zero-shot task performance of the dense model respectively. Our sliced models run on fewer GPUs and run faster without any additional code optimization: on 24GB consumer GPUs we reduce the total compute for inference on LLAMA2-70B to 64% of that of the dense model; on 40GB A100 GPUs we reduce it to 66%. We offer a new insight, computational invariance in transformer networks, which enables SliceGPT and we hope it will inspire and enable future avenues to reduce memory and computation demands for pre-trained models. Code is available at: https://github.com/microsoft/TransformerCompression"
+      }
+    },
+    {
+      "id": 11,
+      "include": true,
+      "exclusion_reason": "",
+      "model": "LLaMA-2 model family, 7B-70B; instruction-tuned models",
+      "exact_file": "",
+      "optimization": "post-training quantization; OmniQuant; W4A4, W6A6, W4A16, W3A16, W2A16",
+      "runtime_hardware": "single A100-40G GPU",
+      "requirement_domains": [
+        "general_generation",
+        "memory_fit",
+        "throughput"
+      ],
+      "complaint_or_finding": "PTQ methods with hand-crafted quantization parameters have low performance, especially at extremely low bit widths.",
+      "observed_failure": "Performance is reported to degrade under extremely low-bit post-training quantization when quantization parameters are hand-crafted.",
+      "baseline_or_control": "Recent PTQ methods using hand-crafted quantization parameters",
+      "resolution_status": "mitigated",
+      "resolution": "OmniQuant optimizes quantization parameters with Learnable Weight Clipping and Learnable Equivalent Transformation using block-wise error minimization.",
+      "missing_information": [
+        "No numerical low-bit failure result for the compared PTQ methods is supplied.",
+        "No specific instruction-tuned model is named.",
+        "No runtime or device is identified for the reported real-device inference improvements."
+      ],
+      "incident_key": "llama-2-extreme-low-bit-ptq-low-performance",
+      "method_family": "post-training quantization",
+      "primary_pattern": "outlier_sensitivity",
+      "secondary_patterns": [
+        "task_selective_quality"
+      ],
+      "failure_surfaces": [
+        "extremely low-bit quantization",
+        "weight-activation quantization",
+        "weight-only quantization"
+      ],
+      "evidence_class": "demonstrated",
+      "mechanism_status": "source_hypothesis",
+      "mechanism": "The abstract attributes low performance to hand-crafted quantization parameters and identifies extreme weight values and activation outliers as quantization challenges.",
+      "discriminating_test": "",
+      "source": {
+        "id": 11,
+        "title": "OmniQuant: Omnidirectionally Calibrated Quantization for Large Language Models",
+        "query_title": "OmniQuant: Omnidirectionally Calibrated Quantization for Large Language Models",
+        "published_at": "2023-08-25",
+        "year": 2023,
+        "url": "https://doi.org/10.48550/arxiv.2308.13137",
+        "cited_by_count": 14,
+        "abstract": "Large language models (LLMs) have revolutionized natural language processing tasks. However, their practical deployment is hindered by their immense memory and computation requirements. Although recent post-training quantization (PTQ) methods are effective in reducing memory footprint and improving the computational efficiency of LLM, they hand-craft quantization parameters, leading to low performance, especially in extremely low-bit quantization. To tackle this issue, we introduce an Omnidirectionally calibrated Quantization (\\textbf{OmniQuant}) technique for LLMs, which achieves good performance in diverse quantization settings while maintaining the computational efficiency of PTQ by efficiently optimizing various quantization parameters. OmniQuant comprises two innovative components including Learnable Weight Clipping (LWC) and Learnable Equivalent Transformation (LET). LWC modulates the extreme values of weights by optimizing the clipping threshold. Meanwhile, LET tackles activation outliers by shifting the challenge of quantization from activations to weights. Operating within a differentiable framework using block-wise error minimization, OmniQuant can optimize the quantization process efficiently for both weight-only and weight-activation quantization. For instance, the LLaMA-2 model family size 7-70B can be processed with OmniQuant on a single A100-40G GPU within 1-16 hours using 128 samples. Extensive experiments validate OmniQuant's superior performance across diverse quantization configurations such as W4A4 (4-bit weight, 4-bit activation), W6A6, W4A16, W3A16, and W2A16. Additionally, OmniQuant demonstrates effectiveness in instruction-tuned models and delivers notable improvements in inference speed and memory reduction on real devices. Codes are available at \\url{https://github.com/OpenGVLab/OmniQuant}."
+      }
+    },
+    {
+      "id": 12,
+      "include": true,
+      "exclusion_reason": "",
+      "model": "BERT; OPT; BLOOM; BLOOMZ; LLaMA",
+      "exact_file": "",
+      "optimization": "post-training quantization; Outlier Suppression+; standard and fine-grained quantization; 8-bit, 6-bit, and 4-bit",
+      "runtime_hardware": "",
+      "requirement_domains": [
+        "general_generation"
+      ],
+      "complaint_or_finding": "Activation outliers create a PTQ accuracy challenge; they are concentrated in particular channels and asymmetric across channels.",
+      "observed_failure": "Standard transformer-language-model PTQ is reported to lose accuracy in the presence of detrimental activation outliers; the supplied abstract only claims near-floating-point performance at 8-bit and 6-bit, while reporting a 15.5% gain over the prior 4-bit BERT result.",
+      "baseline_or_control": "Floating-point performance for 8-bit and 6-bit comparisons; the previous state of the art for 4-bit BERT",
+      "resolution_status": "mitigated",
+      "resolution": "Outlier Suppression+ applies channel-wise shifting to address asymmetry and channel-wise scaling to balance the quantization burden, with the operations migrated into subsequent modules.",
+      "missing_information": [
+        "The supplied text does not give absolute accuracy values or the exact 4-bit BERT baseline score.",
+        "No runtime or hardware is supplied.",
+        "No per-model failure result is supplied for OPT, BLOOM, BLOOMZ, or LLaMA."
+      ],
+      "incident_key": "bert-opt-bloom-bloomz-llama-ptq-activation-outlier-accuracy-loss",
+      "method_family": "post-training quantization",
+      "primary_pattern": "outlier_sensitivity",
+      "secondary_patterns": [
+        "task_selective_quality"
+      ],
+      "failure_surfaces": [
+        "activation quantization",
+        "4-bit BERT quantization",
+        "standard quantization",
+        "fine-grained quantization"
+      ],
+      "evidence_class": "demonstrated",
+      "mechanism_status": "confirmed",
+      "mechanism": "The study observes that detrimental activation outliers are concentrated in specific channels and asymmetric across channels.",
+      "discriminating_test": "",
+      "source": {
+        "id": 12,
+        "title": "Outlier Suppression+: Accurate quantization of large language models by equivalent and effective shifting and scaling",
+        "query_title": "Outlier Suppression+: Accurate Quantization of Large Language Models by Equivalent and Effective Shifting and Scaling",
+        "published_at": "2023-01-01",
+        "year": 2023,
+        "url": "https://doi.org/10.18653/v1/2023.emnlp-main.102",
+        "cited_by_count": 44,
+        "abstract": "Post-training quantization (PTQ) of transformer language models faces significant challenges due to the existence of detrimental outliers in activations. We observe that these outliers are concentrated in specific channels and are asymmetric across channels. To address this issue, we propose the Outlier Suppression+ (OS+) framework, which contains the channel-wise shifting for asymmetry and channel-wise scaling for concentration. We show that these operations can be seamlessly migrated into subsequent modules while maintaining equivalence. Second, we propose a fast and stable scheme to calculate effective shifting and scaling values. The channel-wise shifting aligns the center of each channel for removal of outlier asymmetry. The channel-wise scaling quantitatively evaluates changes brought by migration and quantization for better quantization burden balance. We validate our OS+ under both standard and fine-grained quantization settings with models including BERT, OPT, BLOOM, BLOOMZ, and LLaMA. Comprehensive results across various tasks demonstrate the superiority of our approach. Especially, with standard quantization, OS+ can achieve near-floating-point performance on both small models and large language models on 8-bit and 6-bit. Besides, we establish a new state-of-the-art for 4-bit BERT with 15.5% improvement. Our code is available at https://github.com/ModelTC/Outlier_Suppression_Plus."
+      }
+    },
+    {
+      "id": 13,
+      "include": true,
+      "exclusion_reason": "",
+      "model": "",
+      "exact_file": "",
+      "optimization": "pruning via an architecture-accuracy predictor and architecture search",
+      "runtime_hardware": "",
+      "requirement_domains": [
+        "general_generation",
+        "reasoning"
+      ],
+      "complaint_or_finding": "The cited pruning baseline retains language-modeling and MMLU capability less effectively than the predictor-based pruning method.",
+      "observed_failure": "Relative to the predictor-based pruned model, the baseline had higher WikiText-2 and PTB perplexity and lower average MMLU accuracy: the new method reduced perplexity by 9.48% and 5.76% and increased average MMLU accuracy by 6.28%.",
+      "baseline_or_control": "An unnamed pruning baseline",
+      "resolution_status": "mitigated",
+      "resolution": "The paper builds architecture-accuracy pairs, trains an accuracy predictor, and searches for a pruned model.",
+      "missing_information": [
+        "The model is not named.",
+        "The baseline pruning method is not named.",
+        "Absolute perplexity and MMLU values are not supplied.",
+        "Pruning ratio, runtime, and hardware are not supplied."
+      ],
+      "incident_key": "unnamed-llm-pruning-baseline-capability-retention-gap",
+      "method_family": "predictor-guided pruning",
+      "primary_pattern": "pruning_recovery_gap",
+      "secondary_patterns": [
+        "task_selective_quality"
+      ],
+      "failure_surfaces": [
+        "WikiText-2 perplexity",
+        "PTB perplexity",
+        "average MMLU accuracy"
+      ],
+      "evidence_class": "demonstrated",
+      "mechanism_status": "unknown",
+      "mechanism": "",
+      "discriminating_test": "",
+      "source": {
+        "id": 13,
+        "title": "Pruning Large Language Models via Accuracy Predictor",
+        "published_at": "2023-09-18",
+        "url": "https://arxiv.org/abs/2309.09507",
+        "abstract": "Most LLM compression requires manual design of pruning features, with a complex optimization pipeline and difficulty retaining capabilities of certain parts of the model. The paper builds architecture-accuracy pairs, trains an accuracy predictor, and searches for a pruned model. Compared with its baseline, WikiText-2 and PTB perplexity dropped by 9.48% and 5.76%, while average MMLU accuracy increased by 6.28%."
+      }
+    },
+    {
+      "id": 14,
+      "include": true,
+      "exclusion_reason": "",
+      "model": "Llama-2-7B; ViT-B-32; larger ViTs",
+      "exact_file": "",
+      "optimization": "2-bit GPTQ group-64; 2-bit HQQ group-32 and group-16; basic quantization; bitsandbytes; AWQ",
+      "runtime_hardware": "",
+      "requirement_domains": [
+        "general_generation",
+        "multimodal"
+      ],
+      "complaint_or_finding": "Controlled 2-bit results show a NaN perplexity failure and severe model-dependent quality cliffs; smaller ViT-B-32 loses far more zero-shot accuracy than larger ViTs.",
+      "observed_failure": "On Llama-2-7B, GPTQ 2-bit group-64 produced NaN perplexity. HQQ 2-bit group-32 produced perplexity 15.61 versus FP16 5.18, while group-16 improved it to 7.3. On ViT-B-32, HQQ 2-bit zero-shot top-1 was 0.04 versus FP16 0.664.",
+      "baseline_or_control": "FP16: Llama-2-7B perplexity 5.18 and ViT-B-32 zero-shot top-1 0.664; HQQ group-16 and group-32 are also explicitly compared.",
+      "resolution_status": "mitigated",
+      "resolution": "For Llama-2-7B HQQ, reducing group size from 32 to 16 improved perplexity from 15.61 to 7.3, but the supplied text does not report full recovery to FP16. No resolution is supplied for GPTQ's NaN or the ViT-B-32 cliff.",
+      "missing_information": [
+        "No runtime or hardware is supplied.",
+        "The cause of GPTQ's NaN result is not established.",
+        "Absolute results for the larger ViTs are not supplied.",
+        "The calibration data and exact evaluation configurations are not supplied."
+      ],
+      "incident_key": "llama-2-7b-vit-b-32-2bit-quality-cliffs",
+      "method_family": "low-bit weight quantization",
+      "primary_pattern": "outlier_sensitivity",
+      "secondary_patterns": [
+        "task_selective_quality",
+        "capability_specific_quality"
+      ],
+      "failure_surfaces": [
+        "Llama-2-7B perplexity",
+        "ViT-B-32 zero-shot top-1 accuracy",
+        "2-bit quantization",
+        "group-size sensitivity"
+      ],
+      "evidence_class": "demonstrated",
+      "mechanism_status": "source_hypothesis",
+      "mechanism": "The source states that basic quantization can lose accuracy because outlier weights are significantly altered, and that calibration quality can depend on calibration data; it does not establish either as the cause of each reported result.",
+      "discriminating_test": "Re-evaluate the supplied FP16 and 2-bit configurations on the same Llama-2-7B perplexity and ViT-B-32 zero-shot top-1 evaluations; compare HQQ group-32 with group-16 and FP16.",
+      "source": {
+        "id": 14,
+        "title": "Half-Quadratic Quantization of Large Machine Learning Models",
+        "published_at": "2023-11-03",
+        "url": "https://dropbox.github.io/hqq_blog/",
+        "abstract": "The controlled HQQ tables compare FP16, bitsandbytes, GPTQ, AWQ, and HQQ. Basic quantization can lose accuracy because outlier weights are significantly altered; calibration quality can depend on calibration data and calibration is costly. On Llama-2-7B, GPTQ 2-bit group-64 produced NaN perplexity while HQQ 2-bit group-32 produced 15.61 versus FP16 5.18; HQQ group-16 improved to 7.3. On ViT-B-32, HQQ 2-bit zero-shot top-1 was 0.04 versus FP16 0.664, while larger ViTs retained much more quality."
+      }
+    }
+  ]
+}

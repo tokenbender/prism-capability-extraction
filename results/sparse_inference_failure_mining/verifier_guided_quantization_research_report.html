@@ -1,0 +1,1952 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A beginner’s guide to quantization, tool-use failures, and failure-conditioned mixed precision for local AI agents.">
+<title>Why Smaller Local AI Agents Fail in Strange Ways</title>
+<style>
+:root { color-scheme: light dark; --bg:#f5f2ea; --paper:#fffdf8; --ink:#17202a; --muted:#5d6873; --line:#d8d2c5; --accent:#8b2e2e; --accent-soft:#f4e2df; --code:#f1eee7; --shadow:0 18px 55px rgba(28,24,18,.10); }
+@media (prefers-color-scheme:dark) { :root { --bg:#111417; --paper:#191d21; --ink:#edf0f2; --muted:#aab2ba; --line:#343b42; --accent:#f0a3a3; --accent-soft:#342326; --code:#23292f; --shadow:0 18px 55px rgba(0,0,0,.28); } }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.68 ui-serif, Georgia, Cambria, "Times New Roman", serif; text-rendering:optimizeLegibility; }
+a { color:var(--accent); text-decoration-thickness:.08em; text-underline-offset:.15em; }
+a:hover { text-decoration-thickness:.14em; }
+.topbar { border-bottom:1px solid var(--line); background:color-mix(in srgb, var(--paper) 93%, transparent); position:sticky; top:0; z-index:10; backdrop-filter:blur(12px); }
+.topbar-inner { max-width:1180px; margin:auto; padding:.65rem 1.5rem; display:flex; justify-content:space-between; gap:1rem; font:600 .78rem/1.3 ui-sans-serif, system-ui, sans-serif; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+.layout { max-width:1180px; margin:2.2rem auto 4rem; padding:0 1.25rem; display:grid; grid-template-columns:minmax(0, 1fr) 270px; gap:2rem; align-items:start; }
+article { min-width:0; background:var(--paper); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); padding:clamp(1.4rem,4vw,4rem); }
+.toc { position:sticky; top:4.2rem; max-height:calc(100vh - 5.2rem); overflow:auto; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:1rem 1.1rem; font:500 .82rem/1.35 ui-sans-serif, system-ui, sans-serif; }
+.toc h2 { margin:0 0 .65rem; padding:0 0 .55rem; border-bottom:1px solid var(--line); font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+.toc ul { margin:0; padding:0; list-style:none; }
+.toc li { margin:.38rem 0; }
+.toc a { color:var(--ink); text-decoration:none; }
+.toc a:hover { color:var(--accent); }
+h1,h2,h3,h4 { font-family:ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height:1.16; letter-spacing:-.025em; scroll-margin-top:4.5rem; }
+h1 { margin:.15rem 0 1.5rem; max-width:20ch; font-size:clamp(2.35rem,6vw,4.8rem); }
+h2 { margin:3.6rem 0 1.1rem; padding-top:.75rem; border-top:2px solid var(--ink); font-size:clamp(1.55rem,3vw,2.15rem); }
+h3 { margin:2.4rem 0 .8rem; font-size:1.25rem; color:var(--accent); }
+h4 { margin:1.8rem 0 .6rem; font-size:1.05rem; }
+p { margin:.8rem 0 1rem; }
+strong { font-weight:750; }
+hr { border:0; border-top:1px solid var(--line); margin:3rem 0; }
+blockquote { margin:1.35rem 0; padding:.85rem 1.2rem; border-left:4px solid var(--accent); background:var(--accent-soft); border-radius:0 8px 8px 0; font-size:1.08em; }
+blockquote p { margin:.2rem 0; }
+ul,ol { padding-left:1.45rem; }
+li { margin:.28rem 0; }
+code { padding:.12em .35em; border:1px solid var(--line); border-radius:5px; background:var(--code); font:.88em/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+pre { overflow:auto; padding:1rem 1.1rem; border:1px solid var(--line); border-radius:10px; background:var(--code); }
+pre code { padding:0; border:0; background:transparent; }
+.table-scroll { margin:1.25rem 0 1.75rem; overflow-x:auto; border:1px solid var(--line); border-radius:10px; }
+table { width:100%; min-width:720px; border-collapse:collapse; font:500 .82rem/1.42 ui-sans-serif, system-ui, sans-serif; background:var(--paper); }
+th,td { padding:.72rem .75rem; border-right:1px solid var(--line); border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th:last-child,td:last-child { border-right:0; }
+tr:last-child td { border-bottom:0; }
+th { position:sticky; top:0; background:var(--code); font-weight:750; }
+tbody tr:nth-child(even) { background:color-mix(in srgb, var(--code) 48%, transparent); }
+.math-display { margin:1.25rem 0; overflow-x:auto; padding:.45rem 0; }
+.math-inline { white-space:nowrap; }
+footer { max-width:1180px; margin:-2.5rem auto 3rem; padding:0 1.5rem; color:var(--muted); font:500 .8rem/1.5 ui-sans-serif, system-ui, sans-serif; }
+@media (max-width:900px) { .layout { grid-template-columns:1fr; margin-top:1rem; } .toc { position:static; grid-row:1; max-height:none; } article { grid-row:2; border-radius:12px; } .toc ul { columns:2; column-gap:2rem; } }
+@media (max-width:620px) { body { font-size:16px; } .layout { padding:0 .55rem; } article { padding:1.25rem 1rem 2rem; } .toc ul { columns:1; } .topbar-inner { padding:.6rem .8rem; } h2 { margin-top:2.8rem; } }
+@media print { body { background:#fff; color:#000; font-size:10.5pt; } .topbar,.toc { display:none; } .layout { display:block; max-width:none; margin:0; padding:0; } article { border:0; box-shadow:none; padding:0; } h2 { break-after:avoid; } h3 { break-after:avoid; } .table-scroll { overflow:visible; } table { min-width:0; font-size:7.5pt; } a { color:#000; text-decoration:none; } footer { margin:1rem 0 0; padding:0; } }
+
+.skip-link { position:fixed; left:1rem; top:-4rem; z-index:50; padding:.7rem 1rem; background:var(--ink); color:var(--paper); font:700 .85rem/1 ui-sans-serif,system-ui,sans-serif; border-radius:0 0 8px 8px; }
+.skip-link:focus { top:0; }
+.toc section + section { margin-top:1.2rem; padding-top:1rem; border-top:1px solid var(--line); }
+.toc section > h2 { scroll-margin-top:0; }
+.toc li { border-bottom:1px solid color-mix(in srgb, var(--line) 55%, transparent); padding:.28rem 0; }
+.toc li:last-child { border-bottom:0; }
+article > h1:not(:first-child) { max-width:none; margin-top:5rem; padding-top:2.4rem; border-top:5px solid var(--ink); font-size:clamp(2rem,4.2vw,3.25rem); }
+article > h2:first-of-type { margin-top:2.5rem; }
+@media (max-width:900px) { .toc section + section { break-before:column; } }
+@media print { .skip-link { display:none; } article > h1:not(:first-child) { break-before:page; } }
+
+a, :not(pre) > code { overflow-wrap:anywhere; word-break:break-word; }
+pre code { overflow-wrap:normal; word-break:normal; }
+
+.toc summary { display:none; font:750 .85rem/1.2 ui-sans-serif,system-ui,sans-serif; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; }
+@media (max-width:900px) { .toc summary { display:list-item; } .toc details[open] > summary { margin-bottom:1rem; padding-bottom:.65rem; border-bottom:1px solid var(--line); } }
+</style>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#report">Skip to report</a>
+<div class="topbar"><div class="topbar-inner"><span>Beginner’s research guide</span><span>8 August 2026</span></div></div>
+<div class="layout">
+<article id="report"><h1 id="why-smaller-local-ai-agents-fail-in-strange-ways">Why Smaller Local AI Agents Fail in Strange Ways</h1>
+<p><strong>A beginner’s guide to quantization, tool-use failures, and a research plan for preserving the behavior that matters</strong><br />
+<strong>As of:</strong> 2026-08-08<br />
+<strong>Origin:</strong> <a target="_blank" rel="noopener noreferrer" href="https://x.com/tokenbender/status/2085977125845352679">sparse-inference failure-mining thread</a><br />
+<strong>Evidence base:</strong> <a href="complaint_census.json"><code>complaint_census.json</code></a>, 1,640 normalized reports<br />
+<strong>Focused set:</strong> 101 reports involving tool calling<br />
+<strong>Research trail:</strong> <a href="conversation_research_question_ledger.json"><code>conversation_research_question_ledger.json</code></a></p>
+<h2 id="start-with-the-problem-a-user-can-see">Start with the problem a user can see</h2>
+<p>Imagine that you run an AI assistant on your own computer. It can search your files, look up weather, update a calendar, or work through a coding task. The original model is too large for your hardware, so you download a smaller “4-bit” version.</p>
+<p>Ordinary chat still looks fine. The assistant answers questions and sounds like the same model. But longer jobs feel less dependable:</p>
+<ul>
+<li>a tool call contains the right idea in the wrong format;</li>
+<li>an account or file identifier changes by one character after several turns;</li>
+<li>the assistant repeats an action that already failed;</li>
+<li>a task finishes, but only after many more retries;</li>
+<li>a cache or serving option makes correct output turn into garbage;</li>
+<li>the supposedly efficient model is not faster on the hardware you own.</li>
+</ul>
+<p>A benchmark may still mark the job as a success. As a user, you can see that something got worse.</p>
+<p>This document explains why that can happen, what public failure reports actually tell us, and how those failures could be used to build a better compressed model. It assumes experience <strong>using</strong> local models, not training them.</p>
+<blockquote>
+<p><strong>The central question:</strong> Can real failures from tool-using local models become repeatable tests that tell us which parts of a compressed system need more numerical precision?</p>
+</blockquote>
+<p>The short answer is <strong>possibly, and the first clean experiment is now clear</strong>. The evidence does not justify saying that the problem is solved.</p>
+<h3 id="what-the-evidence-changes">What the evidence changes</h3>
+<p>The most important finding is that broken output is far less diagnostic than it appears. When a quantized model produces gibberish, loops, or malformed tool calls, the natural assumption is that compression damaged its reasoning. Yet in our mechanism-confirmed sample, 34 of 37 such cases were associated with the surrounding execution path: kernels, caches, conversion, templates, loading, or runtime interactions. This is not an estimate of how common those faults are in the wild. It establishes a more practical point: the symptom alone cannot tell us what failed. Before increasing precision or retraining the model, we should first isolate whether the problem belongs to the model, its working state, or the software serving it.</p>
+<p>The more surprising implication is that failures experienced as random may be repeatable consequences of hidden state. In one report, changing the prefix with a semantically irrelevant nonce rescued 18 of 18 repeated corruptions. In another incident, a cache-related change caused request-isolation violations in 1,151 of 1,152 checks; reverting four lines reduced the count to zero. These cases suggest that output can depend on cache history, chunking, concurrency, and request ownership, not only on the model and prompt. That distinction matters because an apparently invented identifier or answer may, in rare cases, reflect stale or foreign state. What initially looks like a quality problem can therefore become a reliability, privacy, or integrity problem.</p>
+<p>This leads to a different research objective. Rather than asking which layers are universally important, we should ask which components require additional precision for a particular failure, inference phase, and deployment environment. Evaluation should follow the complete task: where the first error appears, whether the agent recovers, how many retries and tokens it consumes, and whether it completes correctly at the intended speed and power budget. The strongest compressed agent is not necessarily the one that most closely reproduces the original model’s internal numbers. It is the smallest deployable system that preserves the behaviors required to complete the job reliably.</p>
+<h3 id="if-you-remember-only-five-things">If you remember only five things</h3>
+<ol>
+<li><strong>A tool-using agent is more than a model.</strong> It also includes a prompt template, parser, tools, working memory, runtime, and serving settings.</li>
+<li><strong>Compression can damage the journey without changing the final score.</strong> More malformed calls, retries, loops, or state errors can hide inside an eventual success.</li>
+<li><strong>A complaint is a clue, not a diagnosis.</strong> The same visible failure can come from the model, parser, cache, kernel, or their interaction.</li>
+<li><strong>The useful artifact is a repeatable test.</strong> Generate controlled versions of a failure and check each step with code.</li>
+<li><strong>Use those tests to spend precision where behavior needs it.</strong> Keep the same memory and speed budget, but protect the components that prevent important failures.</li>
+</ol>
+<h3 id="the-idea-in-one-picture">The idea in one picture</h3>
+<pre><code class="language-text">run the original model
+        ↓
+make a smaller, lower-precision version
+        ↓
+replay complete tool-using journeys, not just one prompt
+        ↓
+record the first bad step and identify the responsible layer
+        ↓
+temporarily remove or restore precision in candidate components
+        ↓
+keep more precision only where it prevents verified failures
+        ↓
+build the real deployable artifact and test the whole system again
+</code></pre>
+<p>The proposed method is called <strong>Failure-Conditioned Mixed-Precision Quantization</strong>, shortened to <strong>FC-MPQ</strong>. The name matters less than the rule: <strong>optimize for reliable behavior across the whole tool-use journey, not only for similarity to the original model’s numbers.</strong></p>
+<h2 id="1-what-is-actually-running-when-you-use-a-local-agent">1. What is actually running when you use a local agent?</h2>
+<p>A language model predicts the next piece of text. A tool-using agent surrounds that model with software that turns some text into actions and feeds the results back into the next turn.</p>
+<p>A simplified agent contains these parts:</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>What it does</th>
+<th>A failure a user might see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Model weights</td>
+<td>Store the learned numerical patterns that produce the next token</td>
+<td>The model chooses the wrong tool or forgets an instruction</td>
+</tr>
+<tr>
+<td>Chat template</td>
+<td>Arranges system rules, user text, tool descriptions, and prior turns</td>
+<td>Tool syntax changes or the model answers in the wrong role</td>
+</tr>
+<tr>
+<td>Parser</td>
+<td>Converts generated text into a tool name and arguments</td>
+<td>A sensible-looking call is rejected as invalid</td>
+</tr>
+<tr>
+<td>Tool and environment</td>
+<td>Executes the requested action</td>
+<td>A valid call returns an error or unexpected result</td>
+</tr>
+<tr>
+<td>Working state</td>
+<td>Carries prior tokens and intermediate information forward</td>
+<td>An exact identifier drifts after a long conversation</td>
+</tr>
+<tr>
+<td>Runtime and kernels</td>
+<td>Perform the numerical computation on CPU, GPU, or accelerator</td>
+<td>Output becomes corrupted, the server crashes, or speed collapses</td>
+</tr>
+<tr>
+<td>Serving policy</td>
+<td>Controls batching, caching, concurrency, and speculative decoding</td>
+<td>A model works alone but fails under production settings</td>
+</tr>
+</tbody>
+</table></div>
+<p>This distinction is practical. Suppose the model emits valid JSON, but the parser expects a different delimiter. Retraining the model would treat a software contract bug as a learning problem. Suppose identical model files work in one runtime and emit garbage in another. Changing the model weights would hide a kernel defect rather than fix it.</p>
+<p>Throughout this report, <strong>the deployed agent</strong> means the complete path from model weights to executed action and updated state.</p>
+<h2 id="2-what-does-compression-change">2. What does compression change?</h2>
+<h3 id="2-1-weights-are-stored-numbers">2.1 Weights are stored numbers</h3>
+<p>A modern model contains billions of learned numbers called <strong>weights</strong>. Think of them as an enormous spreadsheet of settings. During generation, the runtime repeatedly combines those numbers with the current input.</p>
+<p>A computer must choose how many binary digits, or <strong>bits</strong>, to use for each number. More bits can represent finer distinctions. Fewer bits use less storage and move less data through memory, but they round many nearby values to the same representation.</p>
+<p>A simple analogy is recording prices:</p>
+<ul>
+<li><code>$17.43</code> preserves cents;</li>
+<li><code>$17</code> uses less detail;</li>
+<li><code>$20</code> is coarser still.</li>
+</ul>
+<p>Rounding one price may not matter. Rounding millions of interacting values can matter in specific, hard-to-predict places. The model may remain fluent while a thin decision margin between two tool names disappears.</p>
+<h3 id="2-2-quantization-means-using-fewer-bits">2.2 Quantization means using fewer bits</h3>
+<p><strong>Quantization</strong> stores or computes model values with lower precision. A model commonly served with 16-bit values may be converted so that many weights use 8 or 4 bits. At the level of raw weight payload, 4 bits is one quarter of 16 bits. Real artifacts also contain scales, metadata, uncompressed tensors, and runtime buffers, so the complete memory saving is not exactly fourfold.</p>
+<p>People quantize models because it can:</p>
+<ul>
+<li>make a model fit in available RAM or VRAM;</li>
+<li>reduce memory bandwidth;</li>
+<li>sometimes improve speed;</li>
+<li>lower serving cost or power use.</li>
+</ul>
+<p>It can also reduce quality, introduce hardware-specific problems, or make an existing rare failure happen more often.</p>
+<h3 id="2-3-uniform-and-mixed-precision">2.3 Uniform and mixed precision</h3>
+<p>A <strong>uniform</strong> policy gives most eligible components the same precision, such as 4 bits.</p>
+<p>A <strong>mixed-precision</strong> policy spends the byte budget unevenly. Most components may stay at 4 bits while a smaller set receives 6, 8, or 16 bits. This is like packing for a strict weight limit: you do not make the bag heavier; you decide which items cannot safely be replaced by lighter versions.</p>
+<p>The hard part is choosing what to protect. Existing methods often look for components whose rounded numbers differ most from the original, whose activations are unusual, or whose removal changes a task score. The proposal here adds a different signal: <strong>which components prevent a known family of tool-use failures?</strong></p>
+<h3 id="2-4-weight-precision-is-not-the-only-compression-choice">2.4 Weight precision is not the only compression choice</h3>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Choice</th>
+<th>Plain-English meaning</th>
+<th>Examples you may encounter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Numerical format</td>
+<td>How a value is represented</td>
+<td>FP8, NVFP4, MXFP4, INT4, ternary</td>
+</tr>
+<tr>
+<td>Quantization method</td>
+<td>How lower-precision values or rounding choices are selected</td>
+<td>GPTQ, AWQ, AutoRound</td>
+</tr>
+<tr>
+<td>Packaging or deployment recipe</td>
+<td>How tensors and metadata are stored for a runtime</td>
+<td>GGUF K-quants, IQ-quants, imatrix-guided recipes</td>
+</tr>
+<tr>
+<td>State compression</td>
+<td>How the agent’s working memory is stored</td>
+<td>KV-cache quantization, KIVI, TriAxialKV</td>
+</tr>
+<tr>
+<td>Pruning</td>
+<td>Removing selected weights or structures rather than rounding them</td>
+<td>Unstructured or structured sparsity</td>
+</tr>
+<tr>
+<td>Quantization-aware training</td>
+<td>Training while simulating or applying low precision</td>
+<td>QAT, low-bit distillation</td>
+</tr>
+</tbody>
+</table></div>
+<p>These labels answer different questions. “GGUF,” “Q4,” “AWQ,” and “KV cache” are not four competing versions of the same thing. One describes packaging, one a precision regime, one a method, and one working state.</p>
+<h3 id="2-5-physical-efficiency-must-be-measured">2.5 Physical efficiency must be measured</h3>
+<p>A file labeled “4-bit” is not automatically small or fast in use. High-precision exceptions need metadata. Irregular layouts may force dequantization. A hardware kernel may not accelerate the chosen pattern. The relevant measurements are:</p>
+<ul>
+<li>bytes loaded into memory, including scales and metadata;</li>
+<li>peak memory during a real request;</li>
+<li>prompt-processing speed;</li>
+<li>token-generation speed;</li>
+<li>correctly completed tool journeys per second.</li>
+</ul>
+<p>The last measure joins speed and reliability. A fast model that wastes time on retries may do less useful work.</p>
+<h2 id="3-why-normal-benchmarks-can-miss-the-damage">3. Why normal benchmarks can miss the damage</h2>
+<p>A single chat answer is one output. An agent task is a <strong>trajectory</strong>: a sequence of model decisions, tool calls, tool results, state updates, recoveries, and a final stop.</p>
+<pre><code class="language-text">user request
+  → choose a tool
+  → format its arguments
+  → parse the call
+  → run the tool
+  → read the result
+  → update working state
+  → choose the next action
+  → recover if something failed
+  → stop at the right time
+</code></pre>
+<p>Every arrow creates another place where a small error can change what happens next.</p>
+<h3 id="3-1-final-success-and-process-quality-are-different">3.1 Final success and process quality are different</h3>
+<p>Consider a benchmark that allows an agent up to ten mistakes or retries before marking a task as failed:</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Run</th>
+<th style="text-align:right">Internal errors</th>
+<th>Final outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Higher-precision model</td>
+<td style="text-align:right">2</td>
+<td>Success</td>
+</tr>
+<tr>
+<td>4-bit model</td>
+<td style="text-align:right">6</td>
+<td>Success</td>
+</tr>
+</tbody>
+</table></div>
+<p>The benchmark reports a tie. The second agent was still less stable, slower in useful work, and closer to the failure boundary.</p>
+<p>This is not only a hypothetical concern. The July 2026 study <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2607.27275">Flat Score, Amplified Failures: How the Error Budget Masks Damage in Quantized LLM Agents</a> compared higher-precision and quantized tool agents in a controlled setting. In the main experiments, activation and working-state precision stayed at 16 bits, helping isolate the effect of weight precision.</p>
+<p>The study found:</p>
+<ul>
+<li>no final-score difference that survived its multiple-comparison correction;</li>
+<li>as much as a <strong>2.5× increase</strong> in an existing failure channel;</li>
+<li>almost no new kinds of failures, with only <strong>0.18%</strong> novel events;</li>
+<li>very similar rankings of failure types across precision, with correlation at least <strong>0.94</strong>;</li>
+<li>a <strong>17-point score gap</strong> when the allowed-error budget was tightened to two errors.</li>
+</ul>
+<p>The interpretation is important: quantization often did not invent a new behavior. It made a weakness already present in the original model fire more often. A forgiving benchmark absorbed the extra damage.</p>
+<p>The paper does <strong>not</strong> show which individual weights caused that change, how to allocate mixed precision, or how every local runtime behaves. Those are open steps.</p>
+<h3 id="3-2-what-to-measure-instead-of-final-success-alone">3.2 What to measure instead of final success alone</h3>
+<p>A serious agent evaluation should keep final task success, then add:</p>
+<ul>
+<li>the first turn where a required condition fails;</li>
+<li>malformed or rejected calls;</li>
+<li>wrong tools and wrong arguments;</li>
+<li>exact identifier retention;</li>
+<li>repeated failed actions;</li>
+<li>recovery after a tool error;</li>
+<li>state differences between fresh and reused execution;</li>
+<li>completion before a step or token limit;</li>
+<li>retries and extra generated tokens;</li>
+<li>useful completed journeys per second.</li>
+</ul>
+<p>These are <strong>process measures</strong>. They show how the result was reached.</p>
+<h2 id="4-what-public-failure-reports-tell-us">4. What public failure reports tell us</h2>
+<p>The repository’s <a href="complaint_census.json"><code>complaint_census.json</code></a> contains <strong>1,640</strong> normalized public reports and research incidents about sparse or low-precision inference. The collection was built to find failures, so it is not a random survey of all users or all quantizers.</p>
+<p>A focused subset contains <strong>101 reports involving tool calling</strong>. Of those:</p>
+<ul>
+<li>55 have demonstrated evidence or a verified witness;</li>
+<li>only 14 have a confirmed mechanism;</li>
+<li>43 are unresolved and 12 have unknown resolution;</li>
+<li>91 come from only one source lineage;</li>
+<li>51 do not identify an exact model file.</li>
+</ul>
+<p>This is enough to find recurring test ideas. It is not enough to rank quantization methods by complaint count.</p>
+<blockquote>
+<p><strong>Do not read “62 GGUF-related reports” as a 62% GGUF failure rate.</strong> GGUF appears often because local users deploy and discuss it often. The corpus has no denominator for total successful uses.</p>
+</blockquote>
+<h3 id="4-1-where-the-visible-problem-appeared">4.1 Where the visible problem appeared</h3>
+<p>Each report was assigned one primary operational layer. That layer is the most visible location, not necessarily the proven root cause.</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Primary layer</th>
+<th style="text-align:right">Rows</th>
+<th style="text-align:right">Share</th>
+<th style="text-align:right">Strong evidence</th>
+<th style="text-align:right">Confirmed mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Protocol, runtime, composition, or loading</td>
+<td style="text-align:right">43</td>
+<td style="text-align:right">42.6%</td>
+<td style="text-align:right">24</td>
+<td style="text-align:right">9</td>
+</tr>
+<tr>
+<td>Model/task-selective behavior</td>
+<td style="text-align:right">26</td>
+<td style="text-align:right">25.7%</td>
+<td style="text-align:right">10</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td>Representation, state, conversion, or numerical path</td>
+<td style="text-align:right">22</td>
+<td style="text-align:right">21.8%</td>
+<td style="text-align:right">14</td>
+<td style="text-align:right">3</td>
+</tr>
+<tr>
+<td>Economics, capacity, or serving overhead</td>
+<td style="text-align:right">10</td>
+<td style="text-align:right">9.9%</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right">1</td>
+</tr>
+</tbody>
+</table></div>
+<p>The first row is the largest. Nearly half of the focused reports visibly involve protocol, runtime, composition, or loading. That is why it would be wrong to pour every complaint directly into model training.</p>
+<h3 id="4-2-four-recurring-failure-shapes">4.2 Four recurring failure shapes</h3>
+<h4 id="a-the-model-has-the-right-intention-but-the-call-is-unusable">A. The model has the right intention but the call is unusable</h4>
+<p>The assistant may choose the right tool yet omit a delimiter, use the wrong schema, or produce text the parser does not recognize. To a user, this looks like “tool calling broke.” The fix may belong in precision allocation, the prompt template, or the parser. Raw generated tokens must be saved before deciding.</p>
+<p>One report about <a target="_blank" rel="noopener noreferrer" href="https://github.com/ml-explore/mlx-lm/issues/1011">Qwen3.5 in MLX</a> described plain-text tool calls appearing around round 5 for a 4-bit model and around round 13 for an 8-bit model, while other variants reportedly completed a much longer run. That is a strong reason to sweep conversation length while holding the intended task fixed. It is not yet proof of one causal layer.</p>
+<h4 id="b-working-memory-changes-an-exact-value">B. Working memory changes an exact value</h4>
+<p>A tool agent often has to preserve identifiers exactly. One changed character can target the wrong file, customer, or database row.</p>
+<p>In a <a target="_blank" rel="noopener noreferrer" href="https://github.com/ggml-org/llama.cpp/issues/21681">llama.cpp cache-rewind report</a>, identifiers changed after history mutation and prefix rewind. The right test is to replay the same final token sequence with fresh state and with reused or rewound state. If only the reused path drifts, the cache implementation is the primary suspect.</p>
+<h4 id="c-the-agent-cannot-recover-and-starts-looping">C. The agent cannot recover and starts looping</h4>
+<p>A weak recovery step can become a long sequence of repeated bad actions. A report about <a target="_blank" rel="noopener noreferrer" href="https://github.com/sgl-project/sglang/issues/31482">DeepSeek-V4 with compressed state</a> retained a strong question-answer score, yet many software tasks reportedly exhausted a 300-step limit amid malformed or repetitive output. The useful measurement is not only whether the task eventually passed. It is the first bad action, repetition rate, recovery behavior, and completion before the cap.</p>
+<h4 id="d-a-runtime-option-corrupts-otherwise-valid-computation">D. A runtime option corrupts otherwise valid computation</h4>
+<p>Some failures are ordinary software defects. A <a target="_blank" rel="noopener noreferrer" href="https://github.com/sgl-project/sglang/issues/26324">MiniMax NVFP4 backend report</a> described deterministic replacement-character-heavy output on one path and an assertion on another. A <a target="_blank" rel="noopener noreferrer" href="https://github.com/sgl-project/sglang/issues/33800">speculative-decoding report</a> found rare corruption at one draft depth but not nearby tested depths. These belong first in kernel and runtime qualification, not reinforcement learning.</p>
+<h3 id="4-3-gibberish-random-tokens-and-loops-are-terminal-symptoms">4.3 Gibberish, random tokens, and loops are terminal symptoms</h3>
+<p>A broad symptom query over the complete corpus matched reports whose title, observation, or complaint contained <code>gibberish</code>, <code>nonsense</code>, <code>garbage</code>, <code>repetitive</code>, <code>repetition</code>, <code>looping</code>, <code>loops</code>, long runs of exclamation marks, or the phrase <code>exclamation marks</code>. It found <strong>220 rows across 212 source lineages and 15 different primary operational labels</strong>.</p>
+<p>The mechanism-confirmed slice is more revealing. Of 37 confirmed lineages, 15 were labeled kernel correctness; four each were composition incompatibility, stateful precision failure, conversion-pipeline damage, and template/tokenizer mismatch; two were support fragmentation; and one was model loading. Those 34 runtime, pipeline, or configuration lineages all reached a similar visible endpoint. The other three were two memory-representation cases and one capability-specific case.</p>
+<p>This is not evidence that 34/37 real-world gibberish failures come from software. The corpus was deliberately mined for failures, and its labels are annotations rather than random-sample outcomes. It is evidence for a narrower and operationally important statement:</p>
+<blockquote>
+<p><strong>Visible nonsense does not identify the damaged layer.</strong></p>
+</blockquote>
+<p>The same artifact can emit clean text in one backend and garbage in another. The <a target="_blank" rel="noopener noreferrer" href="https://github.com/vllm-project/vllm/issues/5569">bitsandbytes/vLLM report</a> reproduced unusable output in vLLM while the same model and nominal 4-bit method worked through Transformers. A separate <a target="_blank" rel="noopener noreferrer" href="https://github.com/vllm-project/vllm/issues/10819">2:4 pruning-plus-quantization report</a> eventually localized abnormal output to the Marlin 2:4 kernel after the sparse model itself produced normal output through another path.</p>
+<p>The first response to gibberish should therefore be a controlled backend, build, template, cache, and concurrency swap with identical model bytes and input tokens. Increasing bitwidth or training the model comes later.</p>
+<h3 id="4-4-the-limits-of-the-corpus">4.4 The limits of the corpus</h3>
+<p>The corpus supports four practical conclusions:</p>
+<ol>
+<li>agent-relevant failures recur around format, state, looping, runtime, and performance;</li>
+<li>many symptoms can be checked automatically;</li>
+<li>exact artifacts, controls, and mechanisms are often missing;</li>
+<li>failures need routing to different fixes.</li>
+</ol>
+<p>It does not establish comparative failure rates, universal mechanisms, open-world reliability, or a strong pruning claim. Only three focused rows directly combine pruning and quantization.</p>
+<p>The complete count tables and all thirteen incident-to-test cards are preserved in Appendices A and B.</p>
+<h2 id="5-how-a-complaint-becomes-a-useful-test">5. How a complaint becomes a useful test</h2>
+<p>A forum post says, “the model loses tool calling after several turns.” That is a report, not yet an experiment.</p>
+<p>A reusable test needs two parts:</p>
+<ul>
+<li>a <strong>generator</strong> that creates controlled versions of the risky situation;</li>
+<li>a <strong>verifier</strong> that decides, with code, whether each required condition held.</li>
+</ul>
+<h3 id="5-1-worked-example-of-exact-identifier-retention">5.1 Worked example of exact identifier retention</h3>
+<p>Suppose an assistant must carry the identifier <code>N7B4Q19X</code> through a twenty-turn support workflow.</p>
+<p>A generator can vary:</p>
+<ul>
+<li>the identifier while keeping its length and character classes;</li>
+<li>tool names and schemas;</li>
+<li>the number of turns;</li>
+<li>the length of tool results;</li>
+<li>fresh, reused, and rewound working state;</li>
+<li>the quantized format and runtime.</li>
+</ul>
+<p>The verifier checks every round:</p>
+<ol>
+<li>Was a tool requested when one was required?</li>
+<li>Was the declared tool name used?</li>
+<li>Did the output satisfy the schema?</li>
+<li>Did the parser accept it?</li>
+<li>Was <code>N7B4Q19X</code> copied exactly?</li>
+<li>Did the tool run successfully?</li>
+<li>Did the assistant recover correctly from a controlled error?</li>
+<li>Did it stop after the task was complete?</li>
+</ol>
+<p>Now “identifier drift” is a measurable failure family. The test can locate the first divergence instead of judging only the final prose.</p>
+<h3 id="5-2-a-verifier-is-more-than-a-model-judge">5.2 A verifier is more than a model judge</h3>
+<p>Some checks are exact: JSON parses, a tool exists, an argument has the declared type, an identifier matches, or execution terminates before a cap. These should be ordinary program logic where possible.</p>
+<p>A language-model judge may still help with open-ended semantics, but it should not replace exact checks. Otherwise the evaluator can become as fuzzy as the system under test.</p>
+<h3 id="5-3-test-the-failure-family">5.3 Test the failure family</h3>
+<p>A model can memorize one schema or one identifier. A useful family holds out meaningful variations:</p>
+<ul>
+<li>unseen tool inventories;</li>
+<li>different but structurally related schemas;</li>
+<li>new identifiers;</li>
+<li>longer trajectories;</li>
+<li>new history edits;</li>
+<li>other languages or domains;</li>
+<li>different error and recovery paths.</li>
+</ul>
+<p>Renaming one tool in an otherwise identical prompt is not strong evidence of transfer. The held-out set should differ in the mechanism that triggers the failure, not only in wording.</p>
+<h2 id="6-locate-the-faulty-layer-before-changing-the-model">6. Locate the faulty layer before changing the model</h2>
+<p>A visible failure travels through a chain:</p>
+<pre><code class="language-text">model’s intended action
+        ↓
+raw generated tokens
+        ↓
+chat template and serialization
+        ↓
+parser acceptance
+        ↓
+tool execution
+        ↓
+working-state or cache update
+        ↓
+next model action
+        ↓
+final task contract
+</code></pre>
+<p>Save a receipt at each boundary. Then compare controlled lanes:</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Lane</th>
+<th>What changes from the previous lane</th>
+<th>What it can reveal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>Original higher-precision model, fresh state, canonical parser</td>
+<td>Whether the parent already has the weakness</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Replace only the model representation with the quantized one</td>
+<td>Weight or activation precision damage</td>
+</tr>
+<tr>
+<td>C</td>
+<td>Move the same quantized artifact to the target runtime and parser</td>
+<td>Conversion, kernel, template, or parser damage</td>
+</tr>
+<tr>
+<td>D</td>
+<td>Reuse or rewind state instead of starting fresh</td>
+<td>Cache or recurrent-state damage</td>
+</tr>
+<tr>
+<td>E</td>
+<td>Enable target concurrency or speculative decoding</td>
+<td>Production-only interaction damage</td>
+</tr>
+</tbody>
+</table></div>
+<p>The decision rules are deliberately boring:</p>
+<ul>
+<li>Correct raw tokens plus parser rejection means fix the contract or parser.</li>
+<li>One backend works and another corrupts the same artifact means fix or reject the runtime path.</li>
+<li>Fresh state works and reused state drifts means fix state handling.</li>
+<li>The quantized model diverges across runtimes while every surrounding condition stays fixed means weight or activation precision becomes a plausible cause.</li>
+<li>The original model already fails in the same way means measure amplification; do not call the failure newly created by quantization.</li>
+</ul>
+<p>This attribution step prevents an expensive mistake: training the model to compensate for broken software.</p>
+<h2 id="7-let-verified-failures-choose-precision">7. Let verified failures choose precision</h2>
+<p>Once a failure family is reproducible and attributable to model representation, it can guide mixed precision.</p>
+<p>Start with two reference points:</p>
+<ul>
+<li>the original higher-precision model;</li>
+<li>a conventional deployable 4-bit model.</li>
+</ul>
+<p>Then test candidate groups that the runtime can actually store and execute, such as one attention matrix, one feed-forward block, a router group, or a structured set of channels.</p>
+<h3 id="7-1-require-both-damage-and-rescue">7.1 Require both damage and rescue</h3>
+<p>For each candidate group:</p>
+<ol>
+<li><strong>Downgrade it</strong> inside a stronger model. Does the verified failure get worse?</li>
+<li><strong>Upgrade it</strong> inside a lower-precision model. Does the failure improve?</li>
+<li>Repeat under several surrounding precision layouts. Does the effect survive interaction with other groups?</li>
+<li>Build the real artifact. Do memory and speed still meet the budget?</li>
+</ol>
+<p>A component is a credible protection target when removing precision causes damage and restoring precision rescues behavior. High activation, gradient, or reconstruction error alone is only a correlation signal.</p>
+<h3 id="7-2-protect-the-weakest-failure-family">7.2 Protect the weakest failure family</h3>
+<p>If one policy preserves tool selection but destroys identifier retention, its average may still look good. The allocation should therefore avoid averaging all failure families into one forgiving score.</p>
+<p>The plain-English objective is:</p>
+<blockquote>
+<p>Under a fixed memory and speed budget, choose the precision layout whose worst verified failure family degrades the least relative to the original model.</p>
+</blockquote>
+<p>This is the heart of <strong>Failure-Conditioned Mixed-Precision Quantization (FC-MPQ)</strong>.</p>
+<h3 id="7-3-the-verifier-has-three-jobs">7.3 The verifier has three jobs</h3>
+<ol>
+<li><strong>Choose calibration cases.</strong> Include examples that activate known weak boundaries.</li>
+<li><strong>Choose precision.</strong> Measure which deployable groups damage or rescue each family.</li>
+<li><strong>Qualify the release.</strong> Re-run the same contracts on the final file, runtime, parser, cache, and serving settings.</li>
+</ol>
+<p>The text examples alone are not the main asset. The executable checks are.</p>
+<h2 id="8-what-earlier-research-already-solved">8. What earlier research already solved</h2>
+<p>The proposal combines several existing research lines. It must not be sold as the first “agent-aware” or “task-aware” quantizer.</p>
+<h3 id="8-1-agent-compression-has-already-been-evaluated">8.1 Agent compression has already been evaluated</h3>
+<p><a target="_blank" rel="noopener noreferrer" href="https://proceedings.mlr.press/v267/dong25k.html">Can Compressed LLMs Truly Act? / ACBench</a> evaluates several compression methods across agent-related tasks and shows that damage depends on capability and workload. <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2607.27275">Flat Score, Amplified Failures</a> goes further inside the loop and shows that final reward can hide extra process failures.</p>
+<p>These works establish the evaluation problem. They do not use failure families to choose weight or state precision.</p>
+<h3 id="8-2-task-aware-precision-allocation-already-exists">8.2 Task-aware precision allocation already exists</h3>
+<p>Three especially relevant examples are:</p>
+<ul>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2607.00908">TASA: Beyond Activation Alignment</a>, which jointly studies calibration mixture and mixed-precision allocation for target tasks;</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2511.06516">You Have One Job: Per-Task Quantization Using LLMs’ Hidden Representations</a>, whose TAQ/TAQO methods score transformer layers for a particular task and assign precision per layer;</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2504.07389">Task-Circuit Quantization</a>, which preserves task-associated weight circuits at higher precision.</li>
+</ul>
+<p><strong>Why “You Have One Job” matters here:</strong> it is a clean scaffold for the first experiment. It already asks which layers matter for a task. The proposed extension replaces one-shot task sensitivity with damage to complete, verifier-checked failure trajectories. It may also need finer groups than whole layers.</p>
+<h3 id="8-3-behavior-guided-and-state-aware-precision-also-exist">8.3 Behavior-guided and state-aware precision also exist</h3>
+<p><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2605.24011">ActQuant</a> allocates precision using action sensitivity for embodied vision-language-action models. It prevents a claim to the first behavior-guided mixed-precision method.</p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2402.02750">KIVI</a>, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2403.01241">IntactKV</a>, and <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2605.17170">TriAxialKV</a> show that working-state precision can depend on channel, token, recency, modality, and semantic role. <a target="_blank" rel="noopener noreferrer" href="https://aclanthology.org/2025.findings-acl.551/">Q-Mamba</a> shows structured precision choices for recurrent state.</p>
+<h3 id="8-4-low-bit-training-and-tool-rewards-exist">8.4 Low-bit training and tool rewards exist</h3>
+<p><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2601.14888">Reasoning-QAT</a> studies quantization-aware training for reasoning models. <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2604.07853">QaRL</a> aligns training with quantized rollouts. <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2509.06980">RLFactory</a> supplies executable rewards for multi-turn tool use.</p>
+<p>The pieces exist separately. The checked literature did not reveal a text-tool method that performs this complete sequence:</p>
+<ol>
+<li>mine real compressed-agent failures;</li>
+<li>turn each family into a generator and executable verifier;</li>
+<li>causally locate weight and state precision through damage and rescue;</li>
+<li>allocate deployable mixed precision against the worst family at a fixed physical budget;</li>
+<li>train only residual model failures with the same verifiers;</li>
+<li>qualify the complete artifact and runtime against the same contract.</li>
+</ol>
+<p>That is a bounded literature finding, not proof that no unpublished or differently named method exists.</p>
+<h2 id="9-the-first-experiment-that-can-answer-the-question">9. The first experiment that can answer the question</h2>
+<p>The first experiment should be small enough to interpret. It should test allocation before adding reinforcement learning.</p>
+<h3 id="9-1-the-model-and-fixed-environment">9.1 The model and fixed environment</h3>
+<p>Use the repository’s <strong>Qwen3-8B parent model</strong> first. Keep the already extracted BFCL artifact for a later stress test. Starting with both extraction and quantization would make the cause of a failure ambiguous.</p>
+<p>Hold these conditions fixed:</p>
+<ul>
+<li>weight-only quantization;</li>
+<li>16-bit activations and working-state cache;</li>
+<li>fresh cache;</li>
+<li>speculative decoding off;</li>
+<li>one runtime, chat template, and parser;</li>
+<li>deterministic generation where the runtime allows it;</li>
+<li>a physical byte budget equal to a normal deployable 4-bit artifact;</li>
+<li>a minimum speed declared before quality is measured.</li>
+</ul>
+<h3 id="9-2-the-failure-families">9.2 The failure families</h3>
+<p>Use at least six:</p>
+<ol>
+<li>malformed structured output or delimiter collapse;</li>
+<li>exact identifier corruption;</li>
+<li>wrong choice among similar tools;</li>
+<li>repeated invalid action and failure to recover;</li>
+<li>collapse after long tool results or many turns;</li>
+<li>calling a tool when none is needed, failing to call one when required, or stopping too early.</li>
+</ol>
+<p>Calibration and held-out sets must use different tool names, schemas, identifiers, and scenario templates. Include clean tasks and collateral capabilities that the failure set does not target.</p>
+<h3 id="9-3-the-five-policies-to-compare">9.3 The five policies to compare</h3>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Policy</th>
+<th>What chooses precision</th>
+<th>Question it answers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Original 16-bit model</td>
+<td>No compression</td>
+<td>What can the parent do, and how often does it already fail?</td>
+</tr>
+<tr>
+<td>Uniform deployable 4-bit</td>
+<td>Standard recipe</td>
+<td>What does ordinary compression change?</td>
+</tr>
+<tr>
+<td>Generic mixed precision</td>
+<td>Reconstruction, activation, or similar numerical signal</td>
+<td>Is a conventional allocator enough?</td>
+</tr>
+<tr>
+<td>Ordinary task-aware mixed precision</td>
+<td>Single-turn tool examples</td>
+<td>Is normal task calibration enough?</td>
+</tr>
+<tr>
+<td>Failure-conditioned mixed precision</td>
+<td>Closed-loop verifier damage</td>
+<td>Does the failure atlas produce a better allocation?</td>
+</tr>
+</tbody>
+</table></div>
+<p>A combined task-plus-failure policy can test whether failure data replaces or complements ordinary task examples.</p>
+<h3 id="9-4-what-counts-as-a-positive-result">9.4 What counts as a positive result</h3>
+<p>All of these must happen:</p>
+<ol>
+<li>failure-conditioned rankings choose materially different components from generic and ordinary task-aware rankings;</li>
+<li>the final physical artifact improves the weakest held-out failure family, with uncertainty excluding no improvement;</li>
+<li>loaded bytes and measured speed stay inside the declared budget;</li>
+<li>no protected collateral capability falls below its floor;</li>
+<li>the gain survives unseen schemas, identifiers, and longer trajectories.</li>
+</ol>
+<p>The decisive negative result is also useful: rankings do not differ, or they differ but produce no held-out physical improvement at matched cost. That result would show that the complaint atlas is a better evaluation suite, not a new allocation signal.</p>
+<h3 id="9-5-why-reinforcement-learning-is-not-experiment-one">9.5 Why reinforcement learning is not experiment one</h3>
+<p>Reinforcement learning changes the model while also introducing reward design, policy drift, and train-versus-serving mismatch. That makes causal interpretation harder.</p>
+<p>First answer one question:</p>
+<blockquote>
+<p>Does the failure atlas identify a different and better precision layout?</p>
+</blockquote>
+<p>Only then should training test whether it repairs failures that allocation cannot.</p>
+<h2 id="10-state-precision-needs-its-own-experiment">10. State precision needs its own experiment</h2>
+<p>The working-state cache is not the same object as model weights. In transformer models, the <strong>key-value cache</strong>, usually called the <strong>KV cache</strong>, stores attention information from prior tokens so the model does not recompute the entire history at every step. Compressing it saves memory, especially for long contexts, but errors can accumulate across turns.</p>
+<p>The focused corpus contains 26 reports involving cache quantization, compression, or related state handling. Keep this out of the first weight experiment. Then run a 2×2 comparison:</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Model weights</th>
+<th>Working state</th>
+<th>What the cell reveals</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full precision</td>
+<td>Full precision</td>
+<td>Parent behavior</td>
+</tr>
+<tr>
+<td>Quantized</td>
+<td>Full precision</td>
+<td>Weight or activation effect</td>
+</tr>
+<tr>
+<td>Full precision</td>
+<td>Quantized</td>
+<td>State-only effect</td>
+</tr>
+<tr>
+<td>Quantized</td>
+<td>Quantized</td>
+<td>Interaction in the production-like setup</td>
+</tr>
+</tbody>
+</table></div>
+<p>Add fresh versus reused or rewound state. Ask which semantic roles need protection: system rules, tool schemas, exact identifiers, current plans, tool observations, or recovery messages.</p>
+<p>For transformer state, KIVI, IntactKV, and TriAxialKV provide useful baselines. Hybrid recurrent models need a separate state design; Q-Mamba is relevant but does not prove cache-rewind correctness for other architectures.</p>
+<p>State can fail in more ways than numerical rounding. A cached representation also has a layout, dtype, coordinate transform, position range, owner, lifetime, and creation history. The <a target="_blank" rel="noopener noreferrer" href="https://github.com/ggml-org/llama.cpp/pull/25202">DeepSeek-V4 quantized-cache repair</a> restored a required Hadamard rotation; the values were not merely “too low precision,” they were interpreted in the wrong geometry. A state experiment must therefore record a cache receipt: model and runtime revision, token-span digest, format and dtype, slot or request owner, creation configuration, and every merge, rewind, reuse, or offload operation.</p>
+<h2 id="11-train-only-after-attribution">11. Train only after attribution</h2>
+<p>Two terms often appear in this part of the literature:</p>
+<ul>
+<li><strong>Quantization-aware training (QAT):</strong> update the model while simulating or using low-precision computation, so it learns to tolerate the representation it will run with.</li>
+<li><strong>Reinforcement learning (RL):</strong> update the model from rewards assigned to its generated behavior.</li>
+</ul>
+<p>The same verifiers could eventually provide rewards for valid actions, exact state, recovery, and correct termination. A softer signal, such as probability assigned to the correct tool or identifier token, can provide more frequent training feedback.</p>
+<p>But training should only receive failures already attributed to the model representation. A parser defect needs a parser fix. A cache-rewind defect needs a state or runtime fix. A broken kernel needs a release blocker.</p>
+<p>Training also needs a hard comparison: it must beat the best allocation-only physical artifact. A November 2025 study, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2511.15694">The Impact of Quantization on Large Reasoning Model Reinforcement Learning</a>, reports that naive quantization-aware RL underperformed simpler alternatives in its tested math settings. Low-bit training is not automatically beneficial.</p>
+<h2 id="12-what-this-work-can-and-cannot-claim">12. What this work can and cannot claim</h2>
+<h3 id="supported-by-the-local-evidence">Supported by the local evidence</h3>
+<ul>
+<li>Agent-relevant failures recur around format, state, loops, runtimes, and composition.</li>
+<li>Many symptoms can be converted into exact programmatic checks.</li>
+<li>Public incident reports often lack artifacts, controls, and confirmed mechanisms.</li>
+<li>Different failures belong to model, state, runtime, parser, or release interventions.</li>
+</ul>
+<h3 id="supported-by-controlled-external-research">Supported by controlled external research</h3>
+<ul>
+<li>Compression damage depends on agent capability and workload.</li>
+<li>Final scores can hide increased failures inside a tool trajectory.</li>
+<li>Task-aware, behavior-aware, and state-aware precision allocation already exist in adjacent forms.</li>
+</ul>
+<h3 id="what-remains-a-proposal">What remains a proposal</h3>
+<ul>
+<li>Failure-family verifiers will rank components differently from ordinary numerical or task signals.</li>
+<li>That ranking will produce a better physical mixed-precision artifact at the same cost.</li>
+<li>The gain will transfer to unseen members of the same failure families.</li>
+<li>Verifier-guided training will add value after allocation is exhausted.</li>
+</ul>
+<h3 id="explicit-non-claims">Explicit non-claims</h3>
+<ul>
+<li>This is not a failure-rate survey of quantization methods.</li>
+<li>It does not prove that GGUF is worse because GGUF appears often in complaints.</li>
+<li>It does not show that pruning commonly damages agents.</li>
+<li>It does not promise reliability outside a named model, runtime, parser, cache, context, and serving envelope.</li>
+<li>It is not the first agent-aware, task-aware, or behavior-guided quantization proposal.</li>
+</ul>
+<h2 id="13-what-can-make-the-research-itself-fail">13. What can make the research itself fail</h2>
+<p>The research program has its own traps:</p>
+<ol>
+<li><strong>Selection bias:</strong> failure-oriented searches overrepresent popular tools and difficult cases.</li>
+<li><strong>Verifier overfitting:</strong> a finite suite can become another benchmark that the model learns without gaining broad reliability.</li>
+<li><strong>Cosmetic holdouts:</strong> changing wording while preserving the exact causal structure does not test transfer.</li>
+<li><strong>Runtime contamination:</strong> a parser or kernel repair can look like a better model unless receipts are separated.</li>
+<li><strong>Component interactions:</strong> protecting two individually useful groups may fail when combined with the rest of the low-bit model.</li>
+<li><strong>Fake physical wins:</strong> irregular high-precision islands may erase memory or kernel advantages.</li>
+<li><strong>Aggregate masking:</strong> final success can still hide retries, loops, and token inflation.</li>
+<li><strong>Collateral loss:</strong> calibration for tool use can damage languages or unrelated capabilities.</li>
+<li><strong>Reward gaming:</strong> a trained model may satisfy the format checker while choosing the wrong action or stopping early.</li>
+<li><strong>Open-world overclaiming:</strong> passing known families only establishes measured reliability inside the declared envelope.</li>
+</ol>
+<p>A trustworthy release names the exact artifact, runtime, parser, cache policy, context range, concurrency, and speculative settings that passed.</p>
+<h2 id="14-what-a-useful-result-would-change-for-a-user">14. What a useful result would change for a user</h2>
+<p>Today, users often choose between files labeled by model name and nominal quantization level. That label leaves out much of the behavior that matters.</p>
+<p>A failure-conditioned release would instead provide:</p>
+<ul>
+<li>a physical memory and speed receipt;</li>
+<li>the exact runtime and parser configuration;</li>
+<li>pass rates for short and long tool trajectories;</li>
+<li>malformed-call, wrong-action, state-drift, loop, and recovery rates;</li>
+<li>the error budget under which success was measured;</li>
+<li>the failure families and variations held out from calibration;</li>
+<li>explicit limits on context, cache reuse, concurrency, and speculation;</li>
+<li>collateral capability floors.</li>
+</ul>
+<p>The user-facing question becomes more useful than “Is Q4 good?”</p>
+<blockquote>
+<p><strong>Inside this exact setup, which behaviors survived compression, where do failures begin, and how much useful work does the agent complete per second?</strong></p>
+</blockquote>
+<h2 id="15-six-deeper-deductions-worth-testing">15. Six deeper deductions worth testing</h2>
+<p>The following deductions are ranked by how much they change diagnosis, transfer across systems, and create decisive experiments. They are not all established facts. Each item separates the observed evidence from the stronger inference and names a test that could prove the inference wrong.</p>
+<h3 id="15-1-what-nonsense-output-actually-tells-you">15.1 What nonsense output actually tells you</h3>
+<p><strong>[CORPUS]</strong> The 220-row symptom slice in Section 4.3 reaches the same visible endpoint through kernel, state, composition, conversion, template, loading, and model-behavior paths. Thirty-four of its 37 mechanism-confirmed lineages carry a runtime, pipeline, or configuration primary label.</p>
+<p><strong>[INFERENCE]</strong> “The quant is bad” is usually too early a conclusion. Random tokens, repeated punctuation, malformed calls, and loops are analogous to a machine displaying a red warning light: they show that the final computation failed, not which component failed. A single NaN in routing, a wrong cache transform, a dropped packed tensor, a stale slot, or real representation damage can all collapse the next-token distribution.</p>
+<p><strong>[PROPOSAL]</strong> Hold the artifact hash, prompt token IDs, and greedy sampler fixed. Replay the failure through the five lanes in Section 6. If corruption follows one backend, build, template, cache history, or concurrency mode, the model representation is not the first repair target. This deduction weakens if the same first divergent logits appear across independently implemented clean runtimes.</p>
+<h3 id="15-2-a-state-bug-can-cross-the-boundary-from-bad-quality-to-data-isolation">15.2 A state bug can cross the boundary from bad quality to data isolation</h3>
+<p><strong>[PRIMARY]</strong> A <a target="_blank" rel="noopener noreferrer" href="https://github.com/ggml-org/llama.cpp/issues/25992">llama.cpp incident on an integrated HIP GPU</a> reported that <code>-np 4 --kv-unified</code> sometimes returned another request’s earlier response verbatim and once fused tokens from two requests. The report bisected the behavior to one commit. An independent reproduction later recorded <strong>0/1,152</strong> nonce violations on the control build, <strong>1,151/1,152</strong> on the affected build, and <strong>0/1,152</strong> after reverting the four-line change. That reproducer saw garbage rather than readable foreign text, so the exact symptom was not identical. The affected deployment used a Q4-class model, but the controlled evidence points to the integrated-memory runtime path, not to quantization as the cause.</p>
+<p><strong>[INFERENCE]</strong> A “hallucinated” tool name, identifier, or answer in a concurrent local agent can be a request-isolation failure. That changes the severity from quality regression to a potential privacy and integrity incident. A content-only model grader can miss the distinction.</p>
+<p><strong>[PROPOSAL]</strong> Give every request and tool result a unique nonce. Mix short and long prompts, streamed and non-streamed replies, fresh and unified caches, one and several slots, and supported backends. Reject a release if any output contains another request’s nonce, even when the answer otherwise looks plausible.</p>
+<h3 id="15-3-some-apparently-random-failures-may-be-deterministic-on-hidden-cache-history">15.3 Some apparently random failures may be deterministic on hidden cache history</h3>
+<p><strong>[PRIMARY, SUGGESTIVE]</strong> One <a target="_blank" rel="noopener noreferrer" href="https://x.com/t0nil0/status/2085707841357140439">field report</a> claimed that a cache-busting nonce rescued <strong>18/18</strong> repeated low-bit tool-call corruptions and that two long reasoning loops also disappeared after a cache-busted retry. The author tied the failures to near-total prefix-cache hits and repeated microbatch chunking, but did not publish the promised reproduction harness. This is a strong clue, not a confirmed mechanism.</p>
+<p><strong>[PRIMARY]</strong> Adjacent confirmed incidents make the broader state class credible. A <a target="_blank" rel="noopener noreferrer" href="https://github.com/ggml-org/llama.cpp/pull/25202">DeepSeek-V4 quantized-KV incident</a> omitted a required rotation; other corpus incidents lose cache metadata during merge or rewind, reuse stale state after a request leaves, or fail only on a second interaction.</p>
+<p><strong>[INFERENCE]</strong> A cache buster does not necessarily “give the model another roll.” It changes a hidden execution path: cache identity, token positions, chunk boundaries, allocation history, or kernel choice. A deterministic numerical defect can therefore masquerade as sampling randomness.</p>
+<p><strong>[PROPOSAL]</strong> Run an A/B/A state-lineage test. A is a byte-identical shared prefix; B is a semantics-preserving nonce prefix; the final A returns to the original bytes. Cross fresh, reused, rewound, and cross-configuration caches while holding weights and decoding fixed. Record cache digests, chunk boundaries, first-divergent logits, and request ownership. A failure that follows cache lineage rather than prompt meaning supports the state hypothesis; semantic-prompt failure after state randomization weakens it.</p>
+<h3 id="15-4-low-bit-damage-may-cross-a-mechanism-boundary-rather-than-worsen-smoothly">15.4 Low-bit damage may cross a mechanism boundary rather than worsen smoothly</h3>
+<p><strong>[PRIMARY]</strong> <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2604.19884">From Signal Degradation to Computation Collapse</a> studied factual recall under GPTQ across four model families. In the tested 4-bit failures, the correct signal still emerged in later layers, activation subspaces remained strongly aligned with FP16, and targeted protection plus signal amplification recovered performance. In the tested 2-bit models, the correct-answer signal stayed near zero, attention and feed-forward behavior collapsed, and the same targeted or low-rank compensation strategies failed. The authors stress that these modes are not universally tied to the labels “4-bit” and “2-bit.”</p>
+<p><strong>[INFERENCE]</strong> Precision allocation is useful only while the required computation remains present but weak. Below a model-and-method-specific boundary, restoring a few sensitive groups may be like repairing gauges after the engine has stopped. Training or structural reconstruction becomes the plausible intervention.</p>
+<p><strong>[PROPOSAL]</strong> Build a bitwidth phase diagram rather than testing only Q4 against BF16. Sweep at least 8, 6, 5, 4, 3, and 2 bits while recording failure-family verifiers, correct-token rank, layer-wise logit-lens signal, attention entropy, activation-subspace similarity, and bidirectional rescue. The hypothesis predicts a discontinuity in internal structure and repairability. A smooth curve with stable causal rankings would falsify the sharp-boundary account for that setup.</p>
+<h3 id="15-5-a-faster-token-can-produce-a-slower-completed-job">15.5 A faster token can produce a slower completed job</h3>
+<p><strong>[PRIMARY]</strong> <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2606.25519">Quantization Inflates Reasoning</a> reports that INT4 and INT3 reasoning models can preserve final accuracy while generating more reasoning tokens, intermediate steps, and semantic repetition across math, code, science, and agentic tool-use evaluations. <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2607.27275">Flat Score, Amplified Failures</a> separately shows extra tool errors hidden inside eventual success. At the kernel layer, a <a target="_blank" rel="noopener noreferrer" href="https://github.com/pytorch/pytorch/issues/153825">PyTorch H100 report</a> measured a representative 2:4 sparse linear operation at 0.657 ms versus 0.242 ms dense. Sparse setup and shape constraints dominated the nominal compute saving.</p>
+<p>The end-to-end quantity is approximately</p>
+<div class="math-display">\[T_{\text{job}}
+\approx
+\sum_{a=1}^{A}
+\left(
+T_{\text{prefill},a}
++
+\frac{N_{\text{decode},a}}{R_{\text{decode},a}}
++
+T_{\text{tools},a}
+\right),\]</div>
+<p>where <span class="math-inline">\(A\)</span> includes retries, <span class="math-inline">\(N_{\text{decode}}\)</span> is generated-token count, and <span class="math-inline">\(R_{\text{decode}}\)</span> is physical decode throughput. A higher <span class="math-inline">\(R_{\text{decode}}\)</span> can lose to more tokens, retries, or failed tool rounds.</p>
+<p><strong>[INFERENCE]</strong> Tokens per second is a component metric, not the user’s efficiency objective. The release metric should be <strong>verified completed trajectories per second and per joule</strong>, with p50 and p95 job time, loaded bytes, token count, retries, and failure channels reported beside it.</p>
+<p><strong>[PROPOSAL]</strong> Replay identical complete jobs under BF16, a deployable Q4 policy, and one aggressive policy. Do not truncate away the extra work except at a declared safety cap. If per-token speed improves but verified completion throughput or energy worsens, the supposed optimization is a physical regression.</p>
+<h3 id="15-6-why-no-component-is-always-critical">15.6 Why no component is always critical</h3>
+<p><strong>[PRIMARY]</strong> <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2607.23047">MixQuant</a> finds that a layer’s measured sensitivity changes with the bitwidths of upstream layers. <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2504.07389">Task-Circuit Quantization</a> and <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2511.06516">TAQ/TAQO</a> make criticality task-dependent. <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2605.17170">TriAxialKV</a> makes state precision depend on recency, modality, and semantic role. <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2605.20315">Mix-Quant for agentic inference</a> reports that aggressive precision was useful for prefill while precise decoding protected behavior.</p>
+<p><strong>[INFERENCE]</strong> The useful object is not a universal ranking called “important layers.” It is a conditional function:</p>
+<div class="math-display">\[\text{criticality}
+=
+f(\text{failure family},\ \text{surrounding precision},\ \text{phase},\ \text{state role},\ \text{runtime}).\]</div>
+<p>A component can be harmless for ordinary chat, decisive for exact identifier copying, safe during prefill, and unsafe during decode. One-at-a-time saliency measured in a single background model can therefore choose the wrong final layout.</p>
+<p><strong>[PROPOSAL]</strong> Re-measure the top candidate groups under at least three surrounding precision layouts and across prefill and decode. Fit explicit pairwise interaction terms or use a budgeted marginal-contribution approximation. Report rank correlation across contexts. The conditional-criticality claim fails if rankings remain stable and interaction-aware allocation produces no held-out advantage over the simple ranking.</p>
+<h3 id="15-7-the-first-four-experiments-to-steal">15.7 The first four experiments to steal</h3>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th style="text-align:right">Priority</th>
+<th>Experiment</th>
+<th>Minimum controlled grid</th>
+<th>Decisive readout</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">1</td>
+<td><strong>State-isolation nonce harness</strong></td>
+<td>Build × backend × fresh/reused state × one/many slots, fixed artifact</td>
+<td>Zero foreign nonces; cache-history invariance; first divergent boundary</td>
+</tr>
+<tr>
+<td style="text-align:right">2</td>
+<td><strong>Completed-work economics</strong></td>
+<td>BF16 × deployable Q4 × aggressive low bit on the same complete jobs</td>
+<td>Verified completions/s and joules/completion, including tokens, retries, and tools</td>
+</tr>
+<tr>
+<td style="text-align:right">3</td>
+<td><strong>Precision phase diagram</strong></td>
+<td>8/6/5/4/3/2-bit sweep with internal probes and family verifiers</td>
+<td>Smooth degradation versus a structural and repairability breakpoint</td>
+</tr>
+<tr>
+<td style="text-align:right">4</td>
+<td><strong>Conditional allocation grid</strong></td>
+<td>Top deployable groups × three background layouts × held-out failure families</td>
+<td>Ranking stability, interaction size, and matched-cost held-out survival</td>
+</tr>
+</tbody>
+</table></div>
+<p>The first two require no training and can invalidate entire research branches quickly. The third decides whether mixed precision is still the right intervention. Only the fourth spends serious allocation-search budget.</p>
+<h2 id="16-a-beginners-reading-path">16. A beginner’s reading path</h2>
+<p>Read these in order. Each answers one new question.</p>
+<ol>
+<li>
+<p><strong>Can compressed agents lose useful capability?</strong><br />
+<a target="_blank" rel="noopener noreferrer" href="https://proceedings.mlr.press/v267/dong25k.html">Can Compressed LLMs Truly Act? An Empirical Evaluation of Agentic Capabilities in LLM Compression</a> provides the broad evaluation baseline.</p>
+</li>
+<li>
+<p><strong>Can the final score hide damage inside a run?</strong><br />
+<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2607.27275">Flat Score, Amplified Failures</a> is the closest direct evidence for the problem described here.</p>
+</li>
+<li>
+<p><strong>Can precision be chosen for one task rather than the average model?</strong><br />
+<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2511.06516">You Have One Job: Per-Task Quantization Using LLMs’ Hidden Representations</a> is the clearest first introduction to task-specific layer allocation.</p>
+</li>
+<li>
+<p><strong>Can calibration examples and precision allocation be designed together?</strong><br />
+<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2607.00908">TASA: Beyond Activation Alignment</a> joins calibration composition with mixed-precision allocation.</p>
+</li>
+<li>
+<p><strong>Can working memory receive precision according to its role?</strong><br />
+<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2605.17170">TriAxialKV</a> allocates KV precision by recency, modality, and semantic role in an agentic workload.</p>
+</li>
+<li>
+<p><strong>Can lower precision be faster per token but slower for the whole answer?</strong><br />
+<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2606.25519">Quantization Inflates Reasoning</a> measures reasoning-token inflation and its end-to-end serving cost.</p>
+</li>
+<li>
+<p><strong>Can lower precision change the kind of failure rather than only its size?</strong><br />
+<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2604.19884">From Signal Degradation to Computation Collapse</a> contrasts impaired-but-repairable computation with structural collapse.</p>
+</li>
+</ol>
+<p>The full method map and advanced reading list are in Appendices C and H.</p>
+<h2 id="17-glossary">17. Glossary</h2>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning in this report</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4-bit or Q4</td>
+<td>A broad low-precision label, not one universal format or quantization recipe</td>
+</tr>
+<tr>
+<td>Activation</td>
+<td>A temporary numerical value produced while the model processes an input</td>
+</tr>
+<tr>
+<td>Agent</td>
+<td>A model plus software that turns outputs into actions, observes results, and continues</td>
+</tr>
+<tr>
+<td>Artifact</td>
+<td>The actual model file and metadata that a runtime loads and serves</td>
+</tr>
+<tr>
+<td>BF16 or FP16</td>
+<td>Common 16-bit number formats used as higher-precision reference points</td>
+</tr>
+<tr>
+<td>BFCL</td>
+<td>Function-calling benchmark data and evaluation machinery used in this repository</td>
+</tr>
+<tr>
+<td>Calibration data</td>
+<td>Examples or signals used to configure a quantizer or precision policy</td>
+</tr>
+<tr>
+<td>Closed loop</td>
+<td>A run where model actions change the environment and the results affect later actions</td>
+</tr>
+<tr>
+<td>Decode</td>
+<td>Token-by-token generation after the runtime has processed the prompt</td>
+</tr>
+<tr>
+<td>Dense or parent model</td>
+<td>The original reference model before the compression step being tested</td>
+</tr>
+<tr>
+<td>Failure family</td>
+<td>Different cases that share the same testable failure mechanism or boundary</td>
+</tr>
+<tr>
+<td>Generator</td>
+<td>Code that creates controlled variations of a risky situation</td>
+</tr>
+<tr>
+<td>GGUF</td>
+<td>A model packaging format and ecosystem used by llama.cpp-style runtimes; not one quantization algorithm</td>
+</tr>
+<tr>
+<td>Harness</td>
+<td>The surrounding code that prompts the model, parses actions, runs tools, and records results</td>
+</tr>
+<tr>
+<td>Kernel</td>
+<td>Low-level code that performs numerical operations on particular hardware</td>
+</tr>
+<tr>
+<td>KL divergence</td>
+<td>A measure of how different two probability distributions are</td>
+</tr>
+<tr>
+<td>KV cache</td>
+<td>Working attention state saved from earlier tokens in a transformer</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>Large language model</td>
+</tr>
+<tr>
+<td>Logit</td>
+<td>A raw model score that is converted into a probability for a possible next token</td>
+</tr>
+<tr>
+<td>Mixed precision</td>
+<td>Using different numerical precision for different model or state components</td>
+</tr>
+<tr>
+<td>MoE</td>
+<td>Mixture of experts, a model design that activates selected expert blocks for each token</td>
+</tr>
+<tr>
+<td>Perplexity</td>
+<td>A numerical measure of next-token prediction uncertainty</td>
+</tr>
+<tr>
+<td>Post-training quantization or PTQ</td>
+<td>Quantization applied after the original model has been trained</td>
+</tr>
+<tr>
+<td>Precision</td>
+<td>How much numerical detail a representation can retain</td>
+</tr>
+<tr>
+<td>Prefill</td>
+<td>The initial processing of the prompt before token-by-token generation</td>
+</tr>
+<tr>
+<td>Pruning</td>
+<td>Removing selected weights or structures instead of only rounding values</td>
+</tr>
+<tr>
+<td>Quantization</td>
+<td>Representing weights, activations, or state with fewer bits</td>
+</tr>
+<tr>
+<td>Quantization-aware training or QAT</td>
+<td>Training that exposes the model to its lower-precision execution regime</td>
+</tr>
+<tr>
+<td>Quantizer</td>
+<td>The method or software that chooses and creates lower-precision representations</td>
+</tr>
+<tr>
+<td>Reinforcement learning or RL</td>
+<td>Updating a model from rewards assigned to generated behavior</td>
+</tr>
+<tr>
+<td>Runtime</td>
+<td>Software that loads the artifact and performs inference</td>
+</tr>
+<tr>
+<td>Speculative decoding</td>
+<td>A serving method that drafts tokens with one path and verifies them with another</td>
+</tr>
+<tr>
+<td>State</td>
+<td>Information carried from earlier tokens or turns into later computation</td>
+</tr>
+<tr>
+<td>State provenance</td>
+<td>The artifact, configuration, owner, token span, and operations that created a reused state</td>
+</tr>
+<tr>
+<td>Terminal phenotype</td>
+<td>A final visible symptom, such as gibberish or looping, that can be produced by several different causes</td>
+</tr>
+<tr>
+<td>Trajectory</td>
+<td>The complete sequence of states, actions, tool results, recoveries, and termination</td>
+</tr>
+<tr>
+<td>Verifier</td>
+<td>A programmatic check that decides whether a required condition held</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="18-bottom-line">18. Bottom line</h2>
+<p>A smaller model is not trustworthy merely because it answers an isolated tool prompt correctly. A useful local agent must preserve valid actions, exact state, recovery, and correct stopping across the whole job.</p>
+<p>Random tokens, wrong tools, and loops are evidence that the complete system violated its contract somewhere. They are not, by themselves, evidence that the low-bit weights are the damaged component.</p>
+<p>The research direction is therefore:</p>
+<ol>
+<li>collect real compressed-agent failures;</li>
+<li>group them by testable mechanism or boundary;</li>
+<li>turn each family into controlled generators and executable verifiers;</li>
+<li>identify whether model precision, working state, runtime, or protocol causes the damage;</li>
+<li>restore precision only to deployable components that causally prevent important failures;</li>
+<li>keep the same real memory and speed budget;</li>
+<li>train only the model failures that allocation cannot solve;</li>
+<li>qualify the complete artifact and serving setup against the same tests.</li>
+</ol>
+<p>This is more precise than “use better calibration data.” It is <strong>spending a fixed compression budget to preserve an executable behavior contract</strong>.</p>
+<hr />
+<h1 id="evidence-and-implementation-appendices">Evidence and implementation appendices</h1>
+<p>The main report is written for a reader new to model compression. The appendices preserve the audit trail, complete tables, mathematical definition, and experiment gates.</p>
+<h2 id="appendix-a-evidence-rules-and-complete-corpus-tables">Appendix A. Evidence rules and complete corpus tables</h2>
+<p>Four source labels are used in these appendices:</p>
+<ul>
+<li><strong>[CORPUS]</strong> directly computed from the frozen normalized complaint corpus;</li>
+<li><strong>[PRIMARY]</strong> directly supported by a paper, official document, or linked incident;</li>
+<li><strong>[INFERENCE]</strong> a synthesis beyond a source’s measured claim;</li>
+<li><strong>[PROPOSAL]</strong> a research design recommended here.</li>
+</ul>
+<p>The corpus is a failure-discovery collection, not a prevalence sample. Rows were selected by failure-oriented searches across heterogeneous sources. Counts show evidence surface, recurring mechanisms, and missing controls. They do not estimate the probability that a random quantizer fails.</p>
+<h3 id="a-1-evidence-strength-in-the-101-row-cohort">A.1 Evidence strength in the 101-row cohort</h3>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Evidence class</th>
+<th style="text-align:right">Rows</th>
+<th style="text-align:right">Share</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Demonstrated</td>
+<td style="text-align:right">39</td>
+<td style="text-align:right">38.6%</td>
+</tr>
+<tr>
+<td>Verified witness</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">15.8%</td>
+</tr>
+<tr>
+<td>Suggestive</td>
+<td style="text-align:right">39</td>
+<td style="text-align:right">38.6%</td>
+</tr>
+<tr>
+<td>Claim only</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right">6.9%</td>
+</tr>
+<tr>
+<td><strong>Demonstrated or verified witness</strong></td>
+<td style="text-align:right"><strong>55</strong></td>
+<td style="text-align:right"><strong>54.5%</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>Only 14/101 rows have a confirmed mechanism. Forty-four carry a source hypothesis, 43 have unknown mechanism, 43 are unresolved, and 12 have unknown resolution. Ninety-one have a single source lineage. Exact model files are missing in 51 rows; a baseline or control is missing in 17; a mechanism description is missing in 39.</p>
+<h3 id="a-2-annotated-operational-layer">A.2 Annotated operational layer</h3>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Primary layer</th>
+<th style="text-align:right">Rows</th>
+<th style="text-align:right">Share</th>
+<th style="text-align:right">Strong evidence</th>
+<th style="text-align:right">Confirmed mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Protocol, runtime, composition, or loading</td>
+<td style="text-align:right">43</td>
+<td style="text-align:right">42.6%</td>
+<td style="text-align:right">24</td>
+<td style="text-align:right">9</td>
+</tr>
+<tr>
+<td>Model/task-selective behavior</td>
+<td style="text-align:right">26</td>
+<td style="text-align:right">25.7%</td>
+<td style="text-align:right">10</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td>Representation, state, conversion, or numerical path</td>
+<td style="text-align:right">22</td>
+<td style="text-align:right">21.8%</td>
+<td style="text-align:right">14</td>
+<td style="text-align:right">3</td>
+</tr>
+<tr>
+<td>Economics, capacity, or serving overhead</td>
+<td style="text-align:right">10</td>
+<td style="text-align:right">9.9%</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right">1</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="a-3-quantization-surfaces">A.3 Quantization surfaces</h3>
+<p>These regex-derived categories overlap. They are counts of mentions, not comparative rates.</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Family surface</th>
+<th style="text-align:right">Rows</th>
+<th style="text-align:right">Strong evidence</th>
+<th style="text-align:right">Confirmed mechanism</th>
+<th style="text-align:right">Unresolved/unknown resolution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GGUF K/IQ/UD, dynamic, or imatrix</td>
+<td style="text-align:right">62</td>
+<td style="text-align:right">37</td>
+<td style="text-align:right">9</td>
+<td style="text-align:right">28</td>
+</tr>
+<tr>
+<td>KV-cache quantization/compression</td>
+<td style="text-align:right">26</td>
+<td style="text-align:right">14</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">16</td>
+</tr>
+<tr>
+<td>NVFP4, MXFP4, W4A4, or related FP4</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">5</td>
+<td style="text-align:right">8</td>
+</tr>
+<tr>
+<td>FP8 or block FP8</td>
+<td style="text-align:right">12</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">8</td>
+</tr>
+<tr>
+<td>Ternary, binary, or 1–2 bit</td>
+<td style="text-align:right">9</td>
+<td style="text-align:right">5</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">6</td>
+</tr>
+<tr>
+<td>AutoRound or RTN</td>
+<td style="text-align:right">5</td>
+<td style="text-align:right">2</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">3</td>
+</tr>
+<tr>
+<td>GPTQ</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">3</td>
+</tr>
+<tr>
+<td>Pruning combined with quantization</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">2</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">3</td>
+</tr>
+<tr>
+<td>AWQ</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>bitsandbytes</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="a-4-machine-checkable-signatures">A.4 Machine-checkable signatures</h3>
+<p>These categories also overlap.</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Signature</th>
+<th style="text-align:right">Rows</th>
+<th style="text-align:right">Strong evidence</th>
+<th>Candidate invariant</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Format, schema, parser, template, or protocol</td>
+<td style="text-align:right">58</td>
+<td style="text-align:right">31</td>
+<td>Raw output parses and satisfies the declared schema</td>
+</tr>
+<tr>
+<td>State, history, cache, context, or turn depth</td>
+<td style="text-align:right">37</td>
+<td style="text-align:right">17</td>
+<td>Fresh and reused-state executions remain semantically invariant</td>
+</tr>
+<tr>
+<td>Looping or nontermination</td>
+<td style="text-align:right">26</td>
+<td style="text-align:right">15</td>
+<td>Completion occurs before step/token cap without repeated bad actions</td>
+</tr>
+<tr>
+<td>Crash, assertion, load, or server failure</td>
+<td style="text-align:right">17</td>
+<td style="text-align:right">12</td>
+<td>Request completes without process or scheduler failure</td>
+</tr>
+<tr>
+<td>Performance or throughput</td>
+<td style="text-align:right">15</td>
+<td style="text-align:right">9</td>
+<td>Correct trajectories per unit wall time improve under the target load</td>
+</tr>
+<tr>
+<td>Explicit wrong semantic action/tool</td>
+<td style="text-align:right">5</td>
+<td style="text-align:right">3</td>
+<td>The selected action and arguments satisfy the task contract</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="a-5-visible-output-symptom-audit">A.5 Visible-output symptom audit</h3>
+<p><strong>[CORPUS]</strong> The main report’s 220-row symptom slice searched <code>source_title</code>, <code>observed_failure</code>, and <code>complaint_or_finding</code> with the case-insensitive expression <code>\b(?:gibberish|nonsense|garbage|repetitive|repetition|looping|loops)\b|(?:!{4,}|exclamation marks)</code>. The matches span 212 deduplicated source lineages and 15 primary labels.</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Primary label among mechanism-confirmed lineages</th>
+<th style="text-align:right">Lineages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kernel correctness</td>
+<td style="text-align:right">15</td>
+</tr>
+<tr>
+<td>Composition incompatibility</td>
+<td style="text-align:right">4</td>
+</tr>
+<tr>
+<td>Stateful precision failure</td>
+<td style="text-align:right">4</td>
+</tr>
+<tr>
+<td>Conversion-pipeline damage</td>
+<td style="text-align:right">4</td>
+</tr>
+<tr>
+<td>Template/tokenizer mismatch</td>
+<td style="text-align:right">4</td>
+</tr>
+<tr>
+<td>Support fragmentation</td>
+<td style="text-align:right">2</td>
+</tr>
+<tr>
+<td>Model loading</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td>Memory representation</td>
+<td style="text-align:right">2</td>
+</tr>
+<tr>
+<td>Capability-specific quality</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td style="text-align:right"><strong>37</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>The first seven rows form the 34-lineage runtime, pipeline, or configuration subtotal used in Section 4.3. The taxonomy was assigned during corpus construction, so this audit shows causal diversity inside the collected evidence; it does not estimate population prevalence.</p>
+<h2 id="appendix-b-thirteen-incident-to-test-cards">Appendix B. Thirteen incident-to-test cards</h2>
+<p>The route is conservative because an observed boundary does not always identify the cause.</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Incident</th>
+<th>Observed boundary</th>
+<th>Generator and verifier</th>
+<th>Route</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://github.com/ml-explore/mlx-lm/issues/1011">Qwen3.5 MLX multi-turn degradation</a></td>
+<td>MLX 4-bit emitted plain-text tool calls around round 5; 8-bit around round 13; GGUF Q4_K_XL and cloud full precision reportedly completed 70 rounds</td>
+<td>Sweep turn count, format, and runtime with the same transcript semantics; require every round to emit a recognized schema-valid call; record first divergent raw token</td>
+<td>Representation/calibration candidate, but parser and runtime must be separated first</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://github.com/ggml-org/llama.cpp/issues/21681">llama.cpp Qwen3.5 cache rewind drift</a></td>
+<td>After history mutation and prefix rewind, exact identifiers silently changed, e.g. <code>isced1997_r</code> to shorter variants</td>
+<td>Replay identical final token IDs with fresh state and reused/rewound state; require exact identifiers and equivalent next-token distributions</td>
+<td>Runtime/cache correctness gate; do not train around corrupted state</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://github.com/sgl-project/sglang/issues/31482">DeepSeek-V4 PD HiSparse</a></td>
+<td>GPQA remained high, but 144/152 SWE tasks reached 300 steps and four timed out amid malformed or repetitive output</td>
+<td>Sweep trajectory horizon and history compression; verify task completion, nonempty valid calls, first bad action, and post-error amplification</td>
+<td>State-compression policy; robustness training only after runtime attribution</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://x.com/superalesha/status/2085067196703600740">REAP pruning versus extreme quantization</a></td>
+<td>Reported agent scores were 118/150 versus 117/150 at the same 90 GB footprint, while the pruned model reportedly lost non-English capability</td>
+<td>Match physical budget; stratify held-out trajectories by language and domain; require both target-agent retention and collateral floors</td>
+<td>Calibration coverage and pruning/precision policy; evidence remains suggestive</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/discussions/21">Unsloth Qwen3-Coder refresh</a></td>
+<td>A refreshed calibration/imatrix release produced formatting, instruction, and degenerate-output reports</td>
+<td>Immutable artifact revisions; factor calibration mixture, imatrix, layer policy, and template one at a time; test dense-relative KL plus executable code/tool contracts</td>
+<td>Quantizer recipe qualification; no causal calibration claim without factorial rebuild</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://github.com/NVIDIA/TensorRT-LLM/issues/15295">GLM-5.1 FP8 tool-use corruption</a></td>
+<td>At temperature zero, output ran to length with repetitive/random numeric, URL, and mixed-language text and no tool call</td>
+<td>Sweep tool-description/system-prompt length across FP8/BF16 and runtimes; require finite nonflat logits, coherent greedy output, and expected call</td>
+<td>Activation/weight precision or kernel path; cross-runtime gate</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://github.com/sgl-project/sglang/issues/26324">MiniMax NVFP4 backend corruption</a></td>
+<td>One backend returned deterministic replacement-character-heavy text; another model asserted on first forward pass</td>
+<td>Replay identical checkpoint/input across MoE backends; compare pre-decode tensors/logits and reject replacement degeneration or assertions</td>
+<td>Confirmed kernel/runtime class; not an RL target</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://github.com/sgl-project/sglang/issues/33800">DSpark draft-depth cliff</a></td>
+<td>Draft depth 5 produced rare corruption; tested depths 3, 4, 6, and 7 produced zero events</td>
+<td>Sweep adjacent depths over repeated greedy trials; verify zero corruption within a declared trial budget and compare token-acceptance traces</td>
+<td>Speculative runtime policy and release gate</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://www.reddit.com/r/LocalLLaMA/comments/1vbbp2n/closed_the_biggest_gap_from_my_last_quant_project/">Combined calibrated quant regression</a></td>
+<td>Isolated quantization tests passed while the complete combined artifact failed; reverting small attention/state tensors helped</td>
+<td>Compare isolated tensor groups with the combined artifact; perform bidirectional upgrade/downgrade interventions; require full-artifact task and KL contracts</td>
+<td>Direct mixed-precision group-allocation candidate</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://x.com/t0nil0/status/2085707841357140439">Nonce broke repeated low-bit corruption</a></td>
+<td>A cache-busting nonce reportedly rescued 18/18 repeated corrupt calls after a shared prefix</td>
+<td>Hold semantics fixed; compare byte-stable and nonce-busted prefixes across chunking/microbatch choices; require call invariance and measure rescue rate</td>
+<td>Cache/chunking investigation; suggestive, not yet causal</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://huggingface.co/prism-ml/Ternary-Bonsai-27B-gguf/discussions/41">Ternary Bonsai looping/tool failure</a></td>
+<td>Looping, hallucination, and unusable tool-call forms reportedly improved after KV precision changes</td>
+<td>Hold weights and prompts fixed; sweep F16/Q8/Q4 KV; require valid calls, bounded repeated n-grams, and successful completion</td>
+<td>KV precision candidate; preserve exact reproduction details</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://github.com/sgl-project/sglang/issues/16541">Speculation and grammar composition failure</a></td>
+<td>One speculative version crashed; another failed structured output without crashing; grammar modes differed</td>
+<td>Factor speculative version, grammar type, and serving topology; require every schema request to return accepted valid structure without scheduler failure</td>
+<td>Runtime/grammar composition gate</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://github.com/ggml-org/llama.cpp/issues/25992">llama.cpp integrated-HIP cross-request replay</a></td>
+<td>Under mixed concurrent load, one build returned earlier requests’ nonce responses or chimeric output; an independent 1,152-check reproduction failed on the affected build and passed before and after the targeted revert</td>
+<td>Assign every request and tool result a unique nonce; cross build, backend, slot count, unified-cache mode, prompt length, and streaming; require each response to contain only its own nonce</td>
+<td>Release-blocking state-isolation and security gate; runtime repair, not model training</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="appendix-c-where-failure-verifiers-can-enter-existing-methods">Appendix C. Where failure verifiers can enter existing methods</h2>
+<p>Keep five object types separate:</p>
+<ul>
+<li><strong>methods or objectives:</strong> GPTQ, AWQ, AutoRound, TASA, TAQ/TAQO, Task-Circuit Quantization, SliM-LLM, GuidedQuant;</li>
+<li><strong>numerical formats:</strong> FP8, NVFP4, MXFP4, W4A4, ternary, binary;</li>
+<li><strong>deployment encodings and recipes:</strong> GGUF K-quants, IQ-quants, imatrix-guided recipes;</li>
+<li><strong>state policies:</strong> KIVI, IntactKV, TriAxialKV, Q-Mamba;</li>
+<li><strong>training and rollout regimes:</strong> ParetoQ, UPQ, Reasoning-QAT, QaRL, QuRL.</li>
+</ul>
+<p>The operational question is not which acronym sounds best. It is: <strong>what decision can the verifier change?</strong></p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Method family</th>
+<th>Decision exposed today</th>
+<th>Current signal</th>
+<th>Where the failure verifier enters</th>
+<th>Assessment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2607.00908">TASA</a></td>
+<td>Calibration mixture plus inter-/intra-layer bits</td>
+<td>Gradient-trace alignment, perplexity, reasoning sensitivity</td>
+<td>Replace or augment reasoning sensitivity with family-specific trajectory process loss; search mixtures that cover failure mechanisms</td>
+<td>Closest task-aware allocator; no agent trajectories in the paper</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2511.06516">You Have One Job: Per-Task Quantization Using LLMs’ Hidden Representations (TAQ/TAQO)</a></td>
+<td>Per-layer bit width</td>
+<td>Hidden-representation stability or direct layer/output sensitivity</td>
+<td>Score each layer intervention by first-failure hazard and process errors</td>
+<td>Best simple first scaffold; layer granularity may miss small circuits</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2504.07389">Task-Circuit Quantization</a></td>
+<td>Individual task-associated weights retained at 16 bit</td>
+<td>Expected quantization change times task gradient</td>
+<td>Differentiate a decision-token surrogate, then validate candidate circuits with executable trajectories</td>
+<td>Fine-grained and task-specific; irregular storage may erase systems gains</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2405.14917">SliM-LLM</a></td>
+<td>Structured group bit width</td>
+<td>Generic salience and salience-weighted calibration</td>
+<td>Replace salience with conditional marginal verifier damage</td>
+<td>Strong hardware-conscious scaffold</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2505.07004">GuidedQuant</a></td>
+<td>Output-channel quantization objective</td>
+<td>Final LM-loss gradients and cross-weight interactions</td>
+<td>Use differentiable proxies for action, schema, identifier, recovery, and termination margins; retain the executable verifier as the outer gate</td>
+<td>Best bridge from local reconstruction to end behavior; proxies can miss delayed discrete failure</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2306.02272">OWQ</a>, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2306.03078">SpQR</a>, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2404.02837">CherryQ</a>, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2411.07191">Super Weight</a></td>
+<td>Protected columns or sparse individual parameters</td>
+<td>Generic quantization sensitivity, outliers, or generation impact</td>
+<td>Redefine “critical” as causal damage to a declared verifier family</td>
+<td>Useful localization baselines; unstructured high-precision side data may not accelerate</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2607.23047">MixQuant</a></td>
+<td>Layer allocation under variable budgets and upstream bit interactions</td>
+<td>Distortion marginalized over upstream quantization plans</td>
+<td>Marginalize verifier damage over random prior allocations; re-evaluate coalitions</td>
+<td>Essential correction to naive one-layer-at-a-time scoring</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://docs.unsloth.ai/basics/unsloth-dynamic-2.0-ggufs">Unsloth Dynamic 2.0</a> and <a target="_blank" rel="noopener noreferrer" href="https://github.com/ggml-org/llama.cpp/blob/master/tools/imatrix/README.md">llama.cpp imatrix</a></td>
+<td>Tensor/layer quant type in deployable GGUF recipes</td>
+<td>KL, activation importance, heuristics, calibration corpus</td>
+<td>Use trajectory sensitivity to protect tensor types; qualify the same GGUF in the target runtime</td>
+<td>Fastest path to a real local artifact; exact recipe disclosure can be incomplete</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2309.05516">AutoRound</a>, GPTQ, AWQ</td>
+<td>Block/group rounding and sometimes mixed bits or protected channels</td>
+<td>Reconstruction, approximate curvature, or activation salience</td>
+<td>Supply failure-conditioned calibration cases and use an outer allocation loop</td>
+<td>Mature baselines; their native objectives remain local</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2508.02343">MicroMix</a></td>
+<td>MXFP4/6/8 channels</td>
+<td>Activation-error thresholds</td>
+<td>Rank channel upgrades by held-out trajectory benefit before fitting thresholds</td>
+<td>Hardware-real Blackwell path; platform-specific</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2605.20315">Mix-Quant for agentic prefill</a></td>
+<td>NVFP4 prefill versus BF16 decode</td>
+<td>Phase-level agent benchmark tolerance</td>
+<td>Use as an orthogonal baseline: test whether protecting decode alone covers the failures</td>
+<td>Existing agent-aware policy; does not localize circuits and leaves decode high precision</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2402.02750">KIVI</a>, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2403.01241">IntactKV</a></td>
+<td>KV channels/tokens or pivot tokens</td>
+<td>KV distributions and generic token importance</td>
+<td>Protect system/tool schema, exact identifiers, plan/recovery tokens, and failure-sensitive channels</td>
+<td>State-precision foundation; not recurrent-state rewind correctness</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2605.17170">TriAxialKV</a></td>
+<td>KV bits by recency × modality × semantic role</td>
+<td>Per-tag agent-task sensitivity</td>
+<td>Replace aggregate tag sensitivity with family-specific hazard and state-transition contracts</td>
+<td>Closest agent-aware KV allocator; shown on a VLM computer-use workload</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://aclanthology.org/2025.findings-acl.551/">Q-Mamba</a></td>
+<td>Recurrent-state channel/state-dimension precision</td>
+<td>State outliers and selectivity reconstruction</td>
+<td>Score recurrent state under history edits, prefix rewind, and long loops</td>
+<td>Important for hybrid recurrent agents; architecture transfer is unproven</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2502.02631">ParetoQ</a>, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2506.09104">UPQ</a>, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2601.14888">Reasoning-QAT</a></td>
+<td>Whole low-bit representation learning</td>
+<td>Distillation/QAT loss and reasoning tasks</td>
+<td>Add family rewards and a failure-boundary curriculum after a viable PTQ cold start</td>
+<td>Most relevant in the 2-bit regime or after allocation saturates</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2604.07853">QaRL</a>, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2602.13953">QuRL</a>, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2509.06980">RLFactory</a></td>
+<td>Quantized rollout/training alignment plus multi-turn tool rewards</td>
+<td>RLVR, policy-ratio controls, rule/tool-verification rewards</td>
+<td>Train in the actual quantized execution regime with executable family rewards</td>
+<td>The necessary pieces exist separately; naive quantized RL has negative evidence</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2605.24011">ActQuant</a></td>
+<td>Inter-tensor bits and intra-tensor scales for VLA models</td>
+<td>Action sensitivity and curvature</td>
+<td>Replace embodied action loss with symbolic action and trajectory contracts</td>
+<td>Strong conceptual precedent; prevents a broad “first behavior-guided quantizer” claim</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="c-1-novelty-boundary">C.1 Novelty boundary</h3>
+<p>The closest weight-allocation sequence is TASA, You Have One Job (TAQ/TAQO), Task-Circuit Quantization, GuidedQuant, and ActQuant. The closest agent-execution sequence is ACBench, Flat Score, Mix-Quant, TriAxialKV, and RLFactory.</p>
+<p>The proposal is the bridge between those sequences. Targeted searches for <code>verifier-guided</code>, <code>failure-conditioned</code>, <code>trajectory-aware</code>, <code>tool-aware</code>, and <code>agent-aware</code> quantization found adjacent work but no text-LLM method implementing the full six-step sequence stated in Section 8. This is a checked-literature boundary, not proof of absence.</p>
+<h2 id="appendix-d-optional-mathematical-definition">Appendix D. Optional mathematical definition</h2>
+<p>A tool-agent trajectory can be written as</p>
+<div class="math-display">\[\tau=(s_0,a_0,o_1,s_1,a_1,o_2,\ldots,s_T),\]</div>
+<p>where <code>s</code> is agent/runtime state, <code>a</code> is a raw or parsed action, and <code>o</code> is an observation or tool result.</p>
+<p>For failure family <span class="math-inline">\(f\)</span>, define a step verifier <span class="math-inline">\(v_f(\tau,t)\in\{0,1\}\)</span>. Examples include:</p>
+<ul>
+<li>declared tool name;</li>
+<li>schema-valid arguments;</li>
+<li>exact identifier retention;</li>
+<li>no repeated invalid action;</li>
+<li>correct response to tool error;</li>
+<li>state equality under fresh versus replayed execution;</li>
+<li>successful termination before the step cap.</li>
+</ul>
+<p>Define first-failure survival:</p>
+<div class="math-display">\[S_f(t;\mathbf b)=P\!\left(\bigwedge_{j=1}^{t}v_f(\tau,j)=1\;\middle|\;\mathbf b\right),\]</div>
+<p>where <span class="math-inline">\(\mathbf b\)</span> is the precision policy over weights, activations, KV state, recurrent state, and possibly phases.</p>
+<p>A simple family process loss is one minus restricted mean survival:</p>
+<div class="math-display">\[L_f(\mathbf b)=1-\frac{1}{T}\sum_{t=1}^{T}S_f(t;\mathbf b).\]</div>
+<p>Do not average families into one forgiving score. Use a min-max objective:</p>
+<div class="math-display">\[\min_{\mathbf b}\;\max_{f\in\mathcal F}
+\frac{\max\{0,L_f(\mathbf b)-L_f(\mathrm{FP})\}}{\epsilon_f}\]</div>
+<p>subject to</p>
+<div class="math-display">\[\mathrm{loaded\_bytes}(\mathbf b)\le B,\qquad
+\mathrm{prefill\_throughput}(\mathbf b)\ge P_{\min},\qquad
+\mathrm{decode\_throughput}(\mathbf b)\ge D_{\min}.\]</div>
+<p>Here <span class="math-inline">\(\epsilon_f\)</span> is the allowed dense-relative degradation for family <span class="math-inline">\(f\)</span>. The physical constraints prevent a nominal 4-bit policy from winning by adding irregular high-precision side data or falling back to slow kernels.</p>
+<h3 id="d-1-measure-causal-component-importance">D.1 Measure causal component importance</h3>
+<p>For component group <span class="math-inline">\(g\)</span>, measure both directions:</p>
+<div class="math-display">\[I^{\downarrow}_{g,f}=L_f(\mathbf b_{g\downarrow})-L_f(\mathbf b),\]</div>
+<div class="math-display">\[I^{\uparrow}_{g,f}=L_f(\mathbf b)-L_f(\mathbf b_{g\uparrow}).\]</div>
+<p>A credible critical group should hurt when downgraded and rescue when upgraded. Because the corpus contains a demonstrated combined-artifact failure and MixQuant shows upstream bit interactions, one-at-a-time importance is not enough. Estimate conditional marginal damage over random or allocator-produced surrounding precision plans, then test the strongest pairs or coalitions.</p>
+<h3 id="d-2-hard-verifiers-and-differentiable-proxies-have-different-jobs">D.2 Hard verifiers and differentiable proxies have different jobs</h3>
+<ul>
+<li><strong>Hard executable verifiers</strong> decide calibration membership, outer-loop allocation, acceptance, and release.</li>
+<li><strong>Differentiable proxies</strong> make optimization affordable: decision-token margins, correct-tool probability, schema-token likelihood, identifier-copy margin, stop-versus-loop margin, and dense-relative KL at verified boundary tokens.</li>
+<li>The proxy never replaces the hard verifier. A model can assign good likelihood to a call and still fail in parsing, execution, state update, or recovery.</li>
+</ul>
+<h2 id="appendix-e-full-research-program-and-stage-gates">Appendix E. Full research program and stage gates</h2>
+<h3 id="stage-0-declares-the-executable-capability-envelope">Stage 0 declares the executable capability envelope</h3>
+<p>Freeze:</p>
+<ul>
+<li>model and exact revision;</li>
+<li>quantizer and configuration;</li>
+<li>runtime and commit;</li>
+<li>hardware;</li>
+<li>chat template and parser;</li>
+<li>context range;</li>
+<li>cache policy;</li>
+<li>batch/concurrency policy;</li>
+<li>speculative-decoding policy;</li>
+<li>hard model-byte and throughput budgets;</li>
+<li>target and collateral capability floors.</li>
+</ul>
+<p><strong>Gate:</strong> no comparison advances unless it can run inside the same envelope.</p>
+<h3 id="stage-1-converts-incidents-into-generators-and-verifiers">Stage 1 converts incidents into generators and verifiers</h3>
+<p>For each family, store:</p>
+<ul>
+<li>source incident and evidence grade;</li>
+<li>minimal trigger dimensions;</li>
+<li>controlled generator;</li>
+<li>raw token receipt;</li>
+<li>parser receipt;</li>
+<li>executed action/result;</li>
+<li>state snapshot or digest;</li>
+<li>final task contract;</li>
+<li>dense and runtime controls;</li>
+<li>split lineage.</li>
+</ul>
+<p>Split by <strong>failure-family lineage</strong>, not random prompt rows. Held-out schemas, tool inventories, languages, history mutations, and longer horizons must not be near-duplicates of calibration examples.</p>
+<p><strong>Gate:</strong> the family is reproducible enough to estimate a rate and to distinguish model, parser, runtime, and state failure.</p>
+<h3 id="stage-2-establishes-compression-caused-process-damage">Stage 2 establishes compression-caused process damage</h3>
+<p>Report:</p>
+<ul>
+<li>per-channel error rates;</li>
+<li>first-failure survival <span class="math-inline">\(S_f(t)\)</span>;</li>
+<li>conditional failure hazard;</li>
+<li>success as the allowed-error budget is tightened;</li>
+<li>repeated-invalid-action and recovery rates;</li>
+<li>reasoning/recovery token inflation;</li>
+<li>fresh-state versus reused/rewound-state divergence;</li>
+<li>final task success, but never alone.</li>
+</ul>
+<p><strong>Gate:</strong> only families with a reproducible dense-to-quantized gap advance to model-component localization. Runtime-only failures go to a runtime issue and release gate.</p>
+<h3 id="stage-3-localizes-causal-precision-and-state-components">Stage 3 localizes causal precision and state components</h3>
+<p>Start with deployable groups:</p>
+<ul>
+<li>embeddings and output head;</li>
+<li>per-layer attention Q/K/V/O matrices;</li>
+<li>per-layer MLP gate/up/down matrices;</li>
+<li>small attention/state tensors;</li>
+<li>MoE router and expert groups;</li>
+<li>KV semantic/recency groups;</li>
+<li>recurrent-state channel and state dimensions.</li>
+</ul>
+<p>Run bidirectional upgrade/downgrade interventions. Hold tokenized input, runtime, template, parser, cache policy, and sampling fixed. Repeat where kernels or batching are nondeterministic.</p>
+<p><strong>Gate:</strong> a “critical component” must show both damage and rescue, not merely high activation or gradient magnitude.</p>
+<h3 id="stage-4-allocates-precision-under-physical-constraints">Stage 4 allocates precision under physical constraints</h3>
+<p>Compare four signals:</p>
+<ol>
+<li>generic reconstruction/KL/perplexity;</li>
+<li>ordinary task-aware single-turn calibration;</li>
+<li>failure-aware process sensitivity;</li>
+<li>combined task plus failure signal.</li>
+</ol>
+<p>Build actual artifacts and plot quality against:</p>
+<ul>
+<li>on-disk and loaded bytes including scales/metadata;</li>
+<li>prefill tokens/s;</li>
+<li>decode tokens/s;</li>
+<li>peak memory;</li>
+<li>correctly completed trajectories/s;</li>
+<li>worst-family survival regret.</li>
+</ul>
+<p><strong>Gate:</strong> the failure-conditioned policy must improve held-out worst-family survival at matched loaded bytes and measured throughput.</p>
+<h3 id="stage-5-trains-residual-representation-failures">Stage 5 trains residual representation failures</h3>
+<p>If allocation alone cannot meet the envelope:</p>
+<ol>
+<li>initialize from the best PTQ policy;</li>
+<li>distill from the dense parent;</li>
+<li>align the training forward pass with the quantized rollout path;</li>
+<li>use differentiable boundary-token proxies for dense credit;</li>
+<li>use executable family verifiers for terminal and process rewards;</li>
+<li>retain clean-task and collateral-capability rewards;</li>
+<li>evaluate reward gaming under unseen schemas and longer horizons.</li>
+</ol>
+<p>This sequence follows the positive evidence from <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2601.14888">Reasoning-QAT</a> and mismatch-aware <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2604.07853">QaRL</a>. It also respects a negative result: naive quantization-aware RL underperformed PTQ and QLoRA in tested math settings in <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2511.15694">The Impact of Quantization on Large Reasoning Model RL</a>.</p>
+<p><strong>Gate:</strong> training must beat the best allocation-only physical artifact. Otherwise keep the cheaper PTQ result.</p>
+<h3 id="stage-6-qualifies-the-complete-artifact">Stage 6 qualifies the complete artifact</h3>
+<p>Run the same contracts on:</p>
+<ul>
+<li>the converted physical model;</li>
+<li>the target runtime and parser;</li>
+<li>the actual KV/recurrent-state precision;</li>
+<li>fresh and reused/rewound cache;</li>
+<li>target concurrency;</li>
+<li>target speculative path;</li>
+<li>context and tool-schema bounds declared for release.</li>
+</ul>
+<p><strong>Gate:</strong> release the artifact only inside the envelope it actually passed. A logical mask, fake-quant model, or isolated layer test is not a receipt for the deployed object.</p>
+<h2 id="appendix-f-detailed-first-experiment-protocol">Appendix F. Detailed first-experiment protocol</h2>
+<h3 id="f-1-use-the-parent-before-the-extracted-artifact">F.1 Use the parent before the extracted artifact</h3>
+<p>[PROPOSAL] Use the repository’s <strong>Qwen3-8B parent</strong> for the first precision-allocation experiment. Keep the existing physically extracted BFCL artifact as a later stress test. Starting from the extracted artifact would confound channel extraction, physical conversion, and quantization in the first causal study.</p>
+<h3 id="f-2-fixed-envelope">F.2 Fixed envelope</h3>
+<ul>
+<li>Weight-only quantization first.</li>
+<li>BF16/FP16 activations and KV cache.</li>
+<li>Fresh cache.</li>
+<li>Speculative decoding off.</li>
+<li>One runtime, template, and parser.</li>
+<li>Temperature zero plus repeated trials where the serving path is nondeterministic.</li>
+<li>Physical budget equal to a conventional deployable 4-bit artifact, including metadata and scales.</li>
+<li>Throughput floor declared before evaluating quality.</li>
+</ul>
+<p>This deliberately excludes state compression and production composition. Those become the next factorial study after the weight-allocation result is known.</p>
+<h3 id="f-3-failure-families">F.3 Failure families</h3>
+<p>Use at least these six families:</p>
+<ol>
+<li>structured-output or delimiter collapse;</li>
+<li>exact identifier corruption;</li>
+<li>wrong tool among semantically overlapping tools;</li>
+<li>repeated invalid action and failure to recover;</li>
+<li>long tool output and turn-depth collapse;</li>
+<li>no-call/tool-call boundary and premature termination.</li>
+</ol>
+<p>For each family, generate calibration and held-out sets with disjoint tool names, schemas, identifiers, and scenario templates. Evaluate short, medium, and longer horizons. Include clean controls where no tool should be called and collateral tasks not represented in the calibration mix.</p>
+<h3 id="f-4-compared-policies">F.4 Compared policies</h3>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Policy</th>
+<th>Signal</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BF16/FP16</td>
+<td>None</td>
+<td>Parent capability and failure propensity</td>
+</tr>
+<tr>
+<td>Uniform deployable 4-bit</td>
+<td>Standard recipe</td>
+<td>Compression baseline</td>
+</tr>
+<tr>
+<td>Generic mixed precision</td>
+<td>KL, activation, or reconstruction sensitivity</td>
+<td>Conventional allocator baseline</td>
+</tr>
+<tr>
+<td>Ordinary task-aware mixed precision</td>
+<td>Single-turn BFCL/tool prompts</td>
+<td>Tests whether ordinary task data is enough</td>
+</tr>
+<tr>
+<td>Failure-conditioned mixed precision</td>
+<td>Closed-loop verifier damage</td>
+<td>Proposed policy</td>
+</tr>
+</tbody>
+</table></div>
+<p>A sixth combined policy, ordinary task plus failure signal, can determine whether failure data replaces or complements standard task calibration.</p>
+<h3 id="f-5-search-procedure">F.5 Search procedure</h3>
+<ol>
+<li>Build a low-bit baseline artifact.</li>
+<li>Upgrade one deployable group at a time; measure family-specific rescue.</li>
+<li>Starting from high precision, downgrade the same groups; measure damage.</li>
+<li>Re-score leading groups under random surrounding allocations to account for interaction.</li>
+<li>Test the strongest pairs and small coalitions.</li>
+<li>Solve the fixed-byte allocation with a min-max family objective.</li>
+<li>Convert every finalist to the target physical format.</li>
+<li>Re-run the held-out suite and physical throughput measurement.</li>
+</ol>
+<h3 id="f-6-primary-metrics">F.6 Primary metrics</h3>
+<ul>
+<li>restricted mean first-failure survival by family;</li>
+<li>success versus allowed-error budget;</li>
+<li>valid/correct tool and argument rates;</li>
+<li>exact identifier retention;</li>
+<li>repeated-invalid-action rate;</li>
+<li>recovery-after-error rate;</li>
+<li>completion before step cap;</li>
+<li>extra reasoning/recovery tokens;</li>
+<li>target and collateral task success;</li>
+<li>loaded bytes, peak memory, prefill/decode tokens/s;</li>
+<li><strong>correctly completed trajectories per second</strong>.</li>
+</ul>
+<h3 id="f-7-positive-and-negative-results">F.7 Positive and negative results</h3>
+<p>A positive result requires all of the following:</p>
+<ol>
+<li>failure-conditioned component ranking differs materially from generic and ordinary task-aware rankings;</li>
+<li>the physical policy improves held-out worst-family survival with confidence intervals excluding no improvement;</li>
+<li>loaded bytes and measured throughput satisfy the predeclared budget;</li>
+<li>no collateral capability falls below its floor;</li>
+<li>the gain survives unseen schemas, identifiers, and longer horizons.</li>
+</ol>
+<p>The decisive negative result is equally useful:</p>
+<ul>
+<li>rankings do not differ, or</li>
+<li>they differ but produce no held-out physical gain at matched cost.</li>
+</ul>
+<p>Either result should be published. It directly tests whether the complaint atlas becomes a new optimization signal rather than merely a better benchmark.</p>
+<h3 id="f-8-why-rl-is-not-in-experiment-one">F.8 Why RL is not in experiment one</h3>
+<p>RL introduces policy drift, reward design, quantized-rollout mismatch, and additional attribution ambiguity. The first experiment asks a cleaner question:</p>
+<blockquote>
+<p>Does the failure atlas identify a different, better precision allocation?</p>
+</blockquote>
+<p>Only after that question is answered should the same verifiers become QAT/RL rewards.</p>
+<h3 id="f-9-separate-state-experiment">F.9 Separate state experiment</h3>
+<p>The corpus contains 26 tool-calling incidents involving KV-cache quantization, compression, or related state handling. State should not be folded into the first weight experiment.</p>
+<p>Run a 2×2 attribution grid:</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Weights</th>
+<th>State</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full precision</td>
+<td>Full precision</td>
+<td>Parent control</td>
+</tr>
+<tr>
+<td>Quantized</td>
+<td>Full precision</td>
+<td>Weight/activation effect</td>
+</tr>
+<tr>
+<td>Full precision</td>
+<td>Quantized</td>
+<td>KV or recurrent-state effect</td>
+</tr>
+<tr>
+<td>Quantized</td>
+<td>Quantized</td>
+<td>Interaction and production configuration</td>
+</tr>
+</tbody>
+</table></div>
+<p>Then add fresh versus reused/rewound state.</p>
+<p>For transformer KV, compare homogeneous precision, KIVI/IntactKV-style structural policies, and TriAxialKV-style semantic roles. For hybrid recurrent architectures, include recurrent state explicitly; Q-Mamba demonstrates that state-channel and state-dimension scaling can matter, but it does not validate cache rewind or DeltaNet semantics.</p>
+<p>A failure-conditioned state policy should ask:</p>
+<ul>
+<li>Which tokens must preserve exact identity?</li>
+<li>Which semantic roles (system rules, tool schemas, plans, observations, recovery messages) need more precision?</li>
+<li>Which state channels accumulate errors across turns?</li>
+<li>Which rewind or reuse operations violate state equivalence?</li>
+</ul>
+<h2 id="appendix-g-research-risk-register-and-falsifiable-hypotheses">Appendix G. Research risk register and falsifiable hypotheses</h2>
+<h3 id="g-1-complaint-selection-bias">G.1 Complaint-selection bias</h3>
+<p>The corpus overrepresents popular local formats, difficult failures, and users willing to report them. Use it to generate hypotheses, not estimate rates.</p>
+<h3 id="g-2-benchmark-and-verifier-overfitting">G.2 Benchmark and verifier overfitting</h3>
+<p>A finite suite can become another narrow benchmark. Split by generator lineage and evaluate unseen schemas, languages, tool inventories, horizons, and state mutations.</p>
+<h3 id="g-3-conflating-failure-family-with-prompt-surface">G.3 Conflating failure family with prompt surface</h3>
+<p>The same schema text with renamed tools is not a held-out mechanism. Hold out causal dimensions, not cosmetic wording.</p>
+<h3 id="g-4-runtime-contamination">G.4 Runtime contamination</h3>
+<p>A parser, cache, or kernel repair can look like a better model. Preserve raw tokens, parser decisions, execution results, and state receipts separately.</p>
+<h3 id="g-5-non-additive-precision-effects">G.5 Non-additive precision effects</h3>
+<p>Isolated layer or tensor success does not prove the combined artifact will work. The corpus contains a direct counterexample; MixQuant independently shows upstream allocation changes downstream sensitivity.</p>
+<h3 id="g-6-hardware-fake-mixed-precision">G.6 Hardware-fake mixed precision</h3>
+<p>A mathematically elegant sparse set of FP16 weights may add metadata, trigger dequantization, or lose kernel efficiency. Count physical bytes and measure the actual runtime.</p>
+<h3 id="g-7-aggregate-score-masking">G.7 Aggregate-score masking</h3>
+<p>Final success can hide extra retries, errors, tokens, and recovery. Report process channels, survival, error-budget curves, and correctly completed trajectories/s.</p>
+<h3 id="g-8-calibration-distribution-specification">G.8 Calibration-distribution specification</h3>
+<p>A high target score can coexist with erased languages or collateral behaviors. Treat calibration composition as a capability specification and retain explicit collateral floors.</p>
+<h3 id="g-9-rl-reward-gaming-and-mismatch">G.9 RL reward gaming and mismatch</h3>
+<p>A model can satisfy format checks while choosing the wrong action, terminate early to avoid errors, or exploit a parser. Use layered verifiers and quantized-runtime-aligned rollouts; keep held-out executable contracts.</p>
+<h3 id="g-10-open-world-reliability-overclaim">G.10 Open-world reliability overclaim</h3>
+<p>Failure-family saturation inside a declared envelope is not “almost all failures.” The defensible claim is improved measured reliability within that envelope.</p>
+<h3 id="g-11-falsifiable-hypotheses">G.11 Falsifiable hypotheses</h3>
+<ol>
+<li><strong>Process-metric replication.</strong> Uniform low-bit quantization increases at least one pre-existing process-failure channel without a commensurate final-score change.</li>
+<li><strong>Ranking divergence.</strong> Failure-conditioned precision rankings have low enough agreement with perplexity/activation and ordinary task-aware rankings to change the chosen artifact.</li>
+<li><strong>Fixed-budget benefit.</strong> FC-MPQ improves worst-family held-out trajectory survival at matched loaded bytes and measured throughput.</li>
+<li><strong>Family transfer.</strong> The gain transfers to unseen prompts and schemas from the same failure family.</li>
+<li><strong>State separability.</strong> Weight, KV, recurrent-state, runtime, and parser lanes explain distinct subsets of failures.</li>
+<li><strong>Training increment.</strong> Quantized-runtime-aligned QAT/RL adds robustness beyond the best allocation-only artifact.</li>
+</ol>
+<p>The program fails its central claim if hypothesis 2 or 3 fails. Hypothesis 1 is now largely replication and extension because the July 2026 paper already demonstrated the phenomenon in a controlled setting.</p>
+<p>The central claim fails if the component rankings do not differ in a useful way or if they produce no held-out physical gain at matched cost. The first hypothesis is now mainly replication and extension because Flat Score, Amplified Failures already demonstrated process amplification in a controlled setting.</p>
+<h2 id="appendix-h-full-advanced-reading-list">Appendix H. Full advanced reading list</h2>
+<ol>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2607.27275">Flat Score, Amplified Failures</a>: controlled evidence for hidden closed-loop quantization damage.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://proceedings.mlr.press/v267/dong25k.html">Can Compressed LLMs Truly Act? / ACBench</a>: broad agent-compression evaluation.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2607.00908">TASA: Beyond Activation Alignment</a>: calibration mixture and mixed-precision allocation.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2504.07389">Task-Circuit Quantization</a>: task-conditioned critical-weight preservation.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2511.06516">You Have One Job: Per-Task Quantization Using LLMs’ Hidden Representations</a>: per-task layer allocation through TAQ/TAQO.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2505.07004">GuidedQuant</a>: final-model loss rather than only local reconstruction guidance.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2510.10618">Preserving LLM Capabilities through Calibration Data Curation</a>: calibration composition as capability retention.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2607.23047">MixQuant</a>: non-additive upstream allocation effects.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2405.14917">SliM-LLM</a>: structured, salience-driven mixed precision.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2306.02272">OWQ</a>, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2306.03078">SpQR</a>, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2404.02837">CherryQ</a>, and <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2411.07191">The Super Weight in Large Language Models</a>: outlier and critical-parameter preservation.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2402.02750">KIVI</a>, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2403.01241">IntactKV</a>, and <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2605.17170">TriAxialKV</a>: structured and role-aware KV-cache precision.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://aclanthology.org/2025.findings-acl.551/">Q-Mamba</a>: recurrent-state quantization.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2605.24011">ActQuant</a>: action-guided precision for embodied agents.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2601.14888">Reasoning-QAT</a>, <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2604.07853">QaRL</a>, and <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2602.13953">QuRL</a>: low-bit training and rollout alignment.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2509.06980">RLFactory</a>: executable multi-turn tool rewards.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2607.12747">Tracing Agentic Failure from the Flow of Success</a>: trajectory-step failure attribution without manual step labels.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2604.19884">From Signal Degradation to Computation Collapse</a>: distinct post-training quantization failure modes.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2508.02343">MicroMix</a>: hardware-oriented microscaling mixed precision.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2605.20315">Mix-Quant: Quantized Prefilling, Precise Decoding</a>: phase-aware precision for agentic inference.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2511.15694">The Impact of Quantization on Large Reasoning Model Reinforcement Learning</a>: negative evidence for naive quantization-aware RL in tested math settings.</li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2606.25519">Quantization Inflates Reasoning</a>: reasoning-token inflation as an end-to-end efficiency cost hidden by accuracy and per-token latency.</li>
+</ol>
+</article>
+<nav class="toc" aria-label="Table of contents"><details class="toc-details" open><summary>Contents</summary><section><h2>Beginner’s guide</h2><ul><li><a href="#start-with-the-problem-a-user-can-see">Start with the problem a user can see</a></li>
+<li><a href="#1-what-is-actually-running-when-you-use-a-local-agent">1. What is actually running when you use a local agent?</a></li>
+<li><a href="#2-what-does-compression-change">2. What does compression change?</a></li>
+<li><a href="#3-why-normal-benchmarks-can-miss-the-damage">3. Why normal benchmarks can miss the damage</a></li>
+<li><a href="#4-what-public-failure-reports-tell-us">4. What public failure reports tell us</a></li>
+<li><a href="#5-how-a-complaint-becomes-a-useful-test">5. How a complaint becomes a useful test</a></li>
+<li><a href="#6-locate-the-faulty-layer-before-changing-the-model">6. Locate the faulty layer before changing the model</a></li>
+<li><a href="#7-let-verified-failures-choose-precision">7. Let verified failures choose precision</a></li>
+<li><a href="#8-what-earlier-research-already-solved">8. What earlier research already solved</a></li>
+<li><a href="#9-the-first-experiment-that-can-answer-the-question">9. The first experiment that can answer the question</a></li>
+<li><a href="#10-state-precision-needs-its-own-experiment">10. State precision needs its own experiment</a></li>
+<li><a href="#11-train-only-after-attribution">11. Train only after attribution</a></li>
+<li><a href="#12-what-this-work-can-and-cannot-claim">12. What this work can and cannot claim</a></li>
+<li><a href="#13-what-can-make-the-research-itself-fail">13. What can make the research itself fail</a></li>
+<li><a href="#14-what-a-useful-result-would-change-for-a-user">14. What a useful result would change for a user</a></li>
+<li><a href="#15-six-deeper-deductions-worth-testing">15. Six deeper deductions worth testing</a></li>
+<li><a href="#16-a-beginners-reading-path">16. A beginner’s reading path</a></li>
+<li><a href="#17-glossary">17. Glossary</a></li>
+<li><a href="#18-bottom-line">18. Bottom line</a></li></ul></section><section><h2>Evidence appendices</h2><ul><li><a href="#appendix-a-evidence-rules-and-complete-corpus-tables">Appendix A. Evidence rules and complete corpus tables</a></li>
+<li><a href="#appendix-b-thirteen-incident-to-test-cards">Appendix B. Thirteen incident-to-test cards</a></li>
+<li><a href="#appendix-c-where-failure-verifiers-can-enter-existing-methods">Appendix C. Where failure verifiers can enter existing methods</a></li>
+<li><a href="#appendix-d-optional-mathematical-definition">Appendix D. Optional mathematical definition</a></li>
+<li><a href="#appendix-e-full-research-program-and-stage-gates">Appendix E. Full research program and stage gates</a></li>
+<li><a href="#appendix-f-detailed-first-experiment-protocol">Appendix F. Detailed first-experiment protocol</a></li>
+<li><a href="#appendix-g-research-risk-register-and-falsifiable-hypotheses">Appendix G. Research risk register and falsifiable hypotheses</a></li>
+<li><a href="#appendix-h-full-advanced-reading-list">Appendix H. Full advanced reading list</a></li></ul></section></details></nav>
+</div>
+<footer>Generated from <code>verifier_guided_quantization_research_report.md</code>. External links open in a new tab.</footer>
+<script>(function(){const q=window.matchMedia('(max-width: 900px)');const d=document.querySelector('.toc-details');const sync=function(e){if(e.matches){d.removeAttribute('open')}else{d.setAttribute('open','')}};sync(q);q.addEventListener('change',sync)})();</script></body>
+</html>

@@ -1,0 +1,627 @@
+{
+  "as_of": "2026-08-08",
+  "counts": {
+    "evidence_class": {
+      "claim_only": 3,
+      "demonstrated": 12,
+      "suggestive": 5,
+      "verified_witness": 5
+    },
+    "method_family": {
+      "activation_and_weight_quantization": 1,
+      "kv_cache_quantization": 2,
+      "layer_pruning": 1,
+      "quantized_runtime_support": 1,
+      "structured_pruning": 1,
+      "structured_pruning_plus_quantization": 3,
+      "unstructured_pruning": 1,
+      "weight_pruning_and_quantization": 1,
+      "weight_quantization": 14
+    },
+    "primary_pattern": {
+      "composition_incompatibility": 1,
+      "conversion_pipeline_damage": 1,
+      "decode_economics": 2,
+      "evaluation_mismatch": 1,
+      "kernel_correctness": 3,
+      "outlier_sensitivity": 3,
+      "pruning_recovery_gap": 1,
+      "representation_overhead": 1,
+      "stateful_precision_failure": 3,
+      "support_fragmentation": 3,
+      "task_selective_quality": 6
+    },
+    "source_kind": {
+      "github_discussion": 1,
+      "github_issue": 8,
+      "github_pull_request": 1,
+      "official_documentation": 1,
+      "paper": 6,
+      "reddit_post": 5,
+      "x_post": 2,
+      "x_thread_reply": 1
+    }
+  },
+  "high_voltage_sleepers": [
+    {
+      "adjusted_heat": 8,
+      "alpha": 11,
+      "desire": 88,
+      "evidence_class": "claim_only",
+      "id": "reddit-1us7a22-capability-specific-q4-loss",
+      "primary_pattern": "task_selective_quality",
+      "rank": 1,
+      "source_url": "https://www.reddit.com/r/LocalLLaMA/comments/1us7a22/has_anyone_tested_how_quantization_hits_different/",
+      "title": "A claimed Q4 math drop hid behind stable chat and knowledge scores"
+    },
+    {
+      "adjusted_heat": 3,
+      "alpha": 7,
+      "desire": 21,
+      "evidence_class": "claim_only",
+      "id": "reddit-1sm2us4-q4-long-output-cliff",
+      "primary_pattern": "task_selective_quality",
+      "rank": 2,
+      "source_url": "https://www.reddit.com/r/LocalLLaMA/comments/1sm2us4/at_what_point_does_quantization_stop_being_a/",
+      "title": "A user reported a model-dependent Q5-to-Q4 coherence cliff"
+    },
+    {
+      "adjusted_heat": 2,
+      "alpha": 7,
+      "desire": 14,
+      "evidence_class": "claim_only",
+      "id": "x-2085977125845352679-q4-mtp-reply",
+      "primary_pattern": "support_fragmentation",
+      "rank": 3,
+      "source_url": "https://x.com/tokenbender/status/2085977125845352679",
+      "title": "Thread reply claimed a Q4 floor and multi-GPU MTP failure"
+    }
+  ],
+  "pattern_synthesis": [
+    {
+      "failure_surfaces": [
+        "compatibility",
+        "correctness",
+        "maintainability",
+        "model_coverage",
+        "model_loading",
+        "multi_gpu",
+        "multi_user_serving",
+        "portability",
+        "quality",
+        "serving",
+        "tensor_parallelism",
+        "throughput"
+      ],
+      "pattern": "composition_incompatibility",
+      "report_count": 6,
+      "report_ids": [
+        "vllm-10819-marlin24-abnormal-output",
+        "vllm-11756-cutlass24-quant-crash",
+        "vllm-39583-quant-backend-fragmentation",
+        "vllm-5569-bnb-gibberish",
+        "vllm-5793-gpu-dependent-marlin-quality",
+        "x-2085977125845352679-q4-mtp-reply"
+      ],
+      "strong_receipt_count": 5
+    },
+    {
+      "failure_surfaces": [
+        "coding",
+        "conversion",
+        "correctness",
+        "long_generation",
+        "math",
+        "perplexity",
+        "pruning",
+        "quality",
+        "scaling",
+        "tool_calling",
+        "zero_shot_quality"
+      ],
+      "pattern": "conversion_pipeline_damage",
+      "report_count": 5,
+      "report_ids": [
+        "arxiv-2208.07339-emergent-int8-outliers",
+        "arxiv-2306.00978-awq-salient-channel-loss",
+        "arxiv-2411.07191-super-weight-ablation",
+        "llamacpp-quantize-requant-warning",
+        "x-2085707841357140439-prefix-cache-conditioned-corruption"
+      ],
+      "strong_receipt_count": 4
+    },
+    {
+      "failure_surfaces": [
+        "benchmarking",
+        "context_capacity",
+        "kernel_efficiency",
+        "latency",
+        "maintainability",
+        "memory_representation",
+        "model_coverage",
+        "multilingual_quality",
+        "subjective_quality",
+        "tensor_parallelism",
+        "throughput"
+      ],
+      "pattern": "decode_economics",
+      "report_count": 6,
+      "report_ids": [
+        "arxiv-2607.08786-moderate-sparsity-kernel-gap",
+        "pytorch-153825-h100-sparse-slower",
+        "reddit-17xetyp-gptq-quality-speed-trade",
+        "vllm-21236-w4a16-small-speedup",
+        "vllm-39583-quant-backend-fragmentation",
+        "x-2085067196703600740-reap-pruning-language-loss"
+      ],
+      "strong_receipt_count": 3
+    },
+    {
+      "failure_surfaces": [
+        "benchmarking",
+        "capability_coverage",
+        "coherence",
+        "context_capacity",
+        "distribution_fidelity",
+        "long_context",
+        "long_form_generation",
+        "long_generation",
+        "math",
+        "multilingual_quality",
+        "outlier_knowledge",
+        "perplexity",
+        "quality",
+        "reasoning",
+        "subjective_quality",
+        "throughput",
+        "trajectory_reliability"
+      ],
+      "pattern": "evaluation_mismatch",
+      "report_count": 9,
+      "report_ids": [
+        "arxiv-2505.20276-long-context-loss",
+        "arxiv-2605.02404-task-vs-distribution-lossless",
+        "llamacpp-2094-low-bit-perplexity",
+        "reddit-17xetyp-gptq-quality-speed-trade",
+        "reddit-1c9u2jd-layer-pruning-hidden-loss",
+        "reddit-1sm2us4-q4-long-output-cliff",
+        "reddit-1us7a22-capability-specific-q4-loss",
+        "vllm-21236-w4a16-small-speedup",
+        "x-2085067196703600740-reap-pruning-language-loss"
+      ],
+      "strong_receipt_count": 3
+    },
+    {
+      "failure_surfaces": [
+        "code_generation",
+        "correctness",
+        "long_context",
+        "long_generation",
+        "model_loading",
+        "multi_turn_correctness",
+        "portability",
+        "serving",
+        "state_reuse",
+        "tensor_parallelism",
+        "tool_calling"
+      ],
+      "pattern": "kernel_correctness",
+      "report_count": 7,
+      "report_ids": [
+        "llamacpp-21915-kv-cache-corruption",
+        "llamacpp-25202-dsv4-quantized-kv-gibberish",
+        "reddit-1rgl42y-qwen-local-runtime-gibberish",
+        "vllm-10819-marlin24-abnormal-output",
+        "vllm-5569-bnb-gibberish",
+        "vllm-5793-gpu-dependent-marlin-quality",
+        "x-2085707841357140439-prefix-cache-conditioned-corruption"
+      ],
+      "strong_receipt_count": 6
+    },
+    {
+      "failure_surfaces": [
+        "coding",
+        "math",
+        "perplexity",
+        "pruning",
+        "scaling",
+        "zero_shot_quality"
+      ],
+      "pattern": "outlier_sensitivity",
+      "report_count": 3,
+      "report_ids": [
+        "arxiv-2208.07339-emergent-int8-outliers",
+        "arxiv-2306.00978-awq-salient-channel-loss",
+        "arxiv-2411.07191-super-weight-ablation"
+      ],
+      "strong_receipt_count": 3
+    },
+    {
+      "failure_surfaces": [
+        "benchmarking",
+        "capability_coverage",
+        "context_capacity",
+        "multilingual_quality",
+        "outlier_knowledge",
+        "perplexity",
+        "pruning",
+        "throughput",
+        "zero_shot_quality"
+      ],
+      "pattern": "pruning_recovery_gap",
+      "report_count": 3,
+      "report_ids": [
+        "arxiv-2411.07191-super-weight-ablation",
+        "reddit-1c9u2jd-layer-pruning-hidden-loss",
+        "x-2085067196703600740-reap-pruning-language-loss"
+      ],
+      "strong_receipt_count": 1
+    },
+    {
+      "failure_surfaces": [
+        "kernel_efficiency",
+        "memory_representation",
+        "throughput"
+      ],
+      "pattern": "representation_overhead",
+      "report_count": 1,
+      "report_ids": [
+        "arxiv-2607.08786-moderate-sparsity-kernel-gap"
+      ],
+      "strong_receipt_count": 1
+    },
+    {
+      "failure_surfaces": [
+        "correctness",
+        "long_context",
+        "long_generation",
+        "multi_turn_correctness",
+        "serving",
+        "state_reuse",
+        "tool_calling"
+      ],
+      "pattern": "stateful_precision_failure",
+      "report_count": 3,
+      "report_ids": [
+        "llamacpp-21915-kv-cache-corruption",
+        "llamacpp-25202-dsv4-quantized-kv-gibberish",
+        "x-2085707841357140439-prefix-cache-conditioned-corruption"
+      ],
+      "strong_receipt_count": 2
+    },
+    {
+      "failure_surfaces": [
+        "code_generation",
+        "compatibility",
+        "correctness",
+        "kernel_efficiency",
+        "latency",
+        "long_context",
+        "maintainability",
+        "memory_representation",
+        "model_coverage",
+        "model_loading",
+        "multi_gpu",
+        "multi_user_serving",
+        "portability",
+        "quality",
+        "serving",
+        "tensor_parallelism",
+        "throughput"
+      ],
+      "pattern": "support_fragmentation",
+      "report_count": 9,
+      "report_ids": [
+        "arxiv-2607.08786-moderate-sparsity-kernel-gap",
+        "llamacpp-25202-dsv4-quantized-kv-gibberish",
+        "pytorch-153825-h100-sparse-slower",
+        "reddit-1rgl42y-qwen-local-runtime-gibberish",
+        "vllm-11756-cutlass24-quant-crash",
+        "vllm-39583-quant-backend-fragmentation",
+        "vllm-5569-bnb-gibberish",
+        "vllm-5793-gpu-dependent-marlin-quality",
+        "x-2085977125845352679-q4-mtp-reply"
+      ],
+      "strong_receipt_count": 8
+    },
+    {
+      "failure_surfaces": [
+        "benchmarking",
+        "coding",
+        "coherence",
+        "context_capacity",
+        "conversion",
+        "distribution_fidelity",
+        "long_context",
+        "long_form_generation",
+        "long_generation",
+        "math",
+        "multi_gpu",
+        "multi_turn_correctness",
+        "multi_user_serving",
+        "multilingual_quality",
+        "perplexity",
+        "quality",
+        "reasoning",
+        "state_reuse",
+        "subjective_quality",
+        "throughput",
+        "trajectory_reliability"
+      ],
+      "pattern": "task_selective_quality",
+      "report_count": 11,
+      "report_ids": [
+        "arxiv-2306.00978-awq-salient-channel-loss",
+        "arxiv-2505.20276-long-context-loss",
+        "arxiv-2605.02404-task-vs-distribution-lossless",
+        "llamacpp-2094-low-bit-perplexity",
+        "llamacpp-21915-kv-cache-corruption",
+        "llamacpp-quantize-requant-warning",
+        "reddit-17xetyp-gptq-quality-speed-trade",
+        "reddit-1sm2us4-q4-long-output-cliff",
+        "reddit-1us7a22-capability-specific-q4-loss",
+        "x-2085067196703600740-reap-pruning-language-loss",
+        "x-2085977125845352679-q4-mtp-reply"
+      ],
+      "strong_receipt_count": 6
+    }
+  ],
+  "quality_gates": {
+    "all_claims_evidence_bounded": true,
+    "all_dates_inside_corpus_window": true,
+    "all_sources_linked": true,
+    "claim_only_excluded_from_ranked_evidence": true,
+    "ranking_orthogonal_to_evidence_class": true,
+    "unique_report_ids": true,
+    "unique_source_observations": true
+  },
+  "ranked_evidence": [
+    {
+      "adjusted_heat": 11,
+      "alpha": 12,
+      "desire": 132,
+      "evidence_class": "demonstrated",
+      "id": "arxiv-2411.07191-super-weight-ablation",
+      "primary_pattern": "outlier_sensitivity",
+      "rank": 1,
+      "source_url": "https://arxiv.org/abs/2411.07191",
+      "title": "Zeroing one super weight collapsed a billion-parameter model"
+    },
+    {
+      "adjusted_heat": 11,
+      "alpha": 12,
+      "desire": 132,
+      "evidence_class": "demonstrated",
+      "id": "arxiv-2605.02404-task-vs-distribution-lossless",
+      "primary_pattern": "evaluation_mismatch",
+      "rank": 2,
+      "source_url": "https://arxiv.org/abs/2605.02404",
+      "title": "Task-lossless below four bits was not distribution-lossless"
+    },
+    {
+      "adjusted_heat": 11,
+      "alpha": 12,
+      "desire": 132,
+      "evidence_class": "demonstrated",
+      "id": "arxiv-2607.08786-moderate-sparsity-kernel-gap",
+      "primary_pattern": "representation_overhead",
+      "rank": 3,
+      "source_url": "https://arxiv.org/abs/2607.08786",
+      "title": "Existing GPU sparse kernels lost to dense at quality-preserving sparsity"
+    },
+    {
+      "adjusted_heat": 11,
+      "alpha": 12,
+      "desire": 132,
+      "evidence_class": "demonstrated",
+      "id": "llamacpp-25202-dsv4-quantized-kv-gibberish",
+      "primary_pattern": "stateful_precision_failure",
+      "rank": 4,
+      "source_url": "https://github.com/ggml-org/llama.cpp/pull/25202",
+      "title": "DeepSeek V4 quantized KV cache omitted its required rotation"
+    },
+    {
+      "adjusted_heat": 11,
+      "alpha": 12,
+      "desire": 132,
+      "evidence_class": "demonstrated",
+      "id": "pytorch-153825-h100-sparse-slower",
+      "primary_pattern": "decode_economics",
+      "rank": 5,
+      "source_url": "https://github.com/pytorch/pytorch/issues/153825",
+      "title": "H100 2:4 BF16 sparse linear was slower at LLM decode shapes"
+    },
+    {
+      "adjusted_heat": 11,
+      "alpha": 12,
+      "desire": 132,
+      "evidence_class": "demonstrated",
+      "id": "vllm-10819-marlin24-abnormal-output",
+      "primary_pattern": "kernel_correctness",
+      "rank": 6,
+      "source_url": "https://github.com/vllm-project/vllm/issues/10819",
+      "title": "Marlin 2:4 kernel corrupted an otherwise valid sparse model"
+    },
+    {
+      "adjusted_heat": 11,
+      "alpha": 12,
+      "desire": 132,
+      "evidence_class": "demonstrated",
+      "id": "vllm-5793-gpu-dependent-marlin-quality",
+      "primary_pattern": "kernel_correctness",
+      "rank": 7,
+      "source_url": "https://github.com/vllm-project/vllm/issues/5793",
+      "title": "GPTQ-Marlin quality changed across Ampere GPU deployments"
+    },
+    {
+      "adjusted_heat": 11,
+      "alpha": 11,
+      "desire": 121,
+      "evidence_class": "demonstrated",
+      "id": "arxiv-2208.07339-emergent-int8-outliers",
+      "primary_pattern": "outlier_sensitivity",
+      "rank": 8,
+      "source_url": "https://arxiv.org/abs/2208.07339",
+      "title": "A handful of activation channels broke regular Int8 scaling"
+    },
+    {
+      "adjusted_heat": 11,
+      "alpha": 11,
+      "desire": 121,
+      "evidence_class": "demonstrated",
+      "id": "vllm-5569-bnb-gibberish",
+      "primary_pattern": "kernel_correctness",
+      "rank": 9,
+      "source_url": "https://github.com/vllm-project/vllm/issues/5569",
+      "title": "Bitsandbytes NF4 emitted gibberish through vLLM"
+    },
+    {
+      "adjusted_heat": 10,
+      "alpha": 12,
+      "desire": 120,
+      "evidence_class": "demonstrated",
+      "id": "arxiv-2505.20276-long-context-loss",
+      "primary_pattern": "task_selective_quality",
+      "rank": 10,
+      "source_url": "https://arxiv.org/abs/2505.20276",
+      "title": "Four-bit quantization lost up to 59% on long-context tasks"
+    },
+    {
+      "adjusted_heat": 10,
+      "alpha": 12,
+      "desire": 120,
+      "evidence_class": "verified_witness",
+      "id": "llamacpp-21915-kv-cache-corruption",
+      "primary_pattern": "stateful_precision_failure",
+      "rank": 11,
+      "source_url": "https://github.com/ggml-org/llama.cpp/issues/21915",
+      "title": "Quantized KV cache corrupted long or reused GLM conversations"
+    },
+    {
+      "adjusted_heat": 10,
+      "alpha": 12,
+      "desire": 120,
+      "evidence_class": "verified_witness",
+      "id": "vllm-39583-quant-backend-fragmentation",
+      "primary_pattern": "support_fragmentation",
+      "rank": 12,
+      "source_url": "https://github.com/vllm-project/vllm/issues/39583",
+      "title": "vLLM maintainers proposed ejecting GGUF and bitsandbytes support"
+    },
+    {
+      "adjusted_heat": 9,
+      "alpha": 11,
+      "desire": 99,
+      "evidence_class": "verified_witness",
+      "id": "reddit-1rgl42y-qwen-local-runtime-gibberish",
+      "primary_pattern": "support_fragmentation",
+      "rank": 13,
+      "source_url": "https://www.reddit.com/r/LocalLLaMA/comments/1rgl42y/qwen_35_122b_hallucinates_horribly/",
+      "title": "Qwen quantized locally failed across files while the API stayed normal"
+    },
+    {
+      "adjusted_heat": 9,
+      "alpha": 11,
+      "desire": 99,
+      "evidence_class": "demonstrated",
+      "id": "vllm-11756-cutlass24-quant-crash",
+      "primary_pattern": "composition_incompatibility",
+      "rank": 14,
+      "source_url": "https://github.com/vllm-project/vllm/issues/11756",
+      "title": "CUTLASS 2:4 plus FP8 or INT8 crashed during engine startup"
+    },
+    {
+      "adjusted_heat": 9,
+      "alpha": 10,
+      "desire": 90,
+      "evidence_class": "demonstrated",
+      "id": "arxiv-2306.00978-awq-salient-channel-loss",
+      "primary_pattern": "outlier_sensitivity",
+      "rank": 15,
+      "source_url": "https://arxiv.org/abs/2306.00978",
+      "title": "Activation-selected weights rescued catastrophic three-bit perplexity"
+    },
+    {
+      "adjusted_heat": 6,
+      "alpha": 10,
+      "desire": 60,
+      "evidence_class": "verified_witness",
+      "id": "llamacpp-quantize-requant-warning",
+      "primary_pattern": "conversion_pipeline_damage",
+      "rank": 16,
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md",
+      "title": "llama.cpp warns that requantization can severely reduce quality"
+    },
+    {
+      "adjusted_heat": 4,
+      "alpha": 8,
+      "desire": 32,
+      "evidence_class": "verified_witness",
+      "id": "llamacpp-2094-low-bit-perplexity",
+      "primary_pattern": "task_selective_quality",
+      "rank": 17,
+      "source_url": "https://github.com/ggml-org/llama.cpp/discussions/2094",
+      "title": "Historical GGUF data showed a steep low-bit perplexity penalty"
+    }
+  ],
+  "report_count": 25,
+  "research_question": "Under which model, task, state, hardware, backend, and kernel conditions do quantization or pruning fail to preserve quality, correctness, memory savings, or physical throughput?",
+  "status": "complete",
+  "suggestive_observations": [
+    {
+      "adjusted_heat": 10,
+      "alpha": 12,
+      "desire": 120,
+      "evidence_class": "suggestive",
+      "id": "x-2085067196703600740-reap-pruning-language-loss",
+      "primary_pattern": "task_selective_quality",
+      "rank": 1,
+      "source_url": "https://x.com/superalesha/status/2085067196703600740",
+      "title": "REAP pruning tied an extreme quant on agents but lost non-English"
+    },
+    {
+      "adjusted_heat": 10,
+      "alpha": 12,
+      "desire": 120,
+      "evidence_class": "suggestive",
+      "id": "x-2085707841357140439-prefix-cache-conditioned-corruption",
+      "primary_pattern": "stateful_precision_failure",
+      "rank": 2,
+      "source_url": "https://x.com/t0nil0/status/2085707841357140439",
+      "title": "A cache-busting retry rescued repeated low-bit tool-call corruption"
+    },
+    {
+      "adjusted_heat": 9,
+      "alpha": 11,
+      "desire": 99,
+      "evidence_class": "suggestive",
+      "id": "reddit-1c9u2jd-layer-pruning-hidden-loss",
+      "primary_pattern": "pruning_recovery_gap",
+      "rank": 3,
+      "source_url": "https://www.reddit.com/r/LocalLLaMA/comments/1c9u2jd/llama_3_70b_layer_pruned_from_70b_42b_by_charles/",
+      "title": "Layer-pruned Llama retained MMLU while leaving capability loss unresolved"
+    },
+    {
+      "adjusted_heat": 5,
+      "alpha": 8,
+      "desire": 40,
+      "evidence_class": "suggestive",
+      "id": "vllm-21236-w4a16-small-speedup",
+      "primary_pattern": "decode_economics",
+      "rank": 4,
+      "source_url": "https://github.com/vllm-project/vllm/issues/21236",
+      "title": "GPTQ and AWQ delivered only a small H100 throughput gain"
+    },
+    {
+      "adjusted_heat": 3,
+      "alpha": 6,
+      "desire": 18,
+      "evidence_class": "suggestive",
+      "id": "reddit-17xetyp-gptq-quality-speed-trade",
+      "primary_pattern": "task_selective_quality",
+      "rank": 5,
+      "source_url": "https://www.reddit.com/r/LocalLLaMA/comments/17xetyp/lower_quality_responses_with_gptq_model_vs_gguf/",
+      "title": "A user saw faster GPTQ but better Q5 GGUF responses"
+    }
+  ]
+}

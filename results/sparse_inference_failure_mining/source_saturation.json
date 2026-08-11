@@ -1,0 +1,107 @@
+{
+  "status": "bounded_partial",
+  "as_of": "2026-08-08",
+  "corpus_acceptance_gate": {
+    "minimum_deduplicated_lineages": 250,
+    "observed_deduplicated_lineages": 1588,
+    "passed": true
+  },
+  "source_exhaustion_gate": {
+    "stopping_rule": "For every source family, complete two consecutive query waves that add no new qualifying incident lineage.",
+    "passed": false,
+    "reason": "The two recorded GitHub saturation waves still added 266 and 198 normalized source rows respectively. GitHub search result caps, Reddit archive timeouts, limited X indexing, and the bounded Hugging Face model listing prevent an honest claim of full source exhaustion. The corpus is large and source-diverse, but it is not a census of every discoverable web record."
+  },
+  "surfaces": {
+    "huggingface_model_uploads": {
+      "providers": [
+        "unsloth",
+        "bartowski",
+        "mradermacher",
+        "QuantFactory",
+        "lmstudio-community",
+        "mlx-community",
+        "TheBloke",
+        "MaziyarPanahi",
+        "prism-ml"
+      ],
+      "models_listed": 501,
+      "discussion_headers_scanned": 1931,
+      "complaint_title_candidates": 954,
+      "normalized_source_rows": 206,
+      "conversation_bodies_retrieved": 954,
+      "known_limit": "Model enumeration used a bounded recent/popular listing per provider, not every historical upload."
+    },
+    "github_supply_chain": {
+      "repository_classes": [
+        "quantizers_and_converters",
+        "kernels_and_packing",
+        "inference_and_serving_runtimes",
+        "downstream_applications"
+      ],
+      "initial_candidate_sets": {
+        "broad_search_unique": 850,
+        "quantizer_repositories": 517,
+        "runtime_repositories": 794,
+        "application_repositories": 112
+      },
+      "saturation_wave_1": {
+        "raw_results": 557,
+        "new_candidate_urls": 374,
+        "normalized_new_rows": 266
+      },
+      "saturation_wave_2": {
+        "raw_results": 396,
+        "new_candidate_urls": 230,
+        "normalized_new_rows": 198
+      },
+      "normalized_source_rows": 829,
+      "known_limit": "GitHub search returns at most 1000 results per query and only the first 100 results were captured for several high-volume queries. Reply text was recovered for the foundational incidents but not for every added issue; comment and reaction counts remain attention signals only."
+    },
+    "reddit": {
+      "subreddits": [
+        "LocalLLaMA",
+        "MachineLearning",
+        "Oobabooga"
+      ],
+      "initial_queries_succeeded": 4,
+      "initial_queries_attempted": 30,
+      "annual_retry_queries_succeeded": 9,
+      "annual_retry_queries_attempted": 24,
+      "unique_candidate_posts": 1066,
+      "normalized_source_rows": 453,
+      "reply_conversations_retrieved": 49,
+      "known_limit": "The Arctic Shift full-text endpoint timed out or rate-limited broad query windows. Successful annual slices and direct conversation retrieval are preserved; failed queries are recorded in reddit_candidates.json."
+    },
+    "hacker_news": {
+      "query_families": 10,
+      "story_and_comment_queries": 20,
+      "unique_candidates": 1263,
+      "normalized_source_rows": 114,
+      "known_limit": "Algolia search covers indexed public HN stories and comments only."
+    },
+    "x_twitter": {
+      "normalized_source_rows": 4,
+      "known_limit": "Public web and mirror indexes exposed the seed thread, one reply, and a few standalone reports. X replies and private or unindexed posts are not exhaustively searchable without authenticated archive access."
+    },
+    "controlled_studies_and_official_docs": {
+      "normalized_paper_rows": 17,
+      "official_documentation_rows": 2,
+      "known_limit": "Controlled studies were selected for explicit failure regimes and mechanism contact, not every compression paper published in the window."
+    },
+    "unavailable_or_unmined": {
+      "private_discord_and_slack": "No public, lawful index or credentials were available.",
+      "stack_overflow_and_stack_exchange": "Mapped in the source universe but no qualifying records were added in this pass.",
+      "public_discourse_archives": "Mapped in the source universe but no query-complete archive was available in this pass.",
+      "model_download_history": "Current download counts were captured where exposed; historical rolling counts are unavailable."
+    }
+  },
+  "artifacts": {
+    "source_universe": "results/sparse_inference_failure_mining/source_universe.json",
+    "huggingface_candidates": "results/sparse_inference_failure_mining/hf_discussion_candidates.json",
+    "github_wave_1": "results/sparse_inference_failure_mining/github_saturation_wave.json",
+    "github_wave_2": "results/sparse_inference_failure_mining/github_saturation_wave2.json",
+    "reddit_candidates": "results/sparse_inference_failure_mining/reddit_candidates.json",
+    "hacker_news_candidates": "results/sparse_inference_failure_mining/hackernews_candidates.json",
+    "complaint_census": "results/sparse_inference_failure_mining/complaint_census.json"
+  }
+}

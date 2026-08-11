@@ -129,7 +129,8 @@ Start with `REPRODUCE.md` for task-level commands. The short version is:
 |---|---|
 | Arithmetic extraction | `code/src/circuit_tracing/`, `code/train_lora_2digit_kl.py`, and arithmetic evaluation scripts |
 | Translation rescue | `code/build_ntrex_en2pt_jsonl.py`, `code/train_masked_kl_conditioning.py`, and translation evaluation scripts |
-| Function calling | `code/scripts/load_bfcl_physical_bundle.py`, `code/scripts/bfcl_direct_qwen3.py`, and the Issue #18 receipts |
+| Function calling | `code/scripts/load_bfcl_physical_bundle.py`, `code/scripts/benchmark_bfcl_physical_throughput.py`, and the [Issue #19 physical-throughput receipt](results/bfcl/issue19_physical_throughput/README.md) |
+| Sparse-inference failure mining | [`sparse-inference-failure-atlas/`](sparse-inference-failure-atlas/) and its [deterministic rebuild commands](sparse-inference-failure-atlas/README.md#reproduce-the-corpus-and-figures) |
 
 The repository keeps small receipts in `results/`. Public Hugging Face artifacts
 are pinned by immutable revision SHA in the manifest. The private Issue #18
@@ -147,6 +148,14 @@ ModelScope mirror is instead bound by its verification receipt and model hash.
 | BFCL k160 adapter | [Occupying-Mars/issue49-k160-r32-len1024-adapter](https://huggingface.co/Occupying-Mars/issue49-k160-r32-len1024-adapter) | `e5104eee6e9dd0fff11f377b743330429970d672` |
 | BFCL k240 adapter | [Occupying-Mars/issue49-k240-r16-adapter](https://huggingface.co/Occupying-Mars/issue49-k240-r16-adapter) | `b9018cc3090b856df701240fd73f9f98c627917c` |
 | BFCL full-model reproduction | [TokenBender/issue51-r32-more-online-codex-repro-551-full](https://huggingface.co/TokenBender/issue51-r32-more-online-codex-repro-551-full) | `ff4daac9e49a8f927153c9a04daa9faba2fb5a66` |
+
+## Sparse-inference failure atlas
+
+The [`sparse-inference-failure-atlas/`](sparse-inference-failure-atlas/) package
+contains the source-linked **What Breaks for VRAMlets** report in
+[Markdown](sparse-inference-failure-atlas/report.md) and
+[PDF](sparse-inference-failure-atlas/report.pdf), together with its aggregate
+data, figures, and links to the underlying mining artifacts.
 
 ## License
 

@@ -1,0 +1,197 @@
+{
+  "as_of": "2026-08-08",
+  "field_coverage": {
+    "baseline": {
+      "missing": 1,
+      "not_applicable": 0,
+      "present": 24
+    },
+    "complaint_verbatim": {
+      "missing": 0,
+      "not_applicable": 9,
+      "present": 16
+    },
+    "domains": {
+      "missing": 0,
+      "not_applicable": 0,
+      "present": 25
+    },
+    "hardware": {
+      "missing": 10,
+      "not_applicable": 2,
+      "present": 13
+    },
+    "model": {
+      "missing": 6,
+      "not_applicable": 3,
+      "present": 16
+    },
+    "optimization": {
+      "missing": 0,
+      "not_applicable": 0,
+      "present": 25
+    },
+    "requirement": {
+      "missing": 0,
+      "not_applicable": 0,
+      "present": 25
+    },
+    "resolution": {
+      "missing": 11,
+      "not_applicable": 0,
+      "present": 14
+    },
+    "runtime": {
+      "missing": 7,
+      "not_applicable": 0,
+      "present": 18
+    }
+  },
+  "missingness_by_report": [
+    {
+      "missing_information": [
+        "model",
+        "baseline",
+        "resolution"
+      ],
+      "report_id": "x-2085977125845352679-q4-mtp-reply"
+    },
+    {
+      "missing_information": [
+        "runtime",
+        "hardware"
+      ],
+      "report_id": "x-2085707841357140439-prefix-cache-conditioned-corruption"
+    },
+    {
+      "missing_information": [
+        "resolution"
+      ],
+      "report_id": "x-2085067196703600740-reap-pruning-language-loss"
+    },
+    {
+      "missing_information": [
+        "runtime",
+        "hardware",
+        "resolution"
+      ],
+      "report_id": "reddit-1us7a22-capability-specific-q4-loss"
+    },
+    {
+      "missing_information": [
+        "hardware"
+      ],
+      "report_id": "llamacpp-25202-dsv4-quantized-kv-gibberish"
+    },
+    {
+      "missing_information": [
+        "model"
+      ],
+      "report_id": "arxiv-2607.08786-moderate-sparsity-kernel-gap"
+    },
+    {
+      "missing_information": [
+        "model",
+        "hardware"
+      ],
+      "report_id": "arxiv-2605.02404-task-vs-distribution-lossless"
+    },
+    {
+      "missing_information": [
+        "model",
+        "runtime",
+        "hardware",
+        "resolution"
+      ],
+      "report_id": "reddit-1sm2us4-q4-long-output-cliff"
+    },
+    {
+      "missing_information": [
+        "resolution"
+      ],
+      "report_id": "llamacpp-21915-kv-cache-corruption"
+    },
+    {
+      "missing_information": [
+        "resolution"
+      ],
+      "report_id": "vllm-39583-quant-backend-fragmentation"
+    },
+    {
+      "missing_information": [
+        "resolution"
+      ],
+      "report_id": "reddit-1rgl42y-qwen-local-runtime-gibberish"
+    },
+    {
+      "missing_information": [
+        "model",
+        "resolution"
+      ],
+      "report_id": "vllm-21236-w4a16-small-speedup"
+    },
+    {
+      "missing_information": [
+        "runtime",
+        "hardware"
+      ],
+      "report_id": "arxiv-2505.20276-long-context-loss"
+    },
+    {
+      "missing_information": [
+        "runtime",
+        "resolution"
+      ],
+      "report_id": "pytorch-153825-h100-sparse-slower"
+    },
+    {
+      "missing_information": [
+        "model",
+        "hardware"
+      ],
+      "report_id": "vllm-11756-cutlass24-quant-crash"
+    },
+    {
+      "missing_information": [
+        "runtime",
+        "hardware"
+      ],
+      "report_id": "arxiv-2411.07191-super-weight-ablation"
+    },
+    {
+      "missing_information": [
+        "runtime",
+        "hardware",
+        "resolution"
+      ],
+      "report_id": "reddit-1c9u2jd-layer-pruning-hidden-loss"
+    },
+    {
+      "missing_information": [
+        "hardware",
+        "resolution"
+      ],
+      "report_id": "reddit-17xetyp-gptq-quality-speed-trade"
+    }
+  ],
+  "resolution_status_counts": {
+    "mitigated": 6,
+    "resolved": 8,
+    "unresolved": 11
+  },
+  "row_count": 25,
+  "status": "complete",
+  "unresolved_report_ids": [
+    "x-2085977125845352679-q4-mtp-reply",
+    "x-2085067196703600740-reap-pruning-language-loss",
+    "reddit-1us7a22-capability-specific-q4-loss",
+    "reddit-1sm2us4-q4-long-output-cliff",
+    "llamacpp-21915-kv-cache-corruption",
+    "vllm-39583-quant-backend-fragmentation",
+    "reddit-1rgl42y-qwen-local-runtime-gibberish",
+    "vllm-21236-w4a16-small-speedup",
+    "pytorch-153825-h100-sparse-slower",
+    "reddit-1c9u2jd-layer-pruning-hidden-loss",
+    "reddit-17xetyp-gptq-quality-speed-trade"
+  ]
+}

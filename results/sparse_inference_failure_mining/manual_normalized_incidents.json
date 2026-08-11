@@ -1,0 +1,103 @@
+{
+  "status": "normalized_candidates",
+  "as_of": "2026-08-08",
+  "count": 2,
+  "incidents": [
+    {
+      "include": true,
+      "exclusion_reason": "",
+      "model": "QwQ-32B",
+      "exact_file": "",
+      "optimization": "Unsloth GGUF quantization; exact quant variant not stated",
+      "runtime_hardware": "",
+      "requirement_domains": [
+        "capability_retention",
+        "benchmarking"
+      ],
+      "complaint_or_finding": "An updated, explicitly described as fixed, GGUF raised the benchmark score by about four percentage points relative to the earlier upload.",
+      "observed_failure": "The earlier GGUF scored about four percentage points below the fixed replacement in the author's retest.",
+      "baseline_or_control": "Earlier Unsloth QwQ-32B GGUF versus updated fixed GGUF under the author's benchmark.",
+      "resolution_status": "resolved",
+      "resolution": "The provider supplied an updated fixed GGUF; the reporter measured an approximately four-point score increase.",
+      "missing_information": [
+        "exact quant file",
+        "runtime",
+        "hardware",
+        "benchmark protocol",
+        "root cause"
+      ],
+      "incident_key": "qwq-32b-unsloth-fixed-gguf-score-gap",
+      "method_family": "weight_quantization",
+      "primary_pattern": "conversion_pipeline_damage",
+      "secondary_patterns": [
+        "task_selective_quality"
+      ],
+      "failure_surfaces": [
+        "capability_retention",
+        "benchmarking"
+      ],
+      "evidence_class": "suggestive",
+      "mechanism_status": "unknown",
+      "mechanism": "",
+      "discriminating_test": "Re-run the same benchmark prompts, sampler, runtime, and hardware against the archived old file and fixed replacement, then compare hashes and per-item outputs.",
+      "source": {
+        "source_kind": "x_post",
+        "url": "https://x.com/WolframRvnwlf/status/1899928386341863491",
+        "title": "Updated fixed QwQ-32B GGUF raised score by about four points",
+        "author": "WolframRvnwlf",
+        "created_at": "2025-03-12T21:00:00Z",
+        "likes": 36,
+        "replies": 2,
+        "reposts": 4,
+        "bookmarks": 11,
+        "views": 2312
+      }
+    },
+    {
+      "include": true,
+      "exclusion_reason": "",
+      "model": "",
+      "exact_file": "",
+      "optimization": "vLLM quantization implementations including AWQ, GPTQ, Marlin, LLM Compressor INT8/FP8, BitsAndBytes, DeepSpeedFP, and GGUF",
+      "runtime_hardware": "vLLM; NVIDIA Volta/Turing/Ampere/Ada/Hopper, AMD GPU, Intel GPU, x86 CPU, and Arm CPU compatibility matrix",
+      "requirement_domains": [
+        "runtime_compatibility",
+        "hardware_portability",
+        "model_loading"
+      ],
+      "complaint_or_finding": "Official vLLM documentation records large hardware-specific support gaps: no single listed quantization implementation works across all GPU and CPU targets.",
+      "observed_failure": "The compatibility matrix marks unsupported method and hardware combinations, including no AWQ, GPTQ, Marlin, BitsAndBytes, or DeepSpeedFP support on AMD GPU in the main table and no GGUF support on Intel GPU or CPU.",
+      "baseline_or_control": "Cross-method, cross-hardware compatibility matrix in the official documentation.",
+      "resolution_status": "not_applicable",
+      "resolution": "Users must choose a method supported by the target hardware or move to a different runtime or hardware target.",
+      "missing_information": [
+        "model-specific compatibility",
+        "versioned end-to-end performance",
+        "kernel-specific numerical parity"
+      ],
+      "incident_key": "vllm-quantization-hardware-compatibility-fragmentation",
+      "method_family": "multiple_quantization_methods",
+      "primary_pattern": "support_fragmentation",
+      "secondary_patterns": [
+        "composition_incompatibility"
+      ],
+      "failure_surfaces": [
+        "runtime_compatibility",
+        "hardware_portability",
+        "model_loading"
+      ],
+      "evidence_class": "verified_witness",
+      "mechanism_status": "confirmed",
+      "mechanism": "Quantized kernel and loader implementations are hardware- and architecture-specific rather than portable abstractions.",
+      "discriminating_test": "For each method, model, runtime release, and hardware target, run loader startup plus deterministic numerical-parity and throughput checks.",
+      "source": {
+        "source_kind": "official_documentation",
+        "url": "https://docs.vllm.ai/en/stable/features/quantization/",
+        "title": "vLLM quantization hardware compatibility",
+        "author": "vLLM project",
+        "created_at": "2026-06-12",
+        "official": true
+      }
+    }
+  ]
+}

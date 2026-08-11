@@ -1,0 +1,114 @@
+{
+  "status": "exhaustive_complaint_census",
+  "as_of": "2026-08-08",
+  "seed": {
+    "url": "https://x.com/tokenbender/status/2085977125845352679",
+    "thread_reader_url": "https://twitter-thread.com/t/2085977125845352679",
+    "thread_reader_status": "not_found",
+    "verified_via": [
+      "https://api.fxtwitter.com/status/2085977125845352679",
+      "https://x.com/tokenbender/status/2085977125845352679"
+    ],
+    "brief": "Exhaustively mine the full compressed-model supply chain for complaint lineages, unmet user requirements, and unresolved failures in quantization, pruning, sparse inference, conversion, and serving."
+  },
+  "research_question": "Under which model, task, state, hardware, backend, and kernel conditions do quantization or pruning fail to preserve quality, correctness, memory savings, or physical throughput?",
+  "corpus_contract": {
+    "window_start": "2022-08-15",
+    "window_end": "2026-08-08",
+    "minimum_deduplicated_incident_lineages": 250,
+    "stopping_condition": "Every source family and complaint-query family must reach two consecutive discovery waves with no new qualifying incident lineage.",
+    "target_sources": [
+      "Hugging Face model uploads, discussions, pull requests, commits, and reuploads",
+      "quantizer, converter, packing, and kernel repositories",
+      "inference and serving runtime issue trackers",
+      "downstream local-model applications and integrations",
+      "Reddit, X, Hacker News, Stack Exchange, and public technical forums",
+      "official implementation documentation and release-thread replies",
+      "primary studies, OpenReview discussions, and benchmark issue trackers"
+    ],
+    "include": [
+      "firsthand complaints with a named model, file, method, runtime, task, or configuration",
+      "maintainer-confirmed upload, conversion, backend, cache, or kernel failures",
+      "reports that expose an unmet user requirement even when the mechanism remains unknown",
+      "controlled results that bound or contradict community claims",
+      "negative performance results where the compressed path is compared with a dense baseline",
+      "quality failures tied to task, context length, language, state, hardware, topology, or concurrency",
+      "cross-source corroborations that strengthen an existing incident lineage"
+    ],
+    "exclude": [
+      "generic out-of-memory or setup failures with no sparse-method causal link",
+      "training-only quantization failures",
+      "launch announcements without a negative receipt",
+      "benchmark deltas with no inspectable source",
+      "duplicate retellings of the same underlying failure"
+    ]
+  },
+  "evidence_classes": {
+    "demonstrated": "Primary artifact with controlled experiments, runnable reproduction, or detailed receipts and a resolved mechanism.",
+    "verified_witness": "Inspectible primary report with a concrete configuration and observable failure, but incomplete control or unresolved mechanism.",
+    "suggestive": "Firsthand observation or linked artifact with meaningful detail but material confounds or missing replication.",
+    "claim_only": "Anecdote or assertion without an inspectable receipt; never promoted into the main ranked evidence."
+  },
+  "failure_patterns": [
+    {
+      "id": "kernel_correctness",
+      "definition": "A quantized or sparse kernel changes outputs, emits gibberish, or behaves differently across hardware despite the same logical model."
+    },
+    {
+      "id": "composition_incompatibility",
+      "definition": "Individually supported features fail when composed, such as sparsity plus low-bit quantization, CUDA graphs, tensor parallelism, or a particular dtype."
+    },
+    {
+      "id": "decode_economics",
+      "definition": "Theoretical FLOP or byte savings do not become end-to-end decode throughput because memory bounds, padding, setup, dispatch, or dequantization dominate."
+    },
+    {
+      "id": "task_selective_quality",
+      "definition": "Aggregate or conversational quality hides concentrated degradation in math, code, tools, multilingual work, long outputs, or long context."
+    },
+    {
+      "id": "outlier_sensitivity",
+      "definition": "A tiny set of high-magnitude or high-salience weights or activation channels carries disproportionate behavior, so uniform quantization or pruning destroys critical signal."
+    },
+    {
+      "id": "stateful_precision_failure",
+      "definition": "Quantized runtime state such as the KV cache corrupts only after long generation, reuse, or multiple turns."
+    },
+    {
+      "id": "representation_overhead",
+      "definition": "Pruned zeros do not save memory or time without a compatible compressed representation, and sparse metadata can erase nominal savings."
+    },
+    {
+      "id": "evaluation_mismatch",
+      "definition": "Task-level benchmark parity is mistaken for trajectory, distribution, or capability preservation."
+    },
+    {
+      "id": "support_fragmentation",
+      "definition": "A method is viable only for a narrow model, GPU, shape, runtime, or version and fails or falls back elsewhere."
+    },
+    {
+      "id": "pruning_recovery_gap",
+      "definition": "Recovery training restores headline benchmarks after pruning while leaving outlier knowledge or emergent capabilities unmeasured."
+    },
+    {
+      "id": "conversion_pipeline_damage",
+      "definition": "Conversion choices such as requantization, calibration, tensor selection, or format mismatch introduce avoidable quality loss."
+    }
+  ],
+  "row_contract": {
+    "unit": "one underlying complaint lineage with a primary source and all duplicate or corroborating URLs",
+    "required_boundaries": [
+      "model and exact file when recoverable",
+      "provider and optimization recipe",
+      "runtime, hardware, topology, task, and state",
+      "verbatim complaint",
+      "normalized unmet user requirement",
+      "observed failure and baseline",
+      "resolution status and remaining concern",
+      "attention and evidence receipts",
+      "missing information",
+      "primary and corroborating source URLs"
+    ],
+    "ranking": "Attention and evidential support remain separate. Popularity cannot promote an unverified claim, while independent reproductions, controlled baselines, maintainer confirmation, and working fixes strengthen a lineage."
+  }
+}

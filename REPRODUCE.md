@@ -76,6 +76,37 @@ python3 scripts/train_bfcl_prime_opd_sampled_lora.py --help
 python3 scripts/bfcl_direct_qwen3.py eval-mask --help
 ```
 
+
+### Latest verified BFCL result
+
+The latest end-to-end result is the Issue #19 physical substrate: lossless
+gate/up packing with pad-128 physical widths, SDPA, a hybrid SiLU dispatcher,
+batch 64, and compiled StaticCache decode on one NVIDIA B200. It sustained
+`989.097` accepted generated tokens/s over the frozen 1,007-example workload,
+versus `267.084` for the eager physical baseline (`+270.33%`), while both passed
+the recorded full-quality floor. The claim is bounded to the recorded model,
+workload, hardware, and software stack.
+
+The exact benchmark, quality, profiling, comparison, and microbenchmark commands
+are in
+[`results/bfcl/issue19_physical_throughput/environment/commands.md`](results/bfcl/issue19_physical_throughput/environment/commands.md).
+The result summary, environment lock, hashes, negative results, and preservation
+receipts are in
+[`results/bfcl/issue19_physical_throughput/`](results/bfcl/issue19_physical_throughput/).
+
 Small BFCL receipts are under `results/bfcl/`. Complete BFCL data, adapters,
 and the full-model reproduction are available from the Hugging Face artifact
 repositories listed in `docs/ARTIFACT_MANIFEST.json`.
+
+## Sparse-inference failure mining
+
+The [`sparse-inference-failure-atlas/`](sparse-inference-failure-atlas/) package
+contains the source-linked report, frozen corpus, deterministic consolidation
+and ranking scripts, publication figures, and exact rebuild checks.
+
+Start with its
+[`Reproduce the corpus and figures`](sparse-inference-failure-atlas/README.md#reproduce-the-corpus-and-figures)
+section. The live-web discovery step is intentionally not replayed: normalized
+source snapshots are frozen inputs, while schema validation, lineage joining,
+quality gates, ranking, atlas construction, and aggregate figures rebuild
+offline.

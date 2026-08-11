@@ -1,0 +1,1003 @@
+{
+  "status": "initial_pass",
+  "captured_at": "2026-08-08",
+  "reports": [
+    {
+      "id": "vllm-5569-bnb-gibberish",
+      "title": "Bitsandbytes NF4 emitted gibberish through vLLM",
+      "source_kind": "github_issue",
+      "source_url": "https://github.com/vllm-project/vllm/issues/5569",
+      "published_at": "2024-06-15",
+      "method_family": "weight_quantization",
+      "primary_pattern": "kernel_correctness",
+      "secondary_patterns": [
+        "composition_incompatibility",
+        "support_fragmentation"
+      ],
+      "failure_surfaces": [
+        "correctness",
+        "serving"
+      ],
+      "claim": "A logically valid bitsandbytes NF4 model can produce unusable repetition in one inference stack while producing normal text in another.",
+      "observation": "vLLM 0.5.0.post1 on a T4 returned 128 exclamation marks for Llama-3-8B-Instruct; the reporter showed that Transformers load_in_4bit produced a normal answer from the same base model. Other users reproduced the serving failure on A10G and later Qwen/Llama checkpoints.",
+      "mechanism": "Maintainers isolated one bug in GQA shard processing and a second incompatibility between bitsandbytes and CUDA graph capture. Enforcing eager execution was the working mitigation while fixes landed.",
+      "mechanism_status": "confirmed",
+      "evidence_class": "demonstrated",
+      "evidence_limit": "Version-specific to early vLLM bitsandbytes support; it is evidence against assuming backend equivalence, not against NF4 intrinsically.",
+      "discriminating_test": "Run the same checkpoint and prompt in Transformers, vLLM eager mode, and vLLM CUDA-graph mode; compare logits or deterministic token traces before judging the quantizer.",
+      "configuration": {
+        "model": "Meta-Llama-3-8B-Instruct",
+        "runtime": "vLLM 0.5.0.post1",
+        "quantization": "bitsandbytes NF4",
+        "hardware": "Tesla T4 and corroborating A10G reports"
+      },
+      "score": {
+        "surprise": 3,
+        "compression": 3,
+        "mechanistic_contact": 3,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 2,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "vllm-10819-marlin24-abnormal-output",
+      "title": "Marlin 2:4 kernel corrupted an otherwise valid sparse model",
+      "source_kind": "github_issue",
+      "source_url": "https://github.com/vllm-project/vllm/issues/10819",
+      "published_at": "2024-12-02",
+      "method_family": "structured_pruning_plus_quantization",
+      "primary_pattern": "kernel_correctness",
+      "secondary_patterns": [
+        "composition_incompatibility"
+      ],
+      "failure_surfaces": [
+        "correctness",
+        "model_loading"
+      ],
+      "claim": "Abnormal output from a 2:4-pruned W4A16 model can originate in the sparse quantized kernel rather than pruning damage.",
+      "observation": "A Qwen2.5-7B-Instruct model pruned to 2:4 and quantized to W4A16 generated abnormal output in vLLM. The reporter then showed the uncompressed stage_sparsity model generated normally and identified marlin_24_cuda_kernel as the cause.",
+      "mechanism": "The model survived the pruning intervention, but the Marlin 2:4 execution path violated correctness after quantization.",
+      "mechanism_status": "confirmed",
+      "evidence_class": "demonstrated",
+      "evidence_limit": "One Qwen model, recipe, and historical kernel revision; later kernels may be fixed.",
+      "discriminating_test": "Evaluate four lanes from the same weights: dense, sparse stored but dense-executed, sparse-kernel, and sparse-plus-quantized-kernel. The first divergent lane locates the damage.",
+      "configuration": {
+        "model": "Qwen2.5-7B-Instruct",
+        "sparsity": "2:4 at 50%",
+        "quantization": "W4A16 channel-wise GPTQ",
+        "hardware": "A100-SXM4-80GB"
+      },
+      "score": {
+        "surprise": 3,
+        "compression": 3,
+        "mechanistic_contact": 3,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 3,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "vllm-11756-cutlass24-quant-crash",
+      "title": "CUTLASS 2:4 plus FP8 or INT8 crashed during engine startup",
+      "source_kind": "github_issue",
+      "source_url": "https://github.com/vllm-project/vllm/issues/11756",
+      "published_at": "2025-01-06",
+      "method_family": "structured_pruning_plus_quantization",
+      "primary_pattern": "composition_incompatibility",
+      "secondary_patterns": [
+        "support_fragmentation"
+      ],
+      "failure_surfaces": [
+        "compatibility",
+        "model_loading",
+        "correctness"
+      ],
+      "claim": "Support for 2:4 sparsity and support for low-bit quantization do not imply support for their composition.",
+      "observation": "A compressed-tensors 2:4 model using FP8 dynamic quantization hit an illegal memory access in cutlass_scaled_sparse_mm while vLLM profiled the model and failed to start the engine. A second user reproduced the error; rebuilding a later master fixed it for the reporter.",
+      "mechanism": "A version-specific CUTLASS sparse scaled-matmul path was incompatible with the model's composed sparse and quantized representation.",
+      "mechanism_status": "source_hypothesis",
+      "evidence_class": "demonstrated",
+      "evidence_limit": "The exact root-cause patch was not documented in the issue, and a later source build resolved the report.",
+      "discriminating_test": "Build a compatibility matrix over sparsity layout, weight and activation dtype, GPU architecture, kernel, and runtime commit; require both startup and numerical parity.",
+      "configuration": {
+        "runtime": "vLLM development build from 2025-01-03",
+        "sparsity": "2:4",
+        "quantization": "FP8 dynamic, with INT8 also named",
+        "kernel": "cutlass_scaled_sparse_mm"
+      },
+      "score": {
+        "surprise": 2,
+        "compression": 3,
+        "mechanistic_contact": 2,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 2,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "pytorch-153825-h100-sparse-slower",
+      "title": "H100 2:4 BF16 sparse linear was slower at LLM decode shapes",
+      "source_kind": "github_issue",
+      "source_url": "https://github.com/pytorch/pytorch/issues/153825",
+      "published_at": "2025-05-19",
+      "method_family": "structured_pruning",
+      "primary_pattern": "decode_economics",
+      "secondary_patterns": [
+        "support_fragmentation"
+      ],
+      "failure_surfaces": [
+        "throughput",
+        "latency"
+      ],
+      "claim": "Hardware-supported 2:4 sparsity can regress autoregressive decode even when an isolated sparse GEMM can beat dense GEMM at sufficiently large shapes.",
+      "observation": "On H100, a 3072x10240 FP16 linear measured 0.242 ms dense versus 0.657 ms sparse, a 0.368x speed ratio. Only the largest tested matrix reached 2.118x. A maintainer reproduced the behavior and said BF16/FP16 2:4 was not expected to be faster for LLM decode shapes.",
+      "mechanism": "Decode uses narrow matrix-vector-like shapes and is memory-bound; sparse shape constraints add padding, while repeated descriptor, algorithm, and plan initialization adds host-side setup. Later profiling found setup rather than the sub-0.2 ms compute kernel dominated.",
+      "mechanism_status": "confirmed",
+      "evidence_class": "demonstrated",
+      "evidence_limit": "PyTorch 2.7 and cuSPARSELt on H100; optimized cached plans or quantized sparse kernels can change the result, and prefill can still benefit.",
+      "discriminating_test": "Benchmark prefill and decode separately across real batch-shape distributions, then profile kernel time versus descriptor and plan setup before claiming end-to-end speedup.",
+      "metrics": {
+        "shape_3072x10240_dense_ms": 0.242,
+        "shape_3072x10240_sparse_ms": 0.657,
+        "shape_3072x10240_speed_ratio": 0.368
+      },
+      "score": {
+        "surprise": 3,
+        "compression": 3,
+        "mechanistic_contact": 3,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 3,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "vllm-21236-w4a16-small-speedup",
+      "title": "GPTQ and AWQ delivered only a small H100 throughput gain",
+      "source_kind": "github_issue",
+      "source_url": "https://github.com/vllm-project/vllm/issues/21236",
+      "published_at": "2025-07-19",
+      "method_family": "weight_quantization",
+      "primary_pattern": "decode_economics",
+      "secondary_patterns": [
+        "evaluation_mismatch"
+      ],
+      "failure_surfaces": [
+        "throughput",
+        "benchmarking"
+      ],
+      "claim": "Selecting a GPTQ-Marlin kernel does not guarantee the large throughput multiplier implied by weight compression.",
+      "observation": "For five short prompts on H100, the W4A16 path measured 703 output tokens/s versus 609 for the dense path, about a 15% gain rather than a step-change. The issue closed stale without a resolution.",
+      "mechanism": "The issue does not isolate a mechanism. Small workload size, different dense and quantized model metadata, compile overhead, attention and sampler costs, and H100 dense efficiency all confound the expected kernel-level gain.",
+      "mechanism_status": "unknown",
+      "evidence_class": "suggestive",
+      "evidence_limit": "Only five prompts were timed; dense and quantized runs differed in dtype and maximum model length, so this is a mining lead rather than a clean comparison.",
+      "discriminating_test": "Pin model revision, dtype outside quantized linears, max length, scheduler, warmup, prompt distribution, and output length; report linear-kernel, prefill, decode, and end-to-end throughput separately over repeated runs.",
+      "metrics": {
+        "quantized_output_tokens_per_second": 703.16,
+        "dense_output_tokens_per_second": 609.09
+      },
+      "score": {
+        "surprise": 2,
+        "compression": 2,
+        "mechanistic_contact": 1,
+        "generativity": 2,
+        "adjacency": 2,
+        "leverage": 2,
+        "transfer": 2,
+        "underpricing": 1,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "vllm-5793-gpu-dependent-marlin-quality",
+      "title": "GPTQ-Marlin quality changed across Ampere GPU deployments",
+      "source_kind": "github_issue",
+      "source_url": "https://github.com/vllm-project/vllm/issues/5793",
+      "published_at": "2024-06-24",
+      "method_family": "weight_quantization",
+      "primary_pattern": "kernel_correctness",
+      "secondary_patterns": [
+        "support_fragmentation",
+        "composition_incompatibility"
+      ],
+      "failure_surfaces": [
+        "correctness",
+        "tensor_parallelism",
+        "portability"
+      ],
+      "claim": "The same quantized checkpoint can be usable on one GPU topology and produce repetitive nonsense on another because the selected execution path changes.",
+      "observation": "Llama-3-70B GPTQ-Marlin produced normal prose on one A100 but repetitive nonsense on two A10 GPUs with tensor parallelism. AWQ was stable on both. A linked fix restored output, and another user confirmed the fix on two RTX 3090 GPUs.",
+      "mechanism": "The failure was in the Marlin/tensor-parallel execution path rather than in the stored GPTQ weights; GPU topology selected a path with a correctness bug.",
+      "mechanism_status": "confirmed",
+      "evidence_class": "demonstrated",
+      "evidence_limit": "Historical vLLM 0.4.2 behavior fixed by PR 6795; the exact low-level fault is outside the issue text.",
+      "discriminating_test": "Hash the checkpoint and compare deterministic logits across GPU architectures, tensor-parallel degrees, and kernels before treating quantized outputs as hardware invariant.",
+      "configuration": {
+        "models": "Llama-3-70B and Mixtral GPTQ",
+        "runtime": "vLLM 0.4.2",
+        "good_path": "single A100 or H100",
+        "bad_path": "two A10 GPUs with tensor parallelism"
+      },
+      "score": {
+        "surprise": 3,
+        "compression": 3,
+        "mechanistic_contact": 3,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 3,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "llamacpp-21915-kv-cache-corruption",
+      "title": "Quantized KV cache corrupted long or reused GLM conversations",
+      "source_kind": "github_issue",
+      "source_url": "https://github.com/ggml-org/llama.cpp/issues/21915",
+      "published_at": "2026-04-14",
+      "method_family": "kv_cache_quantization",
+      "primary_pattern": "stateful_precision_failure",
+      "secondary_patterns": [
+        "kernel_correctness",
+        "task_selective_quality"
+      ],
+      "failure_surfaces": [
+        "long_context",
+        "multi_turn_correctness",
+        "state_reuse"
+      ],
+      "claim": "A model can pass first-turn smoke tests yet fail catastrophically only after enough quantized KV state accumulates or is reused.",
+      "observation": "GLM-5.1 Q4_K_XL with q8_0 K/V cache produced gibberish after long generation or a later message, while restarting before the last message or disabling KV quantization restored normal output. The reporter reproduced it in the official CUDA Docker image; another user reported a similar GLM-4.7-Flash failure on Vulkan.",
+      "mechanism": "The evidence isolates quantized KV state management but not a final root cause. The reporter suspected a regression near a KV-quant rotation change; the issue closed stale as unconfirmed.",
+      "mechanism_status": "source_hypothesis",
+      "evidence_class": "verified_witness",
+      "evidence_limit": "Intermittent and concentrated in GLM-family models; Gemma 4 did not reproduce, and no maintainer fix was linked.",
+      "discriminating_test": "Replay identical token histories with FP16, q8, and q4 KV caches; compare per-layer cache reconstruction and next-token logits after each turn, both fresh and reused.",
+      "configuration": {
+        "model": "GLM-5.1 UD Q4_K_XL",
+        "runtime": "llama.cpp build 8783",
+        "hardware": "RTX Pro 6000 Blackwell",
+        "cache": "q8_0 K and V"
+      },
+      "score": {
+        "surprise": 3,
+        "compression": 3,
+        "mechanistic_contact": 2,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 3,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "vllm-39583-quant-backend-fragmentation",
+      "title": "vLLM maintainers proposed ejecting GGUF and bitsandbytes support",
+      "source_kind": "github_issue",
+      "source_url": "https://github.com/vllm-project/vllm/issues/39583",
+      "published_at": "2026-04-11",
+      "method_family": "quantized_runtime_support",
+      "primary_pattern": "support_fragmentation",
+      "secondary_patterns": [
+        "decode_economics",
+        "composition_incompatibility"
+      ],
+      "failure_surfaces": [
+        "maintainability",
+        "throughput",
+        "model_coverage",
+        "tensor_parallelism"
+      ],
+      "claim": "A portable quantization format can become a second-class runtime path whose maintenance burden, missing features, and poor kernel fit erase its deployment value.",
+      "observation": "The maintainer RFC reports roughly 0.5% bitsandbytes and 0.1% GGUF usage in vLLM, no weight_loader_v2 support, limited or broken tensor parallelism, eager-only BNB 8-bit, model-specific hacks, and weak performance. Users replied that GGUF was avoided precisely because vLLM support was unreliable or much slower than llama.cpp.",
+      "mechanism": "Quantization formats couple storage, loader semantics, tensor sharding, model naming, kernel dispatch, and hardware priorities. A backend without sustained owner attention accumulates special cases and misses the optimized path.",
+      "mechanism_status": "confirmed",
+      "evidence_class": "verified_witness",
+      "evidence_limit": "This is a vLLM architecture and maintenance receipt, not evidence that GGUF or bitsandbytes are poor in their native runtimes.",
+      "discriminating_test": "Treat runtime support as a matrix: verify loader, tensor parallelism, CUDA graphs, MoE, model family, batch regime, and tokens/s for every advertised format rather than checking that one checkpoint loads.",
+      "score": {
+        "surprise": 2,
+        "compression": 3,
+        "mechanistic_contact": 3,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 3,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "reddit-17xetyp-gptq-quality-speed-trade",
+      "title": "A user saw faster GPTQ but better Q5 GGUF responses",
+      "source_kind": "reddit_post",
+      "source_url": "https://www.reddit.com/r/LocalLLaMA/comments/17xetyp/lower_quality_responses_with_gptq_model_vs_gguf/",
+      "retrieval_url": "https://arctic-shift.photon-reddit.com/api/posts/ids?ids=17xetyp",
+      "published_at": "2023-11-17",
+      "method_family": "weight_quantization",
+      "primary_pattern": "task_selective_quality",
+      "secondary_patterns": [
+        "decode_economics",
+        "evaluation_mismatch"
+      ],
+      "failure_surfaces": [
+        "subjective_quality",
+        "throughput"
+      ],
+      "claim": "Nominal format comparisons can expose a quality-speed trade while concealing differences in bit rate, calibration, backend, and offload.",
+      "observation": "For Chronos-Hermes 13B, the user described Q5 GGUF through KoboldCpp as producing 'incredible responses' but running extremely slowly, while GPTQ was much faster but produced worse responses.",
+      "mechanism": "Unknown and heavily confounded: Q5 GGUF and unspecified GPTQ need not have the same effective bits, calibration, group size, kernel, sampling, or CPU/GPU placement.",
+      "mechanism_status": "unknown",
+      "evidence_class": "suggestive",
+      "evidence_limit": "A single subjective report with no prompts, deterministic settings, latency numbers, or matched quantization budget.",
+      "discriminating_test": "Compare matched effective bits and calibration data under fixed prompts, tokenizer, sampler, context, and full-GPU placement; score both task behavior and latency.",
+      "score": {
+        "surprise": 1,
+        "compression": 2,
+        "mechanistic_contact": 0,
+        "generativity": 2,
+        "adjacency": 2,
+        "leverage": 1,
+        "transfer": 2,
+        "underpricing": 1,
+        "actionability": 2
+      }
+    },
+    {
+      "id": "reddit-1us7a22-capability-specific-q4-loss",
+      "title": "A claimed Q4 math drop hid behind stable chat and knowledge scores",
+      "source_kind": "reddit_post",
+      "source_url": "https://www.reddit.com/r/LocalLLaMA/comments/1us7a22/has_anyone_tested_how_quantization_hits_different/",
+      "retrieval_url": "https://arctic-shift.photon-reddit.com/api/posts/ids?ids=1us7a22",
+      "published_at": "2026-07-09",
+      "method_family": "weight_quantization",
+      "primary_pattern": "task_selective_quality",
+      "secondary_patterns": [
+        "evaluation_mismatch"
+      ],
+      "failure_surfaces": [
+        "math",
+        "reasoning",
+        "benchmarking"
+      ],
+      "claim": "The same Q4 checkpoint can appear nearly intact on conversation and knowledge while losing materially more multi-step math capability.",
+      "observation": "The poster claimed that on one 27B model Q4_K_M degraded conversational and knowledge tasks by under 2% but reduced multi-step math accuracy by almost 9% versus FP16, while Q5_K_M nearly removed the math gap.",
+      "mechanism": "Quantization perturbations can be absorbed on redundant short-form tasks but compound through constrained multi-step trajectories; no layer-level mechanism was supplied.",
+      "mechanism_status": "inferred",
+      "evidence_class": "claim_only",
+      "evidence_limit": "No model name, prompts, raw predictions, run configuration, or linked evaluation artifact was supplied.",
+      "discriminating_test": "Publish paired FP16, Q4, and Q5 predictions for capability-separated suites with identical decoding, bootstrap uncertainty, and error-overlap analysis.",
+      "score": {
+        "surprise": 2,
+        "compression": 3,
+        "mechanistic_contact": 1,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 2,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "reddit-1sm2us4-q4-long-output-cliff",
+      "title": "A user reported a model-dependent Q5-to-Q4 coherence cliff",
+      "source_kind": "reddit_post",
+      "source_url": "https://www.reddit.com/r/LocalLLaMA/comments/1sm2us4/at_what_point_does_quantization_stop_being_a/",
+      "retrieval_url": "https://arctic-shift.photon-reddit.com/api/posts/ids?ids=1sm2us4",
+      "published_at": "2026-04-15",
+      "method_family": "weight_quantization",
+      "primary_pattern": "task_selective_quality",
+      "secondary_patterns": [
+        "evaluation_mismatch"
+      ],
+      "failure_surfaces": [
+        "long_generation",
+        "coherence"
+      ],
+      "claim": "The quality frontier is not a universal bit threshold: a Q5-to-Q4 step can be invisible on one model and catastrophic for long outputs on another.",
+      "observation": "The poster reported that moving from Q5 to Q4 sometimes felt unchanged and sometimes 'completely tanks coherence on longer outputs.'",
+      "mechanism": "Unknown; architecture, quantization recipe, tensor mix, calibration, and workload can move the error cliff.",
+      "mechanism_status": "unknown",
+      "evidence_class": "claim_only",
+      "evidence_limit": "No named model, runtime, quantizer, prompt, output, or metric.",
+      "discriminating_test": "Sweep bits and quantization recipes per model while stratifying answer length and measuring when deterministic trajectories first diverge from the dense model.",
+      "score": {
+        "surprise": 1,
+        "compression": 2,
+        "mechanistic_contact": 0,
+        "generativity": 2,
+        "adjacency": 2,
+        "leverage": 2,
+        "transfer": 2,
+        "underpricing": 1,
+        "actionability": 2
+      }
+    },
+    {
+      "id": "reddit-1c9u2jd-layer-pruning-hidden-loss",
+      "title": "Layer-pruned Llama retained MMLU while leaving capability loss unresolved",
+      "source_kind": "reddit_post",
+      "source_url": "https://www.reddit.com/r/LocalLLaMA/comments/1c9u2jd/llama_3_70b_layer_pruned_from_70b_42b_by_charles/",
+      "retrieval_url": "https://arctic-shift.photon-reddit.com/api/posts/ids?ids=1c9u2jd",
+      "published_at": "2024-04-21",
+      "method_family": "layer_pruning",
+      "primary_pattern": "pruning_recovery_gap",
+      "secondary_patterns": [
+        "evaluation_mismatch"
+      ],
+      "failure_surfaces": [
+        "capability_coverage",
+        "outlier_knowledge",
+        "benchmarking"
+      ],
+      "claim": "A modest headline benchmark drop after removing 32 of 80 layers does not establish preservation of emergent or tail capabilities.",
+      "observation": "The linked Llama-3 model reduced 70B to 42B and reportedly scored about 76-77 five-shot MMLU versus 79 for the base. The author explicitly warned of possible 'randomly induced brain damage' in outlier languages, specific knowledge, and emergent capabilities not covered by the benchmark.",
+      "mechanism": "Layer removal changes depth and iterative computation globally; 100M tokens of rank-128 QLoRA recovery may optimize measured averages without reconstructing rare internal pathways.",
+      "mechanism_status": "inferred",
+      "evidence_class": "suggestive",
+      "evidence_limit": "The comparison mixes pruning, recovery training, and 4-bit evaluation, and the suspected missing capabilities were not directly tested.",
+      "discriminating_test": "Evaluate dense and pruned models on matched precision across long-horizon agents, multilingual tails, rare knowledge, calibration, and error overlap rather than MMLU alone.",
+      "score": {
+        "surprise": 2,
+        "compression": 3,
+        "mechanistic_contact": 2,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 3,
+        "actionability": 2
+      }
+    },
+    {
+      "id": "arxiv-2505.20276-long-context-loss",
+      "title": "Four-bit quantization lost up to 59% on long-context tasks",
+      "source_kind": "paper",
+      "source_url": "https://arxiv.org/abs/2505.20276",
+      "published_at": "2025-05-26",
+      "method_family": "weight_quantization",
+      "primary_pattern": "task_selective_quality",
+      "secondary_patterns": [
+        "evaluation_mismatch"
+      ],
+      "failure_surfaces": [
+        "long_context",
+        "multilingual_quality",
+        "long_form_generation"
+      ],
+      "claim": "Short-context or average benchmark parity is not a safe proxy for four-bit long-context deployment quality.",
+      "observation": "Across 9.7K examples, five quantization methods, and five Llama/Qwen models, 8-bit quantization averaged about a 0.8% accuracy drop, while 4-bit methods produced losses up to 59% on long-context tasks. Effects worsened outside English and varied sharply by model and method.",
+      "mechanism": "The study establishes task, model, method, length, and language interactions but does not reduce them to a single causal layer mechanism.",
+      "mechanism_status": "source_hypothesis",
+      "evidence_class": "demonstrated",
+      "evidence_limit": "Five model families and five quantizers; results do not establish that every four-bit recipe fails or that the maximum drop is typical.",
+      "discriminating_test": "Make context length, output length, language, and task family explicit axes in every dense-versus-quantized deployment evaluation.",
+      "metrics": {
+        "test_examples": 9700,
+        "average_8bit_accuracy_drop_percent": 0.8,
+        "maximum_reported_4bit_drop_percent": 59
+      },
+      "score": {
+        "surprise": 3,
+        "compression": 3,
+        "mechanistic_contact": 2,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 3,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "arxiv-2605.02404-task-vs-distribution-lossless",
+      "title": "Task-lossless below four bits was not distribution-lossless",
+      "source_kind": "paper",
+      "source_url": "https://arxiv.org/abs/2605.02404",
+      "published_at": "2026-05-04",
+      "method_family": "weight_quantization",
+      "primary_pattern": "evaluation_mismatch",
+      "secondary_patterns": [
+        "task_selective_quality"
+      ],
+      "failure_surfaces": [
+        "distribution_fidelity",
+        "benchmarking",
+        "trajectory_reliability"
+      ],
+      "claim": "A quantized model can be statistically task-lossless while still changing next-token distributions enough to alter long or constrained trajectories.",
+      "observation": "SLQ reached task-lossless compression as low as 3.3 bits per parameter, but required 5-6 bits per parameter on average for the stricter distribution-lossless criterion. The paper defines Expected Acceptance Rate to separate these contracts.",
+      "mechanism": "Benchmark accuracy tolerates compensating and unobserved probability shifts; distribution fidelity requires much lower quantization noise. The paper further derives a gamma-squared noise-variance penalty for symmetric versus asymmetric quantization.",
+      "mechanism_status": "confirmed",
+      "evidence_class": "demonstrated",
+      "evidence_limit": "The exact bit frontier is method and model dependent; this supports separating contracts, not adopting 5-6 bits as a universal threshold.",
+      "discriminating_test": "Report task accuracy and a distribution or trajectory-fidelity metric together; use paired token acceptance or KL-style measures before calling a quantization lossless.",
+      "metrics": {
+        "lowest_task_lossless_bits_per_parameter": 3.3,
+        "distribution_lossless_bits_per_parameter_range": [
+          5,
+          6
+        ]
+      },
+      "score": {
+        "surprise": 3,
+        "compression": 3,
+        "mechanistic_contact": 3,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 3,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "llamacpp-quantize-requant-warning",
+      "title": "llama.cpp warns that requantization can severely reduce quality",
+      "source_kind": "official_documentation",
+      "source_url": "https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md",
+      "published_at": "2026-06-05",
+      "method_family": "weight_quantization",
+      "primary_pattern": "conversion_pipeline_damage",
+      "secondary_patterns": [
+        "task_selective_quality"
+      ],
+      "failure_surfaces": [
+        "quality",
+        "conversion"
+      ],
+      "claim": "Nominal bit width is insufficient provenance: quantizing from already quantized tensors can cause avoidable damage compared with starting from FP16 or FP32.",
+      "observation": "The llama.cpp quantizer documents --allow-requantize with the warning that it 'can severely reduce quality compared to quantizing from 16bit or 32bit.' It separately recommends an importance matrix and higher precision for sensitive output, embedding, and multimodal tensors.",
+      "mechanism": "A second lossy projection compounds earlier quantization error, while indiscriminate tensor precision ignores unequal sensitivity.",
+      "mechanism_status": "confirmed",
+      "evidence_class": "verified_witness",
+      "evidence_limit": "An implementation warning rather than a controlled cross-model effect size; the page is mutable and captured as of the corpus date.",
+      "discriminating_test": "Record source-weight precision and hash; compare direct FP16-to-target quantization against requantization with matched recipe and task-separated evaluations.",
+      "score": {
+        "surprise": 1,
+        "compression": 3,
+        "mechanistic_contact": 2,
+        "generativity": 2,
+        "adjacency": 2,
+        "leverage": 2,
+        "transfer": 3,
+        "underpricing": 2,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "llamacpp-2094-low-bit-perplexity",
+      "title": "Historical GGUF data showed a steep low-bit perplexity penalty",
+      "source_kind": "github_discussion",
+      "source_url": "https://github.com/ggml-org/llama.cpp/discussions/2094",
+      "published_at": "2023-07-04",
+      "method_family": "weight_quantization",
+      "primary_pattern": "task_selective_quality",
+      "secondary_patterns": [
+        "evaluation_mismatch"
+      ],
+      "failure_surfaces": [
+        "perplexity",
+        "quality"
+      ],
+      "claim": "Low-bit labels conceal a nonlinear quality frontier even before task-specific failures are measured.",
+      "observation": "The archived llama.cpp quantizer table reported perplexity increases at 7B of +0.8698 for Q2_K, +0.2437 for Q3_K_M, +0.0535 for Q4_K_M, +0.0142 for Q5_K_M, +0.0044 for Q6_K, and +0.0004 for Q8_0.",
+      "mechanism": "Fewer representable values increase weight reconstruction error; K-quant mixtures allocate precision non-uniformly to reduce the penalty at a given file size.",
+      "mechanism_status": "confirmed",
+      "evidence_class": "verified_witness",
+      "evidence_limit": "Historical 7B perplexity figures are not universal across current architectures, calibration methods, or downstream capabilities.",
+      "discriminating_test": "Measure both perplexity and capability-specific behavior for the exact model and quantization recipe rather than importing generic Q4 or Q5 expectations.",
+      "metrics": {
+        "q2_k_perplexity_increase": 0.8698,
+        "q3_k_m_perplexity_increase": 0.2437,
+        "q4_k_m_perplexity_increase": 0.0535,
+        "q5_k_m_perplexity_increase": 0.0142,
+        "q6_k_perplexity_increase": 0.0044
+      },
+      "score": {
+        "surprise": 1,
+        "compression": 2,
+        "mechanistic_contact": 2,
+        "generativity": 2,
+        "adjacency": 3,
+        "leverage": 2,
+        "transfer": 2,
+        "underpricing": 1,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "arxiv-2607.08786-moderate-sparsity-kernel-gap",
+      "title": "Existing GPU sparse kernels lost to dense at quality-preserving sparsity",
+      "source_kind": "paper",
+      "source_url": "https://arxiv.org/abs/2607.08786",
+      "published_at": "2026-06-13",
+      "method_family": "unstructured_pruning",
+      "primary_pattern": "representation_overhead",
+      "secondary_patterns": [
+        "decode_economics",
+        "support_fragmentation"
+      ],
+      "failure_surfaces": [
+        "throughput",
+        "memory_representation",
+        "kernel_efficiency"
+      ],
+      "claim": "The moderate unstructured sparsity that best preserves model quality is exactly the regime where conventional GPU sparse kernels fail to beat dense execution.",
+      "observation": "The paper states that quality constraints typically limit unstructured pruning to about 50% sparsity and that, at those densities, none of the existing SpMM GPU kernels outperformed dense counterparts. Its specialized three-layer storage format and hybrid tensor/CUDA-core kernel were required to report up to 1.41x end-to-end speedup over FlashLLM.",
+      "mechanism": "At moderate density, index and decoding overhead, irregular memory access, and poor hardware utilization consume the skipped multiply benefit. Physical speedup required co-designing compression, on-chip decoding, and execution rather than merely zeroing weights.",
+      "mechanism_status": "confirmed",
+      "evidence_class": "demonstrated",
+      "evidence_limit": "The positive results are author-reported and compare with named prior sparse systems; they do not establish portability across every GPU, model, or workload.",
+      "discriminating_test": "Account for weight values, sparse metadata, decode cost, and real layer shapes; compare zero-masked dense, standard sparse, and specialized-format kernels end to end at equal quality.",
+      "metrics": {
+        "quality_preserving_sparsity_percent": 50,
+        "maximum_end_to_end_speedup_over_flashllm": 1.41,
+        "maximum_kernel_speedup_over_spinfer": 1.64
+      },
+      "score": {
+        "surprise": 3,
+        "compression": 3,
+        "mechanistic_contact": 3,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 3,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "x-2085977125845352679-q4-mtp-reply",
+      "title": "Thread reply claimed a Q4 floor and multi-GPU MTP failure",
+      "source_kind": "x_thread_reply",
+      "source_url": "https://x.com/tokenbender/status/2085977125845352679",
+      "published_at": "2026-08-08",
+      "method_family": "weight_quantization",
+      "primary_pattern": "support_fragmentation",
+      "secondary_patterns": [
+        "task_selective_quality",
+        "composition_incompatibility"
+      ],
+      "failure_surfaces": [
+        "quality",
+        "multi_user_serving",
+        "multi_gpu"
+      ],
+      "claim": "A practitioner asserted that Q4_K is the minimum acceptable weight precision and that multi-user MTP across GPUs does not work in llama.cpp.",
+      "observation": "In the seed thread, @SecPerkinsStan replied: 'Q4 k is minimum you can go, multi user mtp across gpus doesn't work in llama.cpp.' The thread author answered 'noting.'",
+      "mechanism": "No mechanism, model, hardware, runtime revision, workload, or receipt was supplied.",
+      "mechanism_status": "unknown",
+      "evidence_class": "claim_only",
+      "evidence_limit": "No stable reply permalink was recovered, and the assertion combines two distinct claims without reproduction details.",
+      "discriminating_test": "Split the claims: sweep Q3/Q4/Q5 quality on a named model and separately reproduce concurrent MTP across one and multiple GPUs with exact llama.cpp commits.",
+      "score": {
+        "surprise": 1,
+        "compression": 1,
+        "mechanistic_contact": 0,
+        "generativity": 2,
+        "adjacency": 2,
+        "leverage": 2,
+        "transfer": 1,
+        "underpricing": 2,
+        "actionability": 2
+      }
+    }
+    ,
+    {
+      "id": "llamacpp-25202-dsv4-quantized-kv-gibberish",
+      "title": "DeepSeek V4 quantized KV cache omitted its required rotation",
+      "source_kind": "github_pull_request",
+      "source_url": "https://github.com/ggml-org/llama.cpp/pull/25202",
+      "published_at": "2026-07-01",
+      "method_family": "kv_cache_quantization",
+      "primary_pattern": "stateful_precision_failure",
+      "secondary_patterns": [
+        "kernel_correctness",
+        "support_fragmentation"
+      ],
+      "failure_surfaces": [
+        "correctness",
+        "serving",
+        "long_context"
+      ],
+      "claim": "Quantizing a model-specific KV-cache layout can produce gibberish when the low-bit path omits a transformation that the floating-point cache applies.",
+      "observation": "llama.cpp PR #25202 found that DeepSeek V4 compressed CSA and HCA caches did not respect the Hadamard rotation when quantized. A reviewer reproduced nonsense on revision b9840 with Q2_K weights and q4_1 K/V caches, then confirmed normal output on the patched commit.",
+      "mechanism": "The quantized cache representation violated the model's cache geometry by skipping the required Hadamard rotation; the patch added the rotation and alignment padding.",
+      "mechanism_status": "confirmed",
+      "evidence_class": "demonstrated",
+      "evidence_limit": "Specific to DeepSeek V4 compressed caches and affected llama.cpp revisions; it does not imply that ordinary KV-cache quantization is generally corrupt.",
+      "discriminating_test": "Hold weights, prompt, sampler, and runtime fixed; compare floating-point and quantized K/V caches before and after the patch, including deterministic token traces at long context.",
+      "configuration": {
+        "model": "DeepSeek-V4-Flash Q2_K",
+        "runtime": "llama.cpp before PR #25202",
+        "kv_cache": "q4_1 keys and values",
+        "context_tokens": 131072
+      },
+      "supporting_urls": [
+        "https://x.com/danielhanchen/status/2074746255415431340"
+      ],
+      "score": {
+        "surprise": 3,
+        "compression": 3,
+        "mechanistic_contact": 3,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 3,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "reddit-1rgl42y-qwen-local-runtime-gibberish",
+      "title": "Qwen quantized locally failed across files while the API stayed normal",
+      "source_kind": "reddit_post",
+      "source_url": "https://www.reddit.com/r/LocalLLaMA/comments/1rgl42y/qwen_35_122b_hallucinates_horribly/",
+      "retrieval_url": "https://arctic-shift.photon-reddit.com/api/posts/ids?ids=1rgl42y",
+      "published_at": "2026-02-27",
+      "method_family": "weight_quantization",
+      "primary_pattern": "support_fragmentation",
+      "secondary_patterns": [
+        "kernel_correctness"
+      ],
+      "failure_surfaces": [
+        "correctness",
+        "code_generation",
+        "serving"
+      ],
+      "claim": "Catastrophic output from one local quantized deployment need not be intrinsic quantization loss when the hosted model is normal and changing quant files does not repair the failure.",
+      "observation": "A Windows llama.cpp user supplied the full Qwen3.5-122B-A10B Q4_0 launch command and a malformed bubble-sort response. The reporter later said the API was normal and that Q5_K_M, IQ4_XS, UD-IQ3_XXS, and files from two other quant providers also failed, while GPT-OSS-120B ran normally in the same installation.",
+      "mechanism": "The evidence localizes the failure to the model-runtime-configuration path more than to one quant file, but does not distinguish a llama.cpp implementation bug, chat template, sampler settings, CPU-MoE split, or file integrity.",
+      "mechanism_status": "unknown",
+      "evidence_class": "verified_witness",
+      "evidence_limit": "No local full-precision control, resolved upstream issue, or final fix was supplied; presence penalty, Windows, CPU expert offload, and runtime revision remain confounds.",
+      "discriminating_test": "Run the same prompt through API, local BF16, and several local quants with the provider-recommended template and sampler; then vary runtime revision and CPU-MoE offload one factor at a time.",
+      "configuration": {
+        "model": "Qwen3.5-122B-A10B",
+        "runtime": "llama.cpp revisions 8149 and 8179 on Windows 11",
+        "quantization": "Q4_0 plus unsuccessful Q5_K_M, IQ4_XS, and UD-IQ3_XXS controls",
+        "hardware": "RTX 3060 12GB with 64GB system RAM and 45 CPU-offloaded MoE layers"
+      },
+      "score": {
+        "surprise": 2,
+        "compression": 3,
+        "mechanistic_contact": 2,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 2,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "x-2085707841357140439-prefix-cache-conditioned-corruption",
+      "title": "A cache-busting retry rescued repeated low-bit tool-call corruption",
+      "source_kind": "x_post",
+      "source_url": "https://x.com/t0nil0/status/2085707841357140439",
+      "retrieval_url": "https://api.fxtwitter.com/status/2085707841357140439",
+      "published_at": "2026-08-07",
+      "method_family": "weight_quantization",
+      "primary_pattern": "stateful_precision_failure",
+      "secondary_patterns": [
+        "conversion_pipeline_damage",
+        "kernel_correctness"
+      ],
+      "failure_surfaces": [
+        "tool_calling",
+        "long_generation",
+        "correctness"
+      ],
+      "claim": "Some apparently random low-bit tool-call corruption can be deterministic with respect to prefix-cache state and disappear when a retry changes cached-prefix chunking.",
+      "observation": "A practitioner running a 2-3 bit DeepSeek V4 Flash GGUF reported the same tool-call opener corrupting on repeated runs after near-zero prefill. A nonce exchange used only on retries broke the shared prefix; the author reported 18 rescues from 18 corrupted calls and two long reasoning loops during a 42-item audit.",
+      "mechanism": "The author hypothesized that identical prefix-cache state preserved micro-batch chunking and marginal low-bit numerics, while a cache-busting nonce changed chunking enough to select a valid opener.",
+      "mechanism_status": "source_hypothesis",
+      "evidence_class": "suggestive",
+      "evidence_limit": "No promised reproduction script or raw audit log was linked. The same account later identified a withdrawn first-version GGUF and possible faulty RTX 5090 hardware as material confounds, so the cache mechanism is not isolated.",
+      "discriminating_test": "Replay one failing prompt at temperature zero over a factorial sweep of cache reuse, nonce insertion, micro-batch size, current versus withdrawn GGUF, and verified hardware; compare first-divergent logits and tool-opener tokens.",
+      "supporting_urls": [
+        "https://x.com/t0nil0/status/2085471277326688299"
+      ],
+      "score": {
+        "surprise": 3,
+        "compression": 3,
+        "mechanistic_contact": 2,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 3,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "x-2085067196703600740-reap-pruning-language-loss",
+      "title": "REAP pruning tied an extreme quant on agents but lost non-English",
+      "source_kind": "x_post",
+      "source_url": "https://x.com/superalesha/status/2085067196703600740",
+      "retrieval_url": "https://api.fxtwitter.com/status/2085067196703600740",
+      "published_at": "2026-08-05",
+      "method_family": "structured_pruning_plus_quantization",
+      "primary_pattern": "task_selective_quality",
+      "secondary_patterns": [
+        "evaluation_mismatch",
+        "pruning_recovery_gap",
+        "decode_economics"
+      ],
+      "failure_surfaces": [
+        "multilingual_quality",
+        "context_capacity",
+        "throughput"
+      ],
+      "claim": "Equal aggregate agent scores and equal memory budgets can hide a pruning-specific capability collapse that extreme quantization avoids.",
+      "observation": "On four RTX 3090 GPUs, a practitioner compared DeepSeek V4 Flash K160 REAP pruning at 3.99 bpw with an unpruned UD-IQ2_M build at 2.56 bpw. Both occupied 90GB and scored 118 versus 117 on 150 temperature-zero agent scenarios; K160 supported 256K context and 34-36 tok/s decode but reportedly lost non-English completely, while UD-IQ2_M retained all experts with a 128K ceiling and 38 tok/s.",
+      "mechanism": "The author guessed that an English calibration set preferentially retained experts active in English and dropped experts carrying rarer language behavior.",
+      "mechanism_status": "source_hypothesis",
+      "evidence_class": "suggestive",
+      "evidence_limit": "The post names the workload, scores, memory, throughput, and hardware, but does not link raw scenario outputs, language tests, pruning masks, or the promised launch-command reply.",
+      "discriminating_test": "At a matched 90GB budget, compare dense, unpruned low-bit, and K160 lanes on the same multilingual and agent suites; stratify router traffic and retained experts by calibration language.",
+      "metrics": {
+        "agent_scenarios": 150,
+        "k160_score": 118,
+        "ud_iq2_m_score": 117,
+        "memory_gb_each": 90,
+        "k160_retained_experts": 160,
+        "original_experts": 256
+      },
+      "score": {
+        "surprise": 3,
+        "compression": 3,
+        "mechanistic_contact": 2,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 3,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "arxiv-2208.07339-emergent-int8-outliers",
+      "title": "A handful of activation channels broke regular Int8 scaling",
+      "source_kind": "paper",
+      "source_url": "https://arxiv.org/abs/2208.07339",
+      "published_at": "2022-08-15",
+      "method_family": "activation_and_weight_quantization",
+      "primary_pattern": "outlier_sensitivity",
+      "secondary_patterns": [
+        "conversion_pipeline_damage"
+      ],
+      "failure_surfaces": [
+        "perplexity",
+        "zero_shot_quality",
+        "scaling"
+      ],
+      "claim": "Uniform Int8 scaling fails abruptly at model scale because a tiny set of systematic activation dimensions dominates prediction and consumes the quantizer's range.",
+      "observation": "Across transformer scales, regular Int8 methods failed once systematic outliers emerged around 6.7B parameters. At that scale about 150,000 outlier values per sequence concentrated in only six feature dimensions; zeroing those dimensions reduced top-1 attention probability mass by more than 20% and worsened perplexity by 600-1000%, while removing the same number of random features changed perplexity by about 0.1%.",
+      "mechanism": "A few high-magnitude activation dimensions set broad scaling constants and erase precision for ordinary values while themselves carrying disproportionate predictive signal. LLM.int8 isolated those dimensions in FP16 and multiplied more than 99.9% of values in Int8.",
+      "mechanism_status": "confirmed",
+      "evidence_class": "demonstrated",
+      "evidence_limit": "The experiments cover the studied dense transformer families and Int8 schemes; the 6.7B transition and exact outlier count are not universal constants for newer architectures or lower-bit weight-only methods.",
+      "discriminating_test": "Plot activation-channel magnitude and ablation sensitivity by layer before quantization; compare tensor-wise, vector-wise, and outlier-isolated lanes at matched checkpoints and tasks.",
+      "metrics": {
+        "emergence_scale_parameters": 6700000000,
+        "outlier_feature_dimensions": 6,
+        "attention_mass_drop_percent_more_than": 20,
+        "perplexity_degradation_percent_range": [
+          600,
+          1000
+        ],
+        "int8_value_fraction_more_than_percent": 99.9
+      },
+      "score": {
+        "surprise": 3,
+        "compression": 3,
+        "mechanistic_contact": 3,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 2,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "arxiv-2306.00978-awq-salient-channel-loss",
+      "title": "Activation-selected weights rescued catastrophic three-bit perplexity",
+      "source_kind": "paper",
+      "source_url": "https://arxiv.org/abs/2306.00978",
+      "published_at": "2023-06-01",
+      "method_family": "weight_quantization",
+      "primary_pattern": "outlier_sensitivity",
+      "secondary_patterns": [
+        "conversion_pipeline_damage",
+        "task_selective_quality"
+      ],
+      "failure_surfaces": [
+        "perplexity",
+        "coding",
+        "math"
+      ],
+      "claim": "Weight magnitude alone misses the channels most vulnerable to low-bit quantization; activation-conditioned salience can separate catastrophic from near-baseline quality.",
+      "observation": "Under INT3 group-size-128 quantization, round-to-nearest perplexity was 119.00 versus 14.62 FP16 on OPT-1.3B and 46.04 versus 10.13 on OPT-13B. Keeping only 1% of channels selected by activation magnitude in FP16 reduced those perplexities to 16.91 and 10.43, whereas weight-magnitude and random selection remained far worse.",
+      "mechanism": "Weights feeding large activation channels contribute more output error when rounded. AWQ protects those channels through an equivalent per-channel scaling transformation rather than a hardware-inefficient mixed-precision format.",
+      "mechanism_status": "confirmed",
+      "evidence_class": "demonstrated",
+      "evidence_limit": "The sharp cited ablation uses OPT models and INT3 group-size-128; AWQ's relative benefit varies by model, bit width, group size, calibration sample, and implementation.",
+      "discriminating_test": "For the same low-bit recipe, select protected channels by activation magnitude, weight magnitude, and random choice; compare layer output error, perplexity, and task-stratified quality.",
+      "metrics": {
+        "protected_channel_percent": 1,
+        "opt_1_3b_fp16_perplexity": 14.62,
+        "opt_1_3b_rtn_int3_perplexity": 119.0,
+        "opt_1_3b_activation_selected_perplexity": 16.91,
+        "opt_13b_fp16_perplexity": 10.13,
+        "opt_13b_rtn_int3_perplexity": 46.04,
+        "opt_13b_activation_selected_perplexity": 10.43
+      },
+      "score": {
+        "surprise": 2,
+        "compression": 3,
+        "mechanistic_contact": 3,
+        "generativity": 3,
+        "adjacency": 2,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 1,
+        "actionability": 3
+      }
+    },
+    {
+      "id": "arxiv-2411.07191-super-weight-ablation",
+      "title": "Zeroing one super weight collapsed a billion-parameter model",
+      "source_kind": "paper",
+      "source_url": "https://arxiv.org/abs/2411.07191",
+      "published_at": "2024-11-11",
+      "method_family": "weight_pruning_and_quantization",
+      "primary_pattern": "outlier_sensitivity",
+      "secondary_patterns": [
+        "pruning_recovery_gap",
+        "conversion_pipeline_damage"
+      ],
+      "failure_surfaces": [
+        "perplexity",
+        "zero_shot_quality",
+        "pruning"
+      ],
+      "claim": "Parameter count is a dangerous importance proxy: a single identified weight can carry enough model-wide signal that pruning it destroys generation.",
+      "observation": "The Super Weight paper reports that setting one identified parameter to zero can increase perplexity by three orders of magnitude and reduce zero-shot accuracy to guessing. The same weights induce rare, large activation outliers; preserving them in high precision improves simple round-to-nearest quantization.",
+      "mechanism": "A tiny set of super weights induces super activations that propagate disproportionate signal through the network, making uniform pruning and low-precision rounding structurally unsafe.",
+      "mechanism_status": "confirmed",
+      "evidence_class": "demonstrated",
+      "evidence_limit": "The identified coordinates and effect sizes are model-specific; the paper does not imply that every architecture has one universally dominant parameter or that all magnitude pruning removes it.",
+      "discriminating_test": "Measure single-weight ablation sensitivity and induced activation outliers before applying pruning or uniform quantization; explicitly preserve the high-causal-impact coordinates and rerun task suites.",
+      "score": {
+        "surprise": 3,
+        "compression": 3,
+        "mechanistic_contact": 3,
+        "generativity": 3,
+        "adjacency": 1,
+        "leverage": 3,
+        "transfer": 3,
+        "underpricing": 3,
+        "actionability": 3
+      }
+    }
+  ]
+}

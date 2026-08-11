@@ -1,0 +1,82 @@
+{
+  "as_of": "2026-08-08",
+  "window": {
+    "start": "2022-08-15",
+    "end": "2026-08-08"
+  },
+  "corpus": {
+    "records": 1640,
+    "source_groups": [
+      {
+        "label": "GitHub",
+        "count": 839
+      },
+      {
+        "label": "Reddit",
+        "count": 458
+      },
+      {
+        "label": "Hugging Face",
+        "count": 206
+      },
+      {
+        "label": "Hacker News",
+        "count": 114
+      },
+      {
+        "label": "Papers and official docs",
+        "count": 19
+      },
+      {
+        "label": "X",
+        "count": 4
+      }
+    ]
+  },
+  "tool_calling_cohort": {
+    "records": 101,
+    "evidence": {
+      "demonstrated": 39,
+      "verified_witness": 16,
+      "suggestive": 39,
+      "claim_only": 7,
+      "strong_total": 55
+    },
+    "mechanism_confirmed": 14,
+    "resolution": {
+      "unresolved": 43,
+      "unknown": 12,
+      "resolved": 11,
+      "mitigated": 32,
+      "not_applicable": 3
+    },
+    "single_source_lineage": 91,
+    "missing_exact_model_file": 51,
+    "operational_layers": [
+      {
+        "label": "Protocol, runtime, composition, or loading",
+        "count": 43
+      },
+      {
+        "label": "Model or task-selective behavior",
+        "count": 26
+      },
+      {
+        "label": "Representation, state, conversion, or kernels",
+        "count": 22
+      },
+      {
+        "label": "Economics, capacity, or serving overhead",
+        "count": 10
+      }
+    ]
+  },
+  "visible_nonsense_slice": {
+    "records": 220,
+    "lineages": 212,
+    "primary_labels": 15,
+    "confirmed_lineages": 37,
+    "runtime_pipeline_configuration_lineages": 34,
+    "other_lineages": 3
+  }
+}
