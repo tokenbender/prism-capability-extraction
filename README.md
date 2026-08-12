@@ -129,7 +129,7 @@ Start with `REPRODUCE.md` for task-level commands. The short version is:
 |---|---|
 | Arithmetic extraction | `code/src/circuit_tracing/`, `code/train_lora_2digit_kl.py`, and arithmetic evaluation scripts |
 | Translation rescue | `code/build_ntrex_en2pt_jsonl.py`, `code/train_masked_kl_conditioning.py`, and translation evaluation scripts |
-| Function calling | `code/scripts/load_bfcl_physical_bundle.py`, `code/scripts/bfcl_direct_qwen3.py`, and the Issue #18 receipts |
+| Function calling | `code/scripts/load_bfcl_physical_bundle.py`, `code/scripts/benchmark_bfcl_physical_throughput.py`, and the [Issue #19 physical-throughput receipt](results/bfcl/issue19_physical_throughput/README.md) |
 
 The repository keeps small receipts in `results/`. Public Hugging Face artifacts
 are pinned by immutable revision SHA in the manifest. The private Issue #18
